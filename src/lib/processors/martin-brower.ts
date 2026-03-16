@@ -125,6 +125,7 @@ export function processarMartinBrower(
   const colValorBruto = findColumn(sampleKeys, "Valor Bruto");
   const colFatura = findColumn(sampleKeys, "Nº da Fatura");
   const colDataVcto = findColumn(sampleKeys, "Data Vcto.") || findColumn(sampleKeys, "Data Vcto");
+  const colDataPagamento = findColumn(sampleKeys, "Data de Pagamento") || findColumn(sampleKeys, "Data Pagamento") || findColumn(sampleKeys, "Dt Pagamento");
 
   const documents: ProcessedDocument[] = [];
   const errors: ProcessingError[] = [];
@@ -132,6 +133,7 @@ export function processarMartinBrower(
   let totalValorBruto = 0;
   let totalLinhasIgnoradas = 0;
   let totalLinhasFiltradasData = 0;
+  let totalLinhasRemovidasPagamento = 0;
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
@@ -140,12 +142,18 @@ export function processarMartinBrower(
     const rawFaturaVal = colFatura ? row[colFatura] : undefined;
     const rawValorVal = colValorBruto ? row[colValorBruto] : undefined;
     const rawDataVcto = colDataVcto ? row[colDataVcto] : undefined;
+    const rawDataPagamento = colDataPagamento ? row[colDataPagamento] : undefined;
     const faturaStr = String(rawFaturaVal ?? "").trim();
     const valorStr = String(rawValorVal ?? "").trim();
     const dataVctoStr = parseExcelDate(rawDataVcto);
     const dataVctoDisplay = dataVctoStr
       ? `${dataVctoStr.slice(8, 10)}/${dataVctoStr.slice(5, 7)}/${dataVctoStr.slice(0, 4)}`
       : String(rawDataVcto ?? "").trim();
+
+    const dataPagStr = parseExcelDate(rawDataPagamento);
+    const dataPagDisplay = dataPagStr
+      ? `${dataPagStr.slice(8, 10)}/${dataPagStr.slice(5, 7)}/${dataPagStr.slice(0, 4)}`
+      : String(rawDataPagamento ?? "").trim();
 
     // Skip empty rows
     if (!faturaStr && !valorStr) {
@@ -165,11 +173,22 @@ export function processarMartinBrower(
       continue;
     }
 
+    // --- Filter: remove rows with Data de Pagamento filled ---
+    const hasPagamento = rawDataPagamento != null && String(rawDataPagamento).trim() !== "";
+    if (hasPagamento) {
+      totalLinhasRemovidasPagamento++;
+      if (preview.length < 20) {
+        const fd = isValidFatura(faturaStr) ? parseFatura(faturaStr) : { serie: "", documento: "" };
+        preview.push({ row: rowNum, dataVcto: dataVctoDisplay, dataPagamento: dataPagDisplay, faturaOriginal: faturaStr, serie: fd.serie, numeroDocumento: fd.documento, valorBrutoOriginal: valorStr, valorBrutoConvertido: null, status: "ignorada" });
+      }
+      continue;
+    }
+
     // --- Fatura must be filled ---
     if (!faturaStr) {
       totalLinhasIgnoradas++;
       if (preview.length < 20) {
-        preview.push({ row: rowNum, dataVcto: dataVctoDisplay, faturaOriginal: "", serie: "", numeroDocumento: "", valorBrutoOriginal: valorStr, valorBrutoConvertido: null, status: "ignorada" });
+        preview.push({ row: rowNum, dataVcto: dataVctoDisplay, dataPagamento: "", faturaOriginal: "", serie: "", numeroDocumento: "", valorBrutoOriginal: valorStr, valorBrutoConvertido: null, status: "ignorada" });
       }
       continue;
     }
@@ -178,7 +197,7 @@ export function processarMartinBrower(
     if (!isValidFatura(faturaStr)) {
       totalLinhasIgnoradas++;
       if (preview.length < 20) {
-        preview.push({ row: rowNum, dataVcto: dataVctoDisplay, faturaOriginal: faturaStr, serie: "", numeroDocumento: "", valorBrutoOriginal: valorStr, valorBrutoConvertido: null, status: "ignorada" });
+        preview.push({ row: rowNum, dataVcto: dataVctoDisplay, dataPagamento: "", faturaOriginal: faturaStr, serie: "", numeroDocumento: "", valorBrutoOriginal: valorStr, valorBrutoConvertido: null, status: "ignorada" });
       }
       continue;
     }
@@ -189,7 +208,7 @@ export function processarMartinBrower(
       const faturaData = parseFatura(faturaStr);
       errors.push({ row: rowNum, fatura: faturaStr, motivo: `Valor Bruto vazio ou inválido: "${valorStr}"` });
       if (preview.length < 20) {
-        preview.push({ row: rowNum, dataVcto: dataVctoDisplay, faturaOriginal: faturaStr, serie: faturaData.serie, numeroDocumento: faturaData.documento, valorBrutoOriginal: valorStr, valorBrutoConvertido: null, status: "erro" });
+        preview.push({ row: rowNum, dataVcto: dataVctoDisplay, dataPagamento: "", faturaOriginal: faturaStr, serie: faturaData.serie, numeroDocumento: faturaData.documento, valorBrutoOriginal: valorStr, valorBrutoConvertido: null, status: "erro" });
       }
       continue;
     }
@@ -210,6 +229,7 @@ export function processarMartinBrower(
       preview.push({
         row: rowNum,
         dataVcto: dataVctoDisplay,
+        dataPagamento: "",
         faturaOriginal: faturaStr,
         serie: faturaData.serie,
         numeroDocumento: faturaData.documento,
@@ -228,6 +248,7 @@ export function processarMartinBrower(
     totalDocumentos: documents.length,
     totalLinhasLidas,
     totalLinhasFiltradasData,
+    totalLinhasRemovidasPagamento,
     totalLinhasIgnoradas,
     totalLinhasValidas: documents.length,
     totalLinhasComErro: errors.length,

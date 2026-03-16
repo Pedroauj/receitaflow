@@ -275,7 +275,7 @@ const MartinBrower = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Resumo detalhado */}
-              <div className="grid gap-3 sm:grid-cols-5">
+              <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
                 <div className="rounded-lg bg-secondary/50 p-4">
                   <p className="text-xs text-muted-foreground mb-1">Linhas lidas</p>
                   <p className="text-2xl font-semibold tabular-nums text-foreground">
@@ -286,6 +286,12 @@ const MartinBrower = () => {
                   <p className="text-xs text-muted-foreground mb-1">Filtradas pela data</p>
                   <p className="text-2xl font-semibold tabular-nums text-foreground">
                     {result.totalLinhasLidas - result.totalLinhasFiltradasData - result.totalLinhasIgnoradas}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-secondary/50 p-4">
+                  <p className="text-xs text-muted-foreground mb-1">Já pagas</p>
+                  <p className="text-2xl font-semibold tabular-nums text-muted-foreground">
+                    {result.totalLinhasRemovidasPagamento}
                   </p>
                 </div>
                 <div className="rounded-lg bg-secondary/50 p-4">
@@ -377,6 +383,7 @@ const MartinBrower = () => {
                         <TableRow>
                           <TableHead>Linha</TableHead>
                           <TableHead>Data Vcto.</TableHead>
+                          <TableHead>Data Pagamento</TableHead>
                           <TableHead>Nº Fatura</TableHead>
                           <TableHead>Série</TableHead>
                           <TableHead>Nº Documento</TableHead>
@@ -389,6 +396,7 @@ const MartinBrower = () => {
                           <TableRow key={i}>
                             <TableCell className="tabular-nums">{p.row}</TableCell>
                             <TableCell className="text-sm">{p.dataVcto || "—"}</TableCell>
+                            <TableCell className="text-sm">{p.dataPagamento || "—"}</TableCell>
                             <TableCell className="font-mono text-sm">{p.faturaOriginal || "—"}</TableCell>
                             <TableCell className="text-sm">{p.serie || "—"}</TableCell>
                             <TableCell className="font-mono text-sm">{p.numeroDocumento || "—"}</TableCell>
