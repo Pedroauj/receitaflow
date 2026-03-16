@@ -19,14 +19,13 @@ import { addRecord } from "@/lib/history";
 const MartinBrower = () => {
   const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
-  const [dataVencimento, setDataVencimento] = useState<Date>();
   const [dataRecebimento, setDataRecebimento] = useState<Date>();
   const [valorBanco, setValorBanco] = useState("");
   const [result, setResult] = useState<ProcessingResult | null>(null);
   const [processing, setProcessing] = useState(false);
 
   const valorBancoNum = parseFloat(valorBanco.replace(",", ".")) || 0;
-  const canProcess = file && dataVencimento && dataRecebimento && valorBancoNum > 0;
+  const canProcess = file && dataRecebimento && valorBancoNum > 0;
 
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
