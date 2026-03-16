@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "@/hooks/use-toast";
 import { processarMartinBrower, gerarPlanilhaFinal } from "@/lib/processors/martin-brower";
 import type { ProcessingResult } from "@/lib/processors/types";
+import { addRecord } from "@/lib/history";
 
 const MartinBrower = () => {
   const navigate = useNavigate();
