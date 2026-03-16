@@ -41,8 +41,8 @@ const Index = () => {
           </h3>
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="card-elevated rounded-xl p-5 flex items-center gap-4">
-              <div className="h-11 w-11 rounded-xl bg-[hsl(215_90%_58%/0.12)] flex items-center justify-center shrink-0">
-                <FileSpreadsheet className="h-5 w-5 text-[hsl(215,90%,58%)]" />
+              <div className="h-11 w-11 rounded-xl bg-primary/12 flex items-center justify-center shrink-0">
+                <FileSpreadsheet className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-1">Planilhas</p>
@@ -50,8 +50,8 @@ const Index = () => {
               </div>
             </div>
             <div className="card-elevated rounded-xl p-5 flex items-center gap-4">
-              <div className="h-11 w-11 rounded-xl bg-[hsl(152_60%_46%/0.12)] flex items-center justify-center shrink-0">
-                <Hash className="h-5 w-5 text-success" />
+              <div className="h-11 w-11 rounded-xl bg-primary/12 flex items-center justify-center shrink-0">
+                <Hash className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-1">Documentos</p>
