@@ -14,7 +14,10 @@ export interface ProcessingError {
 
 export interface PreviewRow {
   row: number;
+  dataVcto: string;
   faturaOriginal: string;
+  serie: string;
+  numeroDocumento: string;
   valorBrutoOriginal: string;
   valorBrutoConvertido: number | null;
   status: "válida" | "erro" | "ignorada";
@@ -27,6 +30,7 @@ export interface ProcessingResult {
   totalValorBruto: number;
   totalDocumentos: number;
   totalLinhasLidas: number;
+  totalLinhasFiltradasData: number;
   totalLinhasIgnoradas: number;
   totalLinhasValidas: number;
   totalLinhasComErro: number;

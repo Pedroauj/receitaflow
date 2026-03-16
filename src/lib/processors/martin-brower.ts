@@ -52,10 +52,8 @@ function isSummaryRow(faturaRaw: string): boolean {
 
 /** Check if fatura is a valid document number starting with 36 or 1 */
 function isValidFatura(str: string): boolean {
-  // Must be purely numeric after cleanup
   const cleaned = str.replace(/[\s.\-\/]/g, "");
   if (!/^\d+$/.test(cleaned)) return false;
-  // Must start with 36 or 1
   return cleaned.startsWith("36") || cleaned.startsWith("1");
 }
 
@@ -65,99 +63,160 @@ function parseFatura(cleaned: string): { serie: string; documento: string } {
   if (str.startsWith("36") && str.length > 2) {
     return { serie: "36", documento: str.slice(2) };
   }
-  // starts with "1"
   return { serie: "1", documento: str.slice(1) };
 }
 
+/**
+ * Parse an Excel date value to a comparable string "yyyy-MM-dd".
+ * Handles both Excel serial numbers and string dates.
+ */
+function parseExcelDate(raw: unknown): string | null {
+  if (raw == null) return null;
+
+  // Excel serial number
+  if (typeof raw === "number") {
+    const d = XLSX.SSF.parse_date_code(raw);
+    if (!d) return null;
+    const yyyy = String(d.y).padStart(4, "0");
+    const mm = String(d.m).padStart(2, "0");
+    const dd = String(d.d).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  const str = String(raw).trim();
+  if (!str) return null;
+
+  // dd/MM/yyyy
+  const brMatch = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if (brMatch) {
+    return `${brMatch[3]}-${brMatch[2].padStart(2, "0")}-${brMatch[1].padStart(2, "0")}`;
+  }
+
+  // yyyy-MM-dd
+  const isoMatch = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoMatch) {
+    return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+  }
+
+  return null;
+}
+
+/** Format a JS Date to yyyy-MM-dd for comparison */
+function formatDateForCompare(date: Date): string {
+  const yyyy = String(date.getFullYear()).padStart(4, "0");
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 export function processarMartinBrower(
-  fileBuffer: ArrayBuffer
+  fileBuffer: ArrayBuffer,
+  dataVencimento: Date
 ): ProcessingResult {
   const workbook = XLSX.read(fileBuffer, { type: "array" });
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
   const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet);
 
   const totalLinhasLidas = rows.length;
+  const dataVctoAlvo = formatDateForCompare(dataVencimento);
 
   // Discover actual column names from first row
   const sampleKeys = rows.length > 0 ? Object.keys(rows[0]) : [];
   const colValorBruto = findColumn(sampleKeys, "Valor Bruto");
   const colFatura = findColumn(sampleKeys, "Nº da Fatura");
+  const colDataVcto = findColumn(sampleKeys, "Data Vcto.") || findColumn(sampleKeys, "Data Vcto");
 
   const documents: ProcessedDocument[] = [];
   const errors: ProcessingError[] = [];
   const preview: PreviewRow[] = [];
   let totalValorBruto = 0;
   let totalLinhasIgnoradas = 0;
+  let totalLinhasFiltradasData = 0;
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
-    const rowNum = i + 2; // +2 for header row + 0-index
+    const rowNum = i + 2;
 
     const rawFaturaVal = colFatura ? row[colFatura] : undefined;
     const rawValorVal = colValorBruto ? row[colValorBruto] : undefined;
+    const rawDataVcto = colDataVcto ? row[colDataVcto] : undefined;
     const faturaStr = String(rawFaturaVal ?? "").trim();
     const valorStr = String(rawValorVal ?? "").trim();
+    const dataVctoStr = parseExcelDate(rawDataVcto);
+    const dataVctoDisplay = dataVctoStr
+      ? `${dataVctoStr.slice(8, 10)}/${dataVctoStr.slice(5, 7)}/${dataVctoStr.slice(0, 4)}`
+      : String(rawDataVcto ?? "").trim();
 
-    // --- Ignorar linhas vazias ---
+    // Skip empty rows
     if (!faturaStr && !valorStr) {
       totalLinhasIgnoradas++;
-      if (preview.length < 20) {
-        preview.push({ row: rowNum, faturaOriginal: "", valorBrutoOriginal: "", valorBrutoConvertido: null, status: "ignorada" });
-      }
       continue;
     }
 
-    // --- Ignorar linhas de total/subtotal/resumo/cabeçalho repetido ---
+    // Skip summary/header rows
     if (isSummaryRow(faturaStr) || faturaStr.toLowerCase() === "nº da fatura") {
       totalLinhasIgnoradas++;
-      if (preview.length < 20) {
-        preview.push({ row: rowNum, faturaOriginal: faturaStr, valorBrutoOriginal: valorStr, valorBrutoConvertido: null, status: "ignorada" });
-      }
       continue;
     }
 
-    // --- Fatura precisa estar preenchida ---
+    // --- Filter by Data Vcto. ---
+    if (!dataVctoStr || dataVctoStr !== dataVctoAlvo) {
+      totalLinhasFiltradasData++;
+      continue;
+    }
+
+    // --- Fatura must be filled ---
     if (!faturaStr) {
       totalLinhasIgnoradas++;
       if (preview.length < 20) {
-        preview.push({ row: rowNum, faturaOriginal: "", valorBrutoOriginal: valorStr, valorBrutoConvertido: null, status: "ignorada" });
+        preview.push({ row: rowNum, dataVcto: dataVctoDisplay, faturaOriginal: "", serie: "", numeroDocumento: "", valorBrutoOriginal: valorStr, valorBrutoConvertido: null, status: "ignorada" });
       }
       continue;
     }
 
-    // --- Fatura precisa ser um documento válido (começa com 36 ou 1) ---
+    // --- Fatura must be valid (starts with 36 or 1) ---
     if (!isValidFatura(faturaStr)) {
       totalLinhasIgnoradas++;
       if (preview.length < 20) {
-        preview.push({ row: rowNum, faturaOriginal: faturaStr, valorBrutoOriginal: valorStr, valorBrutoConvertido: null, status: "ignorada" });
+        preview.push({ row: rowNum, dataVcto: dataVctoDisplay, faturaOriginal: faturaStr, serie: "", numeroDocumento: "", valorBrutoOriginal: valorStr, valorBrutoConvertido: null, status: "ignorada" });
       }
       continue;
     }
 
-    // --- Valor Bruto precisa estar preenchido e ser numérico ---
+    // --- Valor Bruto must be valid ---
     const valorBruto = parseValor(rawValorVal);
     if (valorBruto === null || valorBruto === 0) {
+      const faturaData = parseFatura(faturaStr);
       errors.push({ row: rowNum, fatura: faturaStr, motivo: `Valor Bruto vazio ou inválido: "${valorStr}"` });
       if (preview.length < 20) {
-        preview.push({ row: rowNum, faturaOriginal: faturaStr, valorBrutoOriginal: valorStr, valorBrutoConvertido: null, status: "erro" });
+        preview.push({ row: rowNum, dataVcto: dataVctoDisplay, faturaOriginal: faturaStr, serie: faturaData.serie, numeroDocumento: faturaData.documento, valorBrutoOriginal: valorStr, valorBrutoConvertido: null, status: "erro" });
       }
       continue;
     }
 
-    // --- Linha válida ---
+    // --- Valid row ---
     const faturaData = parseFatura(faturaStr);
     totalValorBruto += valorBruto;
 
     documents.push({
-      filial: "01",
+      filial: "1",
       serie: faturaData.serie,
       numeroDocumento: faturaData.documento,
-      tipoDocumento: "NF",
+      tipoDocumento: "CTRC",
       valorPago: Math.round(valorBruto * 100) / 100,
     });
 
     if (preview.length < 20) {
-      preview.push({ row: rowNum, faturaOriginal: faturaStr, valorBrutoOriginal: valorStr, valorBrutoConvertido: Math.round(valorBruto * 100) / 100, status: "válida" });
+      preview.push({
+        row: rowNum,
+        dataVcto: dataVctoDisplay,
+        faturaOriginal: faturaStr,
+        serie: faturaData.serie,
+        numeroDocumento: faturaData.documento,
+        valorBrutoOriginal: valorStr,
+        valorBrutoConvertido: Math.round(valorBruto * 100) / 100,
+        status: "válida",
+      });
     }
   }
 
@@ -168,6 +227,7 @@ export function processarMartinBrower(
     totalValorBruto: Math.round(totalValorBruto * 100) / 100,
     totalDocumentos: documents.length,
     totalLinhasLidas,
+    totalLinhasFiltradasData,
     totalLinhasIgnoradas,
     totalLinhasValidas: documents.length,
     totalLinhasComErro: errors.length,
