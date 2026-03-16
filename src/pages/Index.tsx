@@ -54,6 +54,7 @@ const recentActivities = [
 
 const Index = () => {
   const navigate = useNavigate();
+  const [showClientPicker, setShowClientPicker] = useState(false);
   const stats = getStats();
   const records = getRecords();
 
