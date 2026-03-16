@@ -43,9 +43,10 @@ const Index = () => {
               <History className="h-4 w-4 mr-1.5" />
               Histórico
             </Button>
-            <span className="text-xs text-muted-foreground bg-secondary/80 border border-border/50 px-2.5 py-1 rounded-full font-medium">v1.0</span>
+            <span className="text-xs text-primary/80 neon-border px-2.5 py-1 rounded-full font-medium">v1.0</span>
           </div>
         </div>
+        <div className="neon-line" />
       </motion.header>
 
       {/* Stats */}
