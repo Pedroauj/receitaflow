@@ -314,11 +314,11 @@ const MartinBrower = () => {
               </div>
 
               {/* Nenhuma linha encontrada */}
-              {result.totalLinhasFiltradas === 0 && (
+              {result.totalLinhasLidas === 0 && (
                 <div className="rounded-lg border border-border bg-secondary/30 p-4 flex items-center gap-3">
                   <Info className="h-5 w-5 text-muted-foreground shrink-0" />
                   <p className="text-sm text-muted-foreground">
-                    Nenhuma linha encontrada para a data de vencimento informada.
+                    A planilha não contém registros.
                   </p>
                 </div>
               )}
