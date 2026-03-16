@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { FileSpreadsheet, ArrowRight, Zap } from "lucide-react";
+import { FileSpreadsheet, ArrowRight, Zap, History, Hash, DollarSign } from "lucide-react";
 import { clients } from "@/lib/clients";
+import { getStats } from "@/lib/history";
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
