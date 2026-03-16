@@ -47,20 +47,20 @@ const MartinBrower = () => {
   }, []);
 
   const handleProcess = async () => {
-    if (!file || !dataVencimento) return;
+    if (!file || !dataRecebimento) return;
     setProcessing(true);
     try {
       const buffer = await file.arrayBuffer();
-      const res = processarMartinBrower(buffer, dataVencimento);
+      const res = processarMartinBrower(buffer);
       setResult(res);
 
       // Save to history
-      if (res.totalLinhasFiltradas > 0 && dataRecebimento) {
+      if (res.totalLinhasLidas > 0) {
         const statusConf = Math.abs(res.totalValorBruto - valorBancoNum) < 0.01 ? "confere" : "diverge";
         addRecord({
           cliente: "Martin Brower",
           dataProcessamento: new Date().toISOString(),
-          dataVencimento: dataVencimento.toISOString(),
+          dataVencimento: dataRecebimento.toISOString(),
           dataRecebimento: dataRecebimento.toISOString(),
           quantidadeDocumentos: res.totalDocumentos,
           valorTotal: res.totalValorBruto,
@@ -70,11 +70,10 @@ const MartinBrower = () => {
         });
       }
 
-
-      if (res.totalLinhasFiltradas === 0) {
+      if (res.totalLinhasLidas === 0) {
         toast({
           title: "Nenhuma linha encontrada",
-          description: "Não há registros com a data de vencimento informada.",
+          description: "A planilha não contém registros.",
           variant: "destructive",
         });
       } else {
