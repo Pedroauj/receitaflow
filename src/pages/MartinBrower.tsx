@@ -55,6 +55,23 @@ const MartinBrower = () => {
       const res = processarMartinBrower(buffer, dataVencimento);
       setResult(res);
 
+      // Save to history
+      if (res.totalLinhasFiltradas > 0 && dataRecebimento) {
+        const statusConf = Math.abs(res.totalValorBruto - valorBancoNum) < 0.01 ? "confere" : "diverge";
+        addRecord({
+          cliente: "Martin Brower",
+          dataProcessamento: new Date().toISOString(),
+          dataVencimento: dataVencimento.toISOString(),
+          dataRecebimento: dataRecebimento.toISOString(),
+          quantidadeDocumentos: res.totalDocumentos,
+          valorTotal: res.totalValorBruto,
+          valorInformadoBanco: valorBancoNum,
+          statusConferencia: statusConf,
+          quantidadeErros: res.totalLinhasComErro,
+        });
+      }
+
+
       if (res.totalLinhasFiltradas === 0) {
         toast({
           title: "Nenhuma linha encontrada",
