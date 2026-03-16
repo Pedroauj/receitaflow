@@ -229,6 +229,7 @@ export function processarMartinBrower(
       preview.push({
         row: rowNum,
         dataVcto: dataVctoDisplay,
+        dataPagamento: "",
         faturaOriginal: faturaStr,
         serie: faturaData.serie,
         numeroDocumento: faturaData.documento,
