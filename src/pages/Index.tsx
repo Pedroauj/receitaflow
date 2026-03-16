@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FileSpreadsheet,
@@ -10,8 +11,9 @@ import {
   Eye,
   ArrowRight,
   Clock,
+  X,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { clients } from "@/lib/clients";
 import { getStats, getRecords } from "@/lib/history";
 import { Button } from "@/components/ui/button";
