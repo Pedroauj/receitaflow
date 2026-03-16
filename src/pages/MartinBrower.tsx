@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "@/hooks/use-toast";
 import { processarMartinBrower, gerarPlanilhaFinal } from "@/lib/processors/martin-brower";
 import type { ProcessingResult } from "@/lib/processors/types";
+import { addRecord } from "@/lib/history";
 
 const MartinBrower = () => {
   const navigate = useNavigate();
@@ -53,6 +54,23 @@ const MartinBrower = () => {
       const buffer = await file.arrayBuffer();
       const res = processarMartinBrower(buffer, dataVencimento);
       setResult(res);
+
+      // Save to history
+      if (res.totalLinhasFiltradas > 0 && dataRecebimento) {
+        const statusConf = Math.abs(res.totalValorBruto - valorBancoNum) < 0.01 ? "confere" : "diverge";
+        addRecord({
+          cliente: "Martin Brower",
+          dataProcessamento: new Date().toISOString(),
+          dataVencimento: dataVencimento.toISOString(),
+          dataRecebimento: dataRecebimento.toISOString(),
+          quantidadeDocumentos: res.totalDocumentos,
+          valorTotal: res.totalValorBruto,
+          valorInformadoBanco: valorBancoNum,
+          statusConferencia: statusConf,
+          quantidadeErros: res.totalLinhasComErro,
+        });
+      }
+
 
       if (res.totalLinhasFiltradas === 0) {
         toast({

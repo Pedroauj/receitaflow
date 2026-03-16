@@ -1,11 +1,13 @@
 import { useNavigate } from "react-router-dom";
-import { FileSpreadsheet, ArrowRight, Zap } from "lucide-react";
+import { FileSpreadsheet, ArrowRight, Zap, History, Hash, DollarSign } from "lucide-react";
 import { clients } from "@/lib/clients";
+import { getStats } from "@/lib/history";
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const navigate = useNavigate();
+  const stats = getStats();
 
   return (
     <div className="min-h-screen bg-background">
@@ -22,6 +24,10 @@ const Index = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" onClick={() => navigate("/historico")}>
+              <History className="h-4 w-4 mr-1.5" />
+              Histórico
+            </Button>
             <span className="text-xs text-muted-foreground bg-secondary px-2.5 py-1 rounded-full font-medium">v1.0</span>
           </div>
         </div>
@@ -42,6 +48,46 @@ const Index = () => {
           </p>
         </div>
       </div>
+
+      {/* Stats */}
+      {stats.totalPlanilhas > 0 && (
+        <div className="max-w-5xl mx-auto px-6 pb-8">
+          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-4">
+            Estatísticas gerais
+          </h3>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="rounded-lg bg-secondary/50 p-4 flex items-center gap-3">
+              <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <FileSpreadsheet className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Planilhas processadas</p>
+                <p className="text-lg font-semibold tabular-nums text-foreground">{stats.totalPlanilhas}</p>
+              </div>
+            </div>
+            <div className="rounded-lg bg-secondary/50 p-4 flex items-center gap-3">
+              <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <Hash className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Documentos processados</p>
+                <p className="text-lg font-semibold tabular-nums text-foreground">{stats.totalDocumentos}</p>
+              </div>
+            </div>
+            <div className="rounded-lg bg-secondary/50 p-4 flex items-center gap-3">
+              <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <DollarSign className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Valor total processado</p>
+                <p className="text-lg font-semibold tabular-nums text-foreground">
+                  {stats.valorTotalProcessado.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Clients grid */}
       <main className="max-w-5xl mx-auto px-6 pb-20">
