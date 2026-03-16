@@ -19,7 +19,7 @@ const ClientePlaceholder = ({ clientName }: ClientePlaceholderProps) => {
         className="flex items-center gap-3 mb-8"
       >
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/dashboard")}
           className="h-8 w-8 rounded-lg flex items-center justify-center transition-colors"
           style={{ background: "#1E1E20", border: "0.5px solid #2C2C2A", color: "#888780" }}
           onMouseEnter={(e) => { e.currentTarget.style.background = "#412402"; e.currentTarget.style.color = "#FAC775"; }}
@@ -57,7 +57,7 @@ const ClientePlaceholder = ({ clientName }: ClientePlaceholderProps) => {
         </p>
         <Button
           className="mt-6 gradient-btn border-0 text-xs h-9 px-5"
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/dashboard")}
         >
           Voltar ao dashboard
         </Button>
