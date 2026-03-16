@@ -57,7 +57,7 @@ const ClientePlaceholder = ({ clientName }: ClientePlaceholderProps) => {
         </p>
         <Button
           className="mt-6 gradient-btn border-0 text-xs h-9 px-5"
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/dashboard")}
         >
           Voltar ao dashboard
         </Button>
