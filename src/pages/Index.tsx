@@ -40,9 +40,6 @@ const Index = () => {
             <FileSpreadsheet className="h-3.5 w-3.5" />
             Importação financeira automatizada
           </div>
-          <h2 className="text-3xl font-bold text-foreground tracking-tight mb-3">
-            Converta planilhas de clientes em segundos
-          </h2>
           <p className="text-muted-foreground leading-relaxed">
             Selecione um cliente abaixo para iniciar a conversão da planilha para o formato de importação financeira.
           </p>
