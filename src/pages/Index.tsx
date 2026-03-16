@@ -112,7 +112,7 @@ const Index = () => {
           <Button
             size="sm"
             className="h-8 text-xs gradient-btn border-0"
-            onClick={() => navigate("/cliente/martin-brower")}
+            onClick={() => setShowClientPicker(true)}
           >
             <Plus className="h-3.5 w-3.5 mr-1.5" />
             Nova conversão
