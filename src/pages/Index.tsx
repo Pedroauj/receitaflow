@@ -276,7 +276,7 @@ const Index = () => {
             <button
               className="w-full h-9 rounded-lg text-xs font-medium flex items-center justify-center gap-2 transition-colors"
               style={{ border: "0.5px solid #633806", color: "#FAC775", background: "transparent" }}
-              onClick={() => navigate("/cliente/martin-brower")}
+              onClick={() => setShowClientPicker(true)}
               onMouseEnter={(e) => (e.currentTarget.style.background = "#412402")}
               onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
             >
