@@ -7,6 +7,7 @@ import Index from "./pages/Index.tsx";
 import MartinBrower from "./pages/MartinBrower.tsx";
 import Historico from "./pages/Historico.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import ClientePlaceholder from "./pages/ClientePlaceholder.tsx";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +20,11 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/cliente/martin-brower" element={<MartinBrower />} />
+          <Route path="/cliente/minerva" element={<ClientePlaceholder clientName="Minerva" />} />
+          <Route path="/cliente/danone" element={<ClientePlaceholder clientName="Danone" />} />
+          <Route path="/cliente/platlog" element={<ClientePlaceholder clientName="Platlog" />} />
+          <Route path="/cliente/jbs" element={<ClientePlaceholder clientName="JBS" />} />
+          <Route path="/cliente/natura" element={<ClientePlaceholder clientName="Natura" />} />
           <Route path="/historico" element={<Historico />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
