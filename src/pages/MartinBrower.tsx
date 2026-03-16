@@ -275,7 +275,7 @@ const MartinBrower = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Resumo detalhado */}
-              <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+              <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
                 <div className="rounded-lg bg-secondary/50 p-4">
                   <p className="text-xs text-muted-foreground mb-1">Linhas lidas</p>
                   <p className="text-2xl font-semibold tabular-nums text-foreground">
@@ -283,27 +283,33 @@ const MartinBrower = () => {
                   </p>
                 </div>
                 <div className="rounded-lg bg-secondary/50 p-4">
-                  <p className="text-xs text-muted-foreground mb-1">Filtradas pela data</p>
+                  <p className="text-xs text-muted-foreground mb-1">Filtradas por Data Vcto.</p>
                   <p className="text-2xl font-semibold tabular-nums text-foreground">
-                    {result.totalLinhasLidas - result.totalLinhasFiltradasData - result.totalLinhasIgnoradas}
+                    {result.totalLinhasFiltradasData}
                   </p>
                 </div>
                 <div className="rounded-lg bg-secondary/50 p-4">
-                  <p className="text-xs text-muted-foreground mb-1">Já pagas</p>
+                  <p className="text-xs text-muted-foreground mb-1">Pgto vazio</p>
+                  <p className="text-2xl font-semibold tabular-nums text-foreground">
+                    {result.totalLinhasPagamentoVazio}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-secondary/50 p-4">
+                  <p className="text-xs text-muted-foreground mb-1">Pgto preenchido</p>
+                  <p className="text-2xl font-semibold tabular-nums text-muted-foreground">
+                    {result.totalLinhasPagamentoPreenchido}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-secondary/50 p-4">
+                  <p className="text-xs text-muted-foreground mb-1">Removidas por pagamento</p>
                   <p className="text-2xl font-semibold tabular-nums text-muted-foreground">
                     {result.totalLinhasRemovidasPagamento}
                   </p>
                 </div>
                 <div className="rounded-lg bg-secondary/50 p-4">
-                  <p className="text-xs text-muted-foreground mb-1">Válidas</p>
+                  <p className="text-xs text-muted-foreground mb-1">Válidas finais</p>
                   <p className="text-2xl font-semibold tabular-nums text-foreground">
                     {result.totalLinhasValidas}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-secondary/50 p-4">
-                  <p className="text-xs text-muted-foreground mb-1">Ignoradas</p>
-                  <p className="text-2xl font-semibold tabular-nums text-muted-foreground">
-                    {result.totalLinhasIgnoradas}
                   </p>
                 </div>
                 <div className="rounded-lg bg-secondary/50 p-4">
@@ -318,7 +324,7 @@ const MartinBrower = () => {
               </div>
 
               {/* Valores e status */}
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <div className="rounded-lg bg-secondary/50 p-4">
                   <p className="text-xs text-muted-foreground mb-1">Total processado</p>
                   <p className="text-lg font-semibold tabular-nums text-foreground">
@@ -329,6 +335,15 @@ const MartinBrower = () => {
                   <p className="text-xs text-muted-foreground mb-1">Valor banco</p>
                   <p className="text-lg font-semibold tabular-nums text-foreground">
                     {formatBRL(valorBancoNum)}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-secondary/50 p-4">
+                  <p className="text-xs text-muted-foreground mb-1">Diferença</p>
+                  <p className={cn(
+                    "text-lg font-semibold tabular-nums",
+                    diferenca === 0 ? "text-success" : "text-destructive"
+                  )}>
+                    {formatBRL(diferenca)}
                   </p>
                 </div>
                 <div
@@ -352,7 +367,7 @@ const MartinBrower = () => {
                         confere ? "text-success" : "text-destructive"
                       )}
                     >
-                      {confere ? "Confere" : `Diverge (${formatBRL(diferenca)})`}
+                      {confere ? "Confere" : "Diverge"}
                     </span>
                   </div>
                 </div>
@@ -363,7 +378,7 @@ const MartinBrower = () => {
                 <div className="rounded-lg border border-border bg-secondary/30 p-4 flex items-center gap-3">
                   <Info className="h-5 w-5 text-muted-foreground shrink-0" />
                   <p className="text-sm text-muted-foreground">
-                    Nenhum documento válido encontrado para a data de vencimento selecionada.
+                    Nenhum documento em aberto foi encontrado para a data de vencimento selecionada.
                   </p>
                 </div>
               )}
@@ -374,7 +389,7 @@ const MartinBrower = () => {
                   <div className="flex items-center gap-2 mb-3">
                     <Info className="h-4 w-4 text-muted-foreground" />
                     <p className="text-sm font-medium text-foreground">
-                      Preview de validação (primeiras {result.preview.length} linhas filtradas)
+                      Preview de validação (primeiras {result.preview.length} linhas após o filtro de Data Vcto.)
                     </p>
                   </div>
                   <div className="max-h-72 overflow-auto rounded-lg">
@@ -385,8 +400,6 @@ const MartinBrower = () => {
                           <TableHead>Data Vcto.</TableHead>
                           <TableHead>Data Pagamento</TableHead>
                           <TableHead>Nº Fatura</TableHead>
-                          <TableHead>Série</TableHead>
-                          <TableHead>Nº Documento</TableHead>
                           <TableHead>Valor Bruto</TableHead>
                           <TableHead>Status</TableHead>
                         </TableRow>
@@ -398,17 +411,15 @@ const MartinBrower = () => {
                             <TableCell className="text-sm">{p.dataVcto || "—"}</TableCell>
                             <TableCell className="text-sm">{p.dataPagamento || "—"}</TableCell>
                             <TableCell className="font-mono text-sm">{p.faturaOriginal || "—"}</TableCell>
-                            <TableCell className="text-sm">{p.serie || "—"}</TableCell>
-                            <TableCell className="font-mono text-sm">{p.numeroDocumento || "—"}</TableCell>
                             <TableCell className="tabular-nums text-sm">
-                              {p.valorBrutoConvertido != null ? formatBRL(p.valorBrutoConvertido) : p.valorBrutoOriginal || "—"}
+                              {p.valorBrutoOriginal || (p.valorBrutoConvertido != null ? formatBRL(p.valorBrutoConvertido) : "—")}
                             </TableCell>
                             <TableCell>
                               <span className={cn(
                                 "text-xs font-medium px-2 py-0.5 rounded-full",
                                 p.status === "válida" && "bg-success/10 text-success",
                                 p.status === "erro" && "bg-destructive/10 text-destructive",
-                                p.status === "ignorada" && "bg-secondary text-muted-foreground",
+                                p.status === "removida por pagamento" && "bg-secondary text-muted-foreground",
                               )}>
                                 {p.status}
                               </span>
