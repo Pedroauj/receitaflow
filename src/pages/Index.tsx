@@ -132,30 +132,23 @@ const Index = () => {
                 variants={fadeUp}
               >
                 <div
-                  className="card-elevated rounded-lg p-5 cursor-pointer group flex flex-col justify-between h-full"
+                  className="card-elevated rounded-lg px-5 py-4 cursor-pointer group flex items-center gap-4"
                   onClick={() => navigate(client.route)}
                 >
-                  <div>
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                        <FileSpreadsheet className="h-4 w-4 text-primary" />
-                      </div>
-                      <h3 className="text-sm font-semibold text-foreground">{client.name}</h3>
-                    </div>
-                    <p className="text-xs text-muted-foreground leading-relaxed mb-4">
-                      {client.description}
-                    </p>
+                  <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <FileSpreadsheet className="h-4 w-4 text-primary" />
                   </div>
+                  <h3 className="text-sm font-semibold text-foreground flex-1">{client.name}</h3>
                   <Button
                     size="sm"
-                    className="w-full justify-between gradient-btn text-white text-xs font-medium border-0 rounded-md h-8"
+                    className="gradient-btn text-white text-xs font-medium border-0 rounded-md h-8 px-4 shrink-0"
                     onClick={(e) => {
                       e.stopPropagation();
                       navigate(client.route);
                     }}
                   >
-                    Abrir
-                    <ChevronRight className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
+                    Abrir conversor
+                    <ChevronRight className="h-3.5 w-3.5 ml-1 opacity-60 group-hover:opacity-100 transition-opacity" />
                   </Button>
                 </div>
               </motion.div>
