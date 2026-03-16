@@ -9,17 +9,38 @@ import {
 } from "lucide-react";
 import { getRecords } from "@/lib/history";
 
+const navItems = [
+  {
+    label: "Principal",
+    items: [
+      { title: "Dashboard", icon: LayoutDashboard, path: "/" },
+      { title: "Histórico", icon: History, path: "/historico", showBadge: true },
+      { title: "Em andamento", icon: Loader2, path: "/em-andamento" },
+    ],
+  },
+  {
+    label: "Configurações",
+    items: [
+      { title: "Clientes", icon: Users, path: "/clientes" },
+      { title: "Configurações", icon: Settings, path: "/configuracoes" },
+    ],
+  },
+];
+
 const DashboardSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const historyCount = getRecords().length;
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => {
+    if (path === "/") return location.pathname === "/";
+    return location.pathname.startsWith(path);
+  };
 
   return (
     <aside className="sidebar-nav fixed left-0 top-0 bottom-0 w-[220px] flex flex-col z-50">
       {/* Logo */}
-      <div className="px-5 py-5 flex items-center gap-3">
+      <div className="px-5 py-5 flex items-center gap-3 cursor-pointer" onClick={() => navigate("/")}>
         <div
           className="h-9 w-9 rounded-lg flex items-center justify-center"
           style={{ background: "#412402" }}
@@ -38,48 +59,26 @@ const DashboardSidebar = () => {
 
       {/* Nav sections */}
       <nav className="flex-1 px-3 pt-6 space-y-6 overflow-y-auto">
-        {/* Principal */}
-        <div>
-          <p className="sidebar-label">Principal</p>
-          <div className="space-y-1">
-            <div
-              className={`sidebar-item ${isActive("/") ? "active" : ""}`}
-              onClick={() => navigate("/")}
-            >
-              <LayoutDashboard className="h-4 w-4" />
-              <span>Dashboard</span>
-            </div>
-            <div
-              className={`sidebar-item ${isActive("/historico") ? "active" : ""}`}
-              onClick={() => navigate("/historico")}
-            >
-              <History className="h-4 w-4" />
-              <span className="flex-1">Histórico</span>
-              {historyCount > 0 && (
-                <span className="amber-badge">{historyCount}</span>
-              )}
-            </div>
-            <div className="sidebar-item">
-              <Loader2 className="h-4 w-4" />
-              <span>Em andamento</span>
+        {navItems.map((section) => (
+          <div key={section.label}>
+            <p className="sidebar-label">{section.label}</p>
+            <div className="space-y-1">
+              {section.items.map((item) => (
+                <div
+                  key={item.path}
+                  className={`sidebar-item ${isActive(item.path) ? "active" : ""}`}
+                  onClick={() => navigate(item.path)}
+                >
+                  <item.icon className="h-4 w-4" />
+                  <span className="flex-1">{item.title}</span>
+                  {item.showBadge && historyCount > 0 && (
+                    <span className="amber-badge">{historyCount}</span>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
-        </div>
-
-        {/* Configurações */}
-        <div>
-          <p className="sidebar-label">Configurações</p>
-          <div className="space-y-1">
-            <div className="sidebar-item">
-              <Users className="h-4 w-4" />
-              <span>Clientes</span>
-            </div>
-            <div className="sidebar-item">
-              <Settings className="h-4 w-4" />
-              <span>Configurações</span>
-            </div>
-          </div>
-        </div>
+        ))}
       </nav>
 
       {/* User avatar */}
