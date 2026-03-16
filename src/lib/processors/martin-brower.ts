@@ -208,7 +208,7 @@ export function processarMartinBrower(
       const faturaData = parseFatura(faturaStr);
       errors.push({ row: rowNum, fatura: faturaStr, motivo: `Valor Bruto vazio ou inválido: "${valorStr}"` });
       if (preview.length < 20) {
-        preview.push({ row: rowNum, dataVcto: dataVctoDisplay, faturaOriginal: faturaStr, serie: faturaData.serie, numeroDocumento: faturaData.documento, valorBrutoOriginal: valorStr, valorBrutoConvertido: null, status: "erro" });
+        preview.push({ row: rowNum, dataVcto: dataVctoDisplay, dataPagamento: "", faturaOriginal: faturaStr, serie: faturaData.serie, numeroDocumento: faturaData.documento, valorBrutoOriginal: valorStr, valorBrutoConvertido: null, status: "erro" });
       }
       continue;
     }
