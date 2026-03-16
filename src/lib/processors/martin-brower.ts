@@ -248,6 +248,7 @@ export function processarMartinBrower(
     totalDocumentos: documents.length,
     totalLinhasLidas,
     totalLinhasFiltradasData,
+    totalLinhasRemovidasPagamento,
     totalLinhasIgnoradas,
     totalLinhasValidas: documents.length,
     totalLinhasComErro: errors.length,
