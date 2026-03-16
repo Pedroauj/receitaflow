@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ArrowLeft, Upload, CalendarIcon, Download, AlertTriangle, CheckCircle2, XCircle, FileCheck, Info } from "lucide-react";
+import { ArrowLeft, Upload, CalendarIcon, Download, AlertTriangle, CheckCircle2, XCircle, FileCheck, Info, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -105,14 +105,17 @@ const MartinBrower = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border">
+      <header className="border-b border-border/50">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
+          <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-5 w-5" />
           </Button>
+          <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+            <Zap className="h-4 w-4 text-primary" />
+          </div>
           <div>
-            <h1 className="text-lg font-semibold text-foreground">Martin Brower</h1>
-            <p className="text-sm text-muted-foreground">Baixa por aviso bancário</p>
+            <h1 className="text-base font-semibold text-foreground tracking-tight">Martin Brower</h1>
+            <p className="text-xs text-muted-foreground">Baixa por aviso bancário</p>
           </div>
         </div>
       </header>
@@ -121,25 +124,35 @@ const MartinBrower = () => {
         {/* Upload */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Planilha de entrada</CardTitle>
+            <CardTitle className="text-sm font-semibold tracking-tight">Planilha de entrada</CardTitle>
           </CardHeader>
           <CardContent>
             <div
               onDragOver={(e) => e.preventDefault()}
               onDrop={handleDrop}
-              className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 transition-colors"
+              className="border border-dashed border-border rounded-xl p-10 text-center cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-all"
               onClick={() => document.getElementById("file-input")?.click()}
             >
               {file ? (
-                <div className="flex items-center justify-center gap-2">
-                  <FileCheck className="h-6 w-6 text-primary" />
-                  <p className="text-sm font-medium text-foreground">{file.name}</p>
+                <div className="flex items-center justify-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <FileCheck className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-medium text-foreground">{file.name}</p>
+                    <p className="text-xs text-muted-foreground">Clique para trocar o arquivo</p>
+                  </div>
                 </div>
               ) : (
                 <>
-                  <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-3" />
-                  <p className="text-sm text-muted-foreground">
-                    Arraste um arquivo .xls ou .xlsx ou clique para selecionar
+                  <div className="h-12 w-12 rounded-xl bg-secondary flex items-center justify-center mx-auto mb-4">
+                    <Upload className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <p className="text-sm text-foreground font-medium mb-1">
+                    Arraste ou clique para selecionar
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Formatos aceitos: .xls, .xlsx
                   </p>
                 </>
               )}
@@ -157,13 +170,12 @@ const MartinBrower = () => {
         {/* Parâmetros */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Parâmetros</CardTitle>
+            <CardTitle className="text-sm font-semibold tracking-tight">Parâmetros</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 sm:grid-cols-3">
-              {/* Data Vencimento */}
               <div className="space-y-2">
-                <Label>Data de vencimento</Label>
+                <Label className="text-xs text-muted-foreground">Data de vencimento</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -174,9 +186,7 @@ const MartinBrower = () => {
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dataVencimento
-                        ? format(dataVencimento, "dd/MM/yyyy")
-                        : "Selecionar"}
+                      {dataVencimento ? format(dataVencimento, "dd/MM/yyyy") : "Selecionar"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -191,9 +201,8 @@ const MartinBrower = () => {
                 </Popover>
               </div>
 
-              {/* Data Recebimento */}
               <div className="space-y-2">
-                <Label>Data de recebimento</Label>
+                <Label className="text-xs text-muted-foreground">Data de recebimento</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -204,9 +213,7 @@ const MartinBrower = () => {
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dataRecebimento
-                        ? format(dataRecebimento, "dd/MM/yyyy")
-                        : "Selecionar"}
+                      {dataRecebimento ? format(dataRecebimento, "dd/MM/yyyy") : "Selecionar"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -221,9 +228,8 @@ const MartinBrower = () => {
                 </Popover>
               </div>
 
-              {/* Valor Banco */}
               <div className="space-y-2">
-                <Label>Valor recebido no banco (R$)</Label>
+                <Label className="text-xs text-muted-foreground">Valor recebido no banco (R$)</Label>
                 <Input
                   type="text"
                   inputMode="decimal"
@@ -249,30 +255,30 @@ const MartinBrower = () => {
         {result && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Resultado do Processamento</CardTitle>
+              <CardTitle className="text-sm font-semibold tracking-tight">Resultado do Processamento</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Resumo detalhado */}
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <div className="rounded-lg border border-border p-4">
+                <div className="rounded-lg bg-secondary/50 p-4">
                   <p className="text-xs text-muted-foreground mb-1">Linhas lidas</p>
                   <p className="text-2xl font-semibold tabular-nums text-foreground">
                     {result.totalLinhasLidas}
                   </p>
                 </div>
-                <div className="rounded-lg border border-border p-4">
+                <div className="rounded-lg bg-secondary/50 p-4">
                   <p className="text-xs text-muted-foreground mb-1">Filtradas pela data</p>
                   <p className="text-2xl font-semibold tabular-nums text-foreground">
                     {result.totalLinhasFiltradas}
                   </p>
                 </div>
-                <div className="rounded-lg border border-border p-4">
+                <div className="rounded-lg bg-secondary/50 p-4">
                   <p className="text-xs text-muted-foreground mb-1">Válidas</p>
                   <p className="text-2xl font-semibold tabular-nums text-foreground">
                     {result.totalLinhasValidas}
                   </p>
                 </div>
-                <div className="rounded-lg border border-border p-4">
+                <div className="rounded-lg bg-secondary/50 p-4">
                   <p className="text-xs text-muted-foreground mb-1">Com erro</p>
                   <p className={cn(
                     "text-2xl font-semibold tabular-nums",
@@ -285,13 +291,13 @@ const MartinBrower = () => {
 
               {/* Valores e status */}
               <div className="grid gap-3 sm:grid-cols-3">
-                <div className="rounded-lg border border-border p-4">
+                <div className="rounded-lg bg-secondary/50 p-4">
                   <p className="text-xs text-muted-foreground mb-1">Total processado</p>
                   <p className="text-lg font-semibold tabular-nums text-foreground">
                     {formatBRL(result.totalValorBruto)}
                   </p>
                 </div>
-                <div className="rounded-lg border border-border p-4">
+                <div className="rounded-lg bg-secondary/50 p-4">
                   <p className="text-xs text-muted-foreground mb-1">Valor banco</p>
                   <p className="text-lg font-semibold tabular-nums text-foreground">
                     {formatBRL(valorBancoNum)}
@@ -299,23 +305,23 @@ const MartinBrower = () => {
                 </div>
                 <div
                   className={cn(
-                    "rounded-lg border p-4",
+                    "rounded-lg p-4",
                     confere
-                      ? "border-green-200 bg-green-50"
-                      : "border-red-200 bg-red-50"
+                      ? "bg-success/10 border border-success/20"
+                      : "bg-destructive/10 border border-destructive/20"
                   )}
                 >
                   <p className="text-xs text-muted-foreground mb-1">Status</p>
                   <div className="flex items-center gap-2">
                     {confere ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      <CheckCircle2 className="h-5 w-5 text-success" />
                     ) : (
-                      <XCircle className="h-5 w-5 text-red-600" />
+                      <XCircle className="h-5 w-5 text-destructive" />
                     )}
                     <span
                       className={cn(
                         "font-semibold text-sm",
-                        confere ? "text-green-700" : "text-red-700"
+                        confere ? "text-success" : "text-destructive"
                       )}
                     >
                       {confere ? "Confere" : `Diverge (${formatBRL(diferenca)})`}
@@ -326,7 +332,7 @@ const MartinBrower = () => {
 
               {/* Nenhuma linha encontrada */}
               {result.totalLinhasFiltradas === 0 && (
-                <div className="rounded-lg border border-border bg-muted/50 p-4 flex items-center gap-3">
+                <div className="rounded-lg border border-border bg-secondary/30 p-4 flex items-center gap-3">
                   <Info className="h-5 w-5 text-muted-foreground shrink-0" />
                   <p className="text-sm text-muted-foreground">
                     Nenhuma linha encontrada para a data de vencimento informada.
@@ -336,20 +342,20 @@ const MartinBrower = () => {
 
               {/* Erros */}
               {result.errors.length > 0 && (
-                <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+                <div className="rounded-lg border border-warning/20 bg-warning/5 p-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <AlertTriangle className="h-4 w-4 text-amber-600" />
-                    <p className="text-sm font-medium text-amber-800">
+                    <AlertTriangle className="h-4 w-4 text-warning" />
+                    <p className="text-sm font-medium text-warning">
                       {result.errors.length} erro(s) encontrado(s)
                     </p>
                   </div>
-                  <div className="max-h-64 overflow-auto">
+                  <div className="max-h-64 overflow-auto rounded-lg">
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="text-amber-800">Linha</TableHead>
-                          <TableHead className="text-amber-800">Fatura</TableHead>
-                          <TableHead className="text-amber-800">Motivo</TableHead>
+                          <TableHead>Linha</TableHead>
+                          <TableHead>Fatura</TableHead>
+                          <TableHead>Motivo</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
