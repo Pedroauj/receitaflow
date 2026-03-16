@@ -2,15 +2,13 @@ import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ArrowLeft, Upload, CalendarIcon, Download, AlertTriangle, CheckCircle2, XCircle, FileCheck, Info, Zap } from "lucide-react";
+import { ArrowLeft, Upload, CalendarIcon, Download, AlertTriangle, CheckCircle2, XCircle, FileCheck, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
 import { processarMartinBrower, gerarPlanilhaFinal } from "@/lib/processors/martin-brower";
 import type { ProcessingResult } from "@/lib/processors/types";
@@ -30,21 +28,13 @@ const MartinBrower = () => {
 
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
-    if (f) {
-      setFile(f);
-      setResult(null);
-      toast({ title: "Planilha carregada", description: f.name });
-    }
+    if (f) { setFile(f); setResult(null); toast({ title: "Planilha carregada", description: f.name }); }
   }, []);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     const f = e.dataTransfer.files[0];
-    if (f && /\.xlsx?$/i.test(f.name)) {
-      setFile(f);
-      setResult(null);
-      toast({ title: "Planilha carregada", description: f.name });
-    }
+    if (f && /\.xlsx?$/i.test(f.name)) { setFile(f); setResult(null); toast({ title: "Planilha carregada", description: f.name }); }
   }, []);
 
   const handleProcess = async () => {
@@ -54,56 +44,26 @@ const MartinBrower = () => {
       const buffer = await file.arrayBuffer();
       const res = processarMartinBrower(buffer, dataVencimento);
       setResult(res);
-
       if (res.totalLinhasLidas > 0) {
         const statusConf = Math.abs(res.totalValorBruto - valorBancoNum) < 0.01 ? "confere" : "diverge";
-        addRecord({
-          cliente: "Martin Brower",
-          dataProcessamento: new Date().toISOString(),
-          dataVencimento: dataVencimento.toISOString(),
-          dataRecebimento: dataRecebimento.toISOString(),
-          quantidadeDocumentos: res.totalDocumentos,
-          valorTotal: res.totalValorBruto,
-          valorInformadoBanco: valorBancoNum,
-          statusConferencia: statusConf,
-          quantidadeErros: res.totalLinhasComErro,
-        });
+        addRecord({ cliente: "Martin Brower", dataProcessamento: new Date().toISOString(), dataVencimento: dataVencimento.toISOString(), dataRecebimento: dataRecebimento.toISOString(), quantidadeDocumentos: res.totalDocumentos, valorTotal: res.totalValorBruto, valorInformadoBanco: valorBancoNum, statusConferencia: statusConf, quantidadeErros: res.totalLinhasComErro });
       }
-
       if (res.totalLinhasValidas === 0) {
-        toast({
-          title: "Nenhuma linha válida encontrada",
-          description: "Nenhum documento em aberto foi encontrado para a data de vencimento informada.",
-          variant: "destructive",
-        });
+        toast({ title: "Nenhuma linha válida encontrada", description: "Nenhum documento em aberto foi encontrado para a data de vencimento informada.", variant: "destructive" });
       } else {
         const confere = Math.abs(res.totalValorBruto - valorBancoNum) < 0.01;
-        if (!confere) {
-          toast({
-            title: "Divergência de valor",
-            description: `Diferença de ${(res.totalValorBruto - valorBancoNum).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`,
-            variant: "destructive",
-          });
-        }
+        if (!confere) { toast({ title: "Divergência de valor", description: `Diferença de ${(res.totalValorBruto - valorBancoNum).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`, variant: "destructive" }); }
       }
     } catch (err) {
       console.error(err);
-      toast({
-        title: "Erro ao processar",
-        description: "Não foi possível ler a planilha. Verifique o formato do arquivo.",
-        variant: "destructive",
-      });
-    } finally {
-      setProcessing(false);
-    }
+      toast({ title: "Erro ao processar", description: "Não foi possível ler a planilha. Verifique o formato do arquivo.", variant: "destructive" });
+    } finally { setProcessing(false); }
   };
 
   const handleDownload = () => {
     if (!result || !dataRecebimento) return;
     const buffer = gerarPlanilhaFinal(result.documents, dataRecebimento);
-    const blob = new Blob([buffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -115,364 +75,231 @@ const MartinBrower = () => {
 
   const confere = result ? Math.abs(result.totalValorBruto - valorBancoNum) < 0.01 : false;
   const diferenca = result ? Math.round((result.totalValorBruto - valorBancoNum) * 100) / 100 : 0;
-
-  const formatBRL = (v: number) =>
-    v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  const formatBRL = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border/50">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Zap className="h-4 w-4 text-primary" />
+    <div className="p-7">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-8">
+        <button
+          onClick={() => navigate("/")}
+          className="h-8 w-8 rounded-lg flex items-center justify-center transition-colors"
+          style={{ background: "#1E1E20", border: "0.5px solid #2C2C2A", color: "#888780" }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = "#412402"; e.currentTarget.style.color = "#FAC775"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = "#1E1E20"; e.currentTarget.style.color = "#888780"; }}
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </button>
+        <div>
+          <h1 className="text-xl font-semibold" style={{ color: "#F5F5F0" }}>Martin Brower</h1>
+          <p className="text-xs mt-0.5" style={{ color: "#888780" }}>Baixa por aviso bancário</p>
+        </div>
+      </div>
+
+      {/* Upload */}
+      <div className="card-elevated p-5 mb-5">
+        <p className="text-sm font-semibold mb-4" style={{ color: "#F5F5F0" }}>Planilha de entrada</p>
+        <div
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={handleDrop}
+          className="rounded-xl p-10 text-center cursor-pointer transition-all"
+          style={{ border: "1px dashed #2C2C2A" }}
+          onClick={() => document.getElementById("file-input")?.click()}
+          onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#633806")}
+          onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#2C2C2A")}
+        >
+          {file ? (
+            <div className="flex items-center justify-center gap-3">
+              <div className="h-10 w-10 rounded-lg flex items-center justify-center" style={{ background: "#412402" }}>
+                <FileCheck className="h-5 w-5" style={{ color: "#EF9F27" }} />
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-medium" style={{ color: "#F5F5F0" }}>{file.name}</p>
+                <p className="text-xs" style={{ color: "#5F5E5A" }}>Clique para trocar o arquivo</p>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="h-12 w-12 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ background: "#1E1E20" }}>
+                <Upload className="h-6 w-6" style={{ color: "#888780" }} />
+              </div>
+              <p className="text-sm font-medium mb-1" style={{ color: "#F5F5F0" }}>Arraste ou clique para selecionar</p>
+              <p className="text-xs" style={{ color: "#5F5E5A" }}>Formatos aceitos: .xls, .xlsx</p>
+            </>
+          )}
+          <input id="file-input" type="file" accept=".xls,.xlsx" className="hidden" onChange={handleFileChange} />
+        </div>
+      </div>
+
+      {/* Parâmetros */}
+      <div className="card-elevated p-5 mb-5">
+        <p className="text-sm font-semibold mb-4" style={{ color: "#F5F5F0" }}>Parâmetros</p>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div className="space-y-2">
+            <Label className="text-[11px]" style={{ color: "#5F5E5A" }}>Data de vencimento</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className={cn("w-full justify-start text-left font-normal border-[#2C2C2A] bg-[#1E1E20]", !dataVencimento && "text-muted-foreground")} style={{ color: dataVencimento ? "#B4B2A9" : undefined }}>
+                  <CalendarIcon className="mr-2 h-4 w-4" />{dataVencimento ? format(dataVencimento, "dd/MM/yyyy") : "Selecionar"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 bg-[#1E1E20] border-[#2C2C2A]" align="start">
+                <Calendar mode="single" selected={dataVencimento} onSelect={setDataVencimento} locale={ptBR} className="p-3 pointer-events-auto" />
+              </PopoverContent>
+            </Popover>
           </div>
-          <div>
-            <h1 className="text-base font-semibold text-foreground tracking-tight">Martin Brower</h1>
-            <p className="text-xs text-muted-foreground">Baixa por aviso bancário</p>
+          <div className="space-y-2">
+            <Label className="text-[11px]" style={{ color: "#5F5E5A" }}>Data de recebimento</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className={cn("w-full justify-start text-left font-normal border-[#2C2C2A] bg-[#1E1E20]", !dataRecebimento && "text-muted-foreground")} style={{ color: dataRecebimento ? "#B4B2A9" : undefined }}>
+                  <CalendarIcon className="mr-2 h-4 w-4" />{dataRecebimento ? format(dataRecebimento, "dd/MM/yyyy") : "Selecionar"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 bg-[#1E1E20] border-[#2C2C2A]" align="start">
+                <Calendar mode="single" selected={dataRecebimento} onSelect={setDataRecebimento} locale={ptBR} className="p-3 pointer-events-auto" />
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-[11px]" style={{ color: "#5F5E5A" }}>Valor recebido no banco (R$)</Label>
+            <Input type="text" inputMode="decimal" placeholder="0,00" value={valorBanco} onChange={(e) => setValorBanco(e.target.value)} className="tabular-nums border-[#2C2C2A] bg-[#1E1E20]" style={{ color: "#B4B2A9" }} />
           </div>
         </div>
-      </header>
+        <Button className="mt-6 gradient-btn border-0 text-xs h-9 px-5" disabled={!canProcess || processing} onClick={handleProcess}>
+          {processing ? "Processando..." : "Processar Planilha"}
+        </Button>
+      </div>
 
-      <main className="max-w-5xl mx-auto px-6 py-8 space-y-6">
-        {/* Upload */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-semibold tracking-tight">Planilha de entrada</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={handleDrop}
-              className="border border-dashed border-border rounded-xl p-10 text-center cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-all"
-              onClick={() => document.getElementById("file-input")?.click()}
-            >
-              {file ? (
-                <div className="flex items-center justify-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <FileCheck className="h-5 w-5 text-primary" />
-                  </div>
-                  <div className="text-left">
-                    <p className="text-sm font-medium text-foreground">{file.name}</p>
-                    <p className="text-xs text-muted-foreground">Clique para trocar o arquivo</p>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div className="h-12 w-12 rounded-xl bg-secondary flex items-center justify-center mx-auto mb-4">
-                    <Upload className="h-6 w-6 text-muted-foreground" />
-                  </div>
-                  <p className="text-sm text-foreground font-medium mb-1">
-                    Arraste ou clique para selecionar
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Formatos aceitos: .xls, .xlsx
-                  </p>
-                </>
-              )}
-              <input
-                id="file-input"
-                type="file"
-                accept=".xls,.xlsx"
-                className="hidden"
-                onChange={handleFileChange}
-              />
+      {/* Resultado */}
+      {result && (
+        <div className="card-elevated p-5">
+          <p className="text-sm font-semibold mb-5" style={{ color: "#F5F5F0" }}>Resultado do Processamento</p>
+
+          {/* Resumo */}
+          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 mb-5">
+            {[
+              { label: "Linhas lidas", value: result.totalLinhasLidas },
+              { label: "Filtradas por Data Vcto.", value: result.totalLinhasFiltradasData },
+              { label: "Pgto vazio", value: result.totalLinhasPagamentoVazio },
+              { label: "Pgto preenchido", value: result.totalLinhasPagamentoPreenchido, dim: true },
+              { label: "Removidas por pagamento", value: result.totalLinhasRemovidasPagamento, dim: true },
+              { label: "Válidas finais", value: result.totalLinhasValidas },
+              { label: "Com erro", value: result.totalLinhasComErro, error: result.totalLinhasComErro > 0 },
+            ].map((s) => (
+              <div key={s.label} className="rounded-lg p-4" style={{ background: "#18181A", border: "0.5px solid #2C2C2A" }}>
+                <p className="text-[11px] mb-1" style={{ color: "#5F5E5A" }}>{s.label}</p>
+                <p className="text-2xl font-semibold tabular-nums" style={{ color: s.error ? "#E74C3C" : s.dim ? "#888780" : "#F5F5F0" }}>{s.value}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Valores */}
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-5">
+            <div className="rounded-lg p-4" style={{ background: "#18181A", border: "0.5px solid #2C2C2A" }}>
+              <p className="text-[11px] mb-1" style={{ color: "#5F5E5A" }}>Total processado</p>
+              <p className="text-lg font-semibold tabular-nums" style={{ color: "#FAC775" }}>{formatBRL(result.totalValorBruto)}</p>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Parâmetros */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-semibold tracking-tight">Parâmetros</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Data de vencimento</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !dataVencimento && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dataVencimento ? format(dataVencimento, "dd/MM/yyyy") : "Selecionar"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={dataVencimento}
-                      onSelect={setDataVencimento}
-                      locale={ptBR}
-                      className="p-3 pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Data de recebimento</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !dataRecebimento && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dataRecebimento ? format(dataRecebimento, "dd/MM/yyyy") : "Selecionar"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={dataRecebimento}
-                      onSelect={setDataRecebimento}
-                      locale={ptBR}
-                      className="p-3 pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Valor recebido no banco (R$)</Label>
-                <Input
-                  type="text"
-                  inputMode="decimal"
-                  placeholder="0,00"
-                  value={valorBanco}
-                  onChange={(e) => setValorBanco(e.target.value)}
-                  className="tabular-nums"
-                />
+            <div className="rounded-lg p-4" style={{ background: "#18181A", border: "0.5px solid #2C2C2A" }}>
+              <p className="text-[11px] mb-1" style={{ color: "#5F5E5A" }}>Valor banco</p>
+              <p className="text-lg font-semibold tabular-nums" style={{ color: "#F5F5F0" }}>{formatBRL(valorBancoNum)}</p>
+            </div>
+            <div className="rounded-lg p-4" style={{ background: "#18181A", border: "0.5px solid #2C2C2A" }}>
+              <p className="text-[11px] mb-1" style={{ color: "#5F5E5A" }}>Diferença</p>
+              <p className="text-lg font-semibold tabular-nums" style={{ color: diferenca === 0 ? "#C0DD97" : "#E74C3C" }}>{formatBRL(diferenca)}</p>
+            </div>
+            <div className="rounded-lg p-4" style={{ background: confere ? "rgba(39,80,10,0.15)" : "rgba(231,76,60,0.1)", border: `0.5px solid ${confere ? "#27500A" : "#E74C3C33"}` }}>
+              <p className="text-[11px] mb-1" style={{ color: "#5F5E5A" }}>Status</p>
+              <div className="flex items-center gap-2">
+                {confere ? <CheckCircle2 className="h-5 w-5" style={{ color: "#C0DD97" }} /> : <XCircle className="h-5 w-5" style={{ color: "#E74C3C" }} />}
+                <span className="font-semibold text-sm" style={{ color: confere ? "#C0DD97" : "#E74C3C" }}>{confere ? "Confere" : "Diverge"}</span>
               </div>
             </div>
+          </div>
 
-            <Button
-              className="mt-6"
-              disabled={!canProcess || processing}
-              onClick={handleProcess}
-            >
-              {processing ? "Processando..." : "Processar Planilha"}
-            </Button>
-          </CardContent>
-        </Card>
+          {result.totalLinhasValidas === 0 && (
+            <div className="rounded-lg p-4 flex items-center gap-3 mb-5" style={{ background: "#18181A", border: "0.5px solid #2C2C2A" }}>
+              <Info className="h-5 w-5 shrink-0" style={{ color: "#5F5E5A" }} />
+              <p className="text-sm" style={{ color: "#888780" }}>Nenhum documento em aberto foi encontrado para a data de vencimento selecionada.</p>
+            </div>
+          )}
 
-        {/* Resultado */}
-        {result && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-semibold tracking-tight">Resultado do Processamento</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Resumo detalhado */}
-              <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
-                <div className="rounded-lg bg-secondary/50 p-4">
-                  <p className="text-xs text-muted-foreground mb-1">Linhas lidas</p>
-                  <p className="text-2xl font-semibold tabular-nums text-foreground">
-                    {result.totalLinhasLidas}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-secondary/50 p-4">
-                  <p className="text-xs text-muted-foreground mb-1">Filtradas por Data Vcto.</p>
-                  <p className="text-2xl font-semibold tabular-nums text-foreground">
-                    {result.totalLinhasFiltradasData}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-secondary/50 p-4">
-                  <p className="text-xs text-muted-foreground mb-1">Pgto vazio</p>
-                  <p className="text-2xl font-semibold tabular-nums text-foreground">
-                    {result.totalLinhasPagamentoVazio}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-secondary/50 p-4">
-                  <p className="text-xs text-muted-foreground mb-1">Pgto preenchido</p>
-                  <p className="text-2xl font-semibold tabular-nums text-muted-foreground">
-                    {result.totalLinhasPagamentoPreenchido}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-secondary/50 p-4">
-                  <p className="text-xs text-muted-foreground mb-1">Removidas por pagamento</p>
-                  <p className="text-2xl font-semibold tabular-nums text-muted-foreground">
-                    {result.totalLinhasRemovidasPagamento}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-secondary/50 p-4">
-                  <p className="text-xs text-muted-foreground mb-1">Válidas finais</p>
-                  <p className="text-2xl font-semibold tabular-nums text-foreground">
-                    {result.totalLinhasValidas}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-secondary/50 p-4">
-                  <p className="text-xs text-muted-foreground mb-1">Com erro</p>
-                  <p className={cn(
-                    "text-2xl font-semibold tabular-nums",
-                    result.totalLinhasComErro > 0 ? "text-destructive" : "text-foreground"
-                  )}>
-                    {result.totalLinhasComErro}
-                  </p>
-                </div>
+          {/* Preview */}
+          {result.preview.length > 0 && (
+            <div className="rounded-lg p-4 mb-5" style={{ background: "#18181A", border: "0.5px solid #2C2C2A" }}>
+              <div className="flex items-center gap-2 mb-3">
+                <Info className="h-4 w-4" style={{ color: "#5F5E5A" }} />
+                <p className="text-sm font-medium" style={{ color: "#F5F5F0" }}>Preview de validação (primeiras {result.preview.length} linhas)</p>
               </div>
-
-              {/* Valores e status */}
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <div className="rounded-lg bg-secondary/50 p-4">
-                  <p className="text-xs text-muted-foreground mb-1">Total processado</p>
-                  <p className="text-lg font-semibold tabular-nums text-foreground">
-                    {formatBRL(result.totalValorBruto)}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-secondary/50 p-4">
-                  <p className="text-xs text-muted-foreground mb-1">Valor banco</p>
-                  <p className="text-lg font-semibold tabular-nums text-foreground">
-                    {formatBRL(valorBancoNum)}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-secondary/50 p-4">
-                  <p className="text-xs text-muted-foreground mb-1">Diferença</p>
-                  <p className={cn(
-                    "text-lg font-semibold tabular-nums",
-                    diferenca === 0 ? "text-success" : "text-destructive"
-                  )}>
-                    {formatBRL(diferenca)}
-                  </p>
-                </div>
-                <div
-                  className={cn(
-                    "rounded-lg p-4",
-                    confere
-                      ? "bg-success/10 border border-success/20"
-                      : "bg-destructive/10 border border-destructive/20"
-                  )}
-                >
-                  <p className="text-xs text-muted-foreground mb-1">Status</p>
-                  <div className="flex items-center gap-2">
-                    {confere ? (
-                      <CheckCircle2 className="h-5 w-5 text-success" />
-                    ) : (
-                      <XCircle className="h-5 w-5 text-destructive" />
-                    )}
-                    <span
-                      className={cn(
-                        "font-semibold text-sm",
-                        confere ? "text-success" : "text-destructive"
-                      )}
-                    >
-                      {confere ? "Confere" : "Diverge"}
-                    </span>
-                  </div>
-                </div>
+              <div className="max-h-72 overflow-auto rounded-lg">
+                <table className="w-full">
+                  <thead>
+                    <tr style={{ borderBottom: "0.5px solid #2C2C2A" }}>
+                      {["Linha", "Data Vcto.", "Data Pagamento", "Nº Fatura", "Valor Bruto", "Status"].map((h) => (
+                        <th key={h} className="px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-left" style={{ color: "#5F5E5A" }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {result.preview.map((p, i) => (
+                      <tr key={i} style={{ borderBottom: "0.5px solid #2C2C2A" }}>
+                        <td className="px-4 py-2 tabular-nums text-sm" style={{ color: "#B4B2A9" }}>{p.row}</td>
+                        <td className="px-4 py-2 text-sm" style={{ color: "#B4B2A9" }}>{p.dataVcto || "—"}</td>
+                        <td className="px-4 py-2 text-sm" style={{ color: "#B4B2A9" }}>{p.dataPagamento || "—"}</td>
+                        <td className="px-4 py-2 font-mono text-sm" style={{ color: "#B4B2A9" }}>{p.faturaOriginal || "—"}</td>
+                        <td className="px-4 py-2 tabular-nums text-sm" style={{ color: "#B4B2A9" }}>{p.valorBrutoOriginal || (p.valorBrutoConvertido != null ? formatBRL(p.valorBrutoConvertido) : "—")}</td>
+                        <td className="px-4 py-2">
+                          <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full")}
+                            style={{
+                              background: p.status === "válida" ? "#27500A" : p.status === "erro" ? "rgba(231,76,60,0.15)" : "#2C2C2A",
+                              color: p.status === "válida" ? "#C0DD97" : p.status === "erro" ? "#E74C3C" : "#888780",
+                            }}
+                          >{p.status}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
+            </div>
+          )}
 
-              {/* Nenhuma linha encontrada */}
-              {result.totalLinhasValidas === 0 && (
-                <div className="rounded-lg border border-border bg-secondary/30 p-4 flex items-center gap-3">
-                  <Info className="h-5 w-5 text-muted-foreground shrink-0" />
-                  <p className="text-sm text-muted-foreground">
-                    Nenhum documento em aberto foi encontrado para a data de vencimento selecionada.
-                  </p>
-                </div>
-              )}
+          {/* Erros */}
+          {result.errors.length > 0 && (
+            <div className="rounded-lg p-4 mb-5" style={{ background: "rgba(231,76,60,0.05)", border: "0.5px solid rgba(231,76,60,0.2)" }}>
+              <div className="flex items-center gap-2 mb-3">
+                <AlertTriangle className="h-4 w-4" style={{ color: "#EF9F27" }} />
+                <p className="text-sm font-medium" style={{ color: "#EF9F27" }}>{result.errors.length} erro(s) encontrado(s)</p>
+              </div>
+              <div className="max-h-64 overflow-auto rounded-lg">
+                <table className="w-full">
+                  <thead>
+                    <tr style={{ borderBottom: "0.5px solid #2C2C2A" }}>
+                      {["Linha", "Fatura", "Motivo"].map((h) => (
+                        <th key={h} className="px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-left" style={{ color: "#5F5E5A" }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {result.errors.map((err, i) => (
+                      <tr key={i} style={{ borderBottom: "0.5px solid #2C2C2A" }}>
+                        <td className="px-4 py-2 tabular-nums text-sm" style={{ color: "#B4B2A9" }}>{err.row}</td>
+                        <td className="px-4 py-2 font-mono text-sm" style={{ color: "#B4B2A9" }}>{err.fatura || "—"}</td>
+                        <td className="px-4 py-2 text-sm" style={{ color: "#B4B2A9" }}>{err.motivo}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
-              {/* Preview de validação */}
-              {result.preview.length > 0 && (
-                <div className="rounded-lg border border-border bg-secondary/30 p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Info className="h-4 w-4 text-muted-foreground" />
-                    <p className="text-sm font-medium text-foreground">
-                      Preview de validação (primeiras {result.preview.length} linhas após o filtro de Data Vcto.)
-                    </p>
-                  </div>
-                  <div className="max-h-72 overflow-auto rounded-lg">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Linha</TableHead>
-                          <TableHead>Data Vcto.</TableHead>
-                          <TableHead>Data Pagamento</TableHead>
-                          <TableHead>Nº Fatura</TableHead>
-                          <TableHead>Valor Bruto</TableHead>
-                          <TableHead>Status</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {result.preview.map((p, i) => (
-                          <TableRow key={i}>
-                            <TableCell className="tabular-nums">{p.row}</TableCell>
-                            <TableCell className="text-sm">{p.dataVcto || "—"}</TableCell>
-                            <TableCell className="text-sm">{p.dataPagamento || "—"}</TableCell>
-                            <TableCell className="font-mono text-sm">{p.faturaOriginal || "—"}</TableCell>
-                            <TableCell className="tabular-nums text-sm">
-                              {p.valorBrutoOriginal || (p.valorBrutoConvertido != null ? formatBRL(p.valorBrutoConvertido) : "—")}
-                            </TableCell>
-                            <TableCell>
-                              <span className={cn(
-                                "text-xs font-medium px-2 py-0.5 rounded-full",
-                                p.status === "válida" && "bg-success/10 text-success",
-                                p.status === "erro" && "bg-destructive/10 text-destructive",
-                                p.status === "removida por pagamento" && "bg-secondary text-muted-foreground",
-                              )}>
-                                {p.status}
-                              </span>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </div>
-              )}
-
-              {/* Erros */}
-              {result.errors.length > 0 && (
-                <div className="rounded-lg border border-warning/20 bg-warning/5 p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <AlertTriangle className="h-4 w-4 text-warning" />
-                    <p className="text-sm font-medium text-warning">
-                      {result.errors.length} erro(s) encontrado(s)
-                    </p>
-                  </div>
-                  <div className="max-h-64 overflow-auto rounded-lg">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Linha</TableHead>
-                          <TableHead>Fatura</TableHead>
-                          <TableHead>Motivo</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {result.errors.map((err, i) => (
-                          <TableRow key={i}>
-                            <TableCell className="tabular-nums">{err.row}</TableCell>
-                            <TableCell className="font-mono text-sm">{err.fatura || "—"}</TableCell>
-                            <TableCell className="text-sm">{err.motivo}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </div>
-              )}
-
-              {/* Download */}
-              <Button onClick={handleDownload} disabled={result.documents.length === 0}>
-                <Download className="mr-2 h-4 w-4" />
-                Baixar planilha final
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-      </main>
+          {/* Download */}
+          <Button className="gradient-btn border-0 text-xs h-9 px-5" onClick={handleDownload} disabled={result.documents.length === 0}>
+            <Download className="mr-2 h-4 w-4" />Baixar planilha final
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
