@@ -6,54 +6,56 @@
 
 @layer base {
   :root {
-    --background: 222 47% 6%;
-    --foreground: 210 20% 95%;
+    --background: 240 6% 10%;
+    --foreground: 50 20% 96%;
 
-    --card: 222 40% 10%;
-    --card-foreground: 210 20% 95%;
+    --card: 240 5% 12%;
+    --card-foreground: 50 20% 96%;
 
-    --popover: 222 40% 10%;
-    --popover-foreground: 210 20% 95%;
+    --popover: 240 5% 12%;
+    --popover-foreground: 50 20% 96%;
 
-    --primary: 25 95% 53%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 36 76% 41%;
+    --primary-foreground: 40 60% 93%;
 
-    --secondary: 222 30% 14%;
-    --secondary-foreground: 210 20% 88%;
+    --secondary: 240 3% 13%;
+    --secondary-foreground: 40 5% 70%;
 
-    --muted: 222 25% 16%;
-    --muted-foreground: 215 15% 50%;
+    --muted: 240 3% 16%;
+    --muted-foreground: 43 4% 53%;
 
-    --accent: 222 30% 18%;
-    --accent-foreground: 210 20% 95%;
+    --accent: 30 80% 14%;
+    --accent-foreground: 42 90% 72%;
 
     --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 152 60% 46%;
-    --success-foreground: 0 0% 100%;
+    --success: 100 70% 18%;
+    --success-foreground: 90 40% 70%;
 
-    --warning: 38 92% 55%;
-    --warning-foreground: 228 14% 8%;
+    --warning: 36 76% 41%;
+    --warning-foreground: 40 60% 93%;
 
-    --border: 222 20% 16%;
-    --input: 222 20% 16%;
-    --ring: 25 95% 53%;
+    --border: 45 4% 17%;
+    --input: 45 4% 17%;
+    --ring: 36 76% 41%;
 
-    --radius: 0.625rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 222 47% 5%;
-    --sidebar-foreground: 210 20% 88%;
-    --sidebar-primary: 25 95% 53%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 30% 12%;
-    --sidebar-accent-foreground: 210 20% 88%;
-    --sidebar-border: 222 20% 14%;
-    --sidebar-ring: 25 95% 53%;
+    --sidebar-background: 240 7% 7%;
+    --sidebar-foreground: 43 4% 53%;
+    --sidebar-primary: 36 76% 41%;
+    --sidebar-primary-foreground: 42 90% 72%;
+    --sidebar-accent: 30 80% 14%;
+    --sidebar-accent-foreground: 42 90% 72%;
+    --sidebar-border: 45 4% 17%;
+    --sidebar-ring: 36 76% 41%;
 
-    --brand-blue: 217 91% 60%;
-    --brand-green: 152 60% 46%;
-    --brand-orange: 25 95% 53%;
+    --amber-medium: 36 76% 41%;
+    --amber-light: 42 90% 72%;
+    --amber-hover: 34 87% 54%;
+    --amber-bg: 30 80% 14%;
+    --amber-border: 28 70% 27%;
   }
 }
 
@@ -70,71 +72,77 @@
 
 @layer utilities {
   .gradient-bg {
-    background: linear-gradient(180deg, hsl(222 47% 6%) 0%, hsl(222 47% 8%) 100%);
+    background: #18181A;
   }
 
   .gradient-btn {
-    background: linear-gradient(135deg, hsl(25 95% 50%) 0%, hsl(28 90% 56%) 100%);
+    background: hsl(var(--amber-medium));
+    color: hsl(var(--primary-foreground));
   }
 
   .gradient-btn:hover {
-    background: linear-gradient(135deg, hsl(25 95% 54%) 0%, hsl(28 90% 60%) 100%);
-    box-shadow: 0 4px 20px hsl(25 95% 53% / 0.35);
+    background: hsl(var(--amber-hover));
+    box-shadow: 0 4px 16px hsl(var(--amber-medium) / 0.3);
   }
 
   .card-elevated {
-    background: hsl(222 40% 10%);
-    border: 1px solid hsl(222 20% 16%);
+    background: #1E1E20;
+    border: 0.5px solid #2C2C2A;
+    border-radius: 12px;
     transition: all 0.2s ease;
   }
 
   .card-elevated:hover {
-    border-color: hsl(222 20% 22%);
-    background: hsl(222 40% 11%);
+    border-color: #444441;
     transform: translateY(-1px);
-    box-shadow: 0 8px 24px hsl(222 47% 4% / 0.5);
-  }
-
-  .glow-icon {
-    filter: drop-shadow(0 0 6px hsl(25 95% 53% / 0.4));
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
   }
 
   .stat-number {
     @apply text-2xl font-bold tracking-tight;
-    color: hsl(210 20% 98%);
+    color: #F5F5F0;
   }
 
-  .neon-text {
-    text-shadow: 0 0 20px hsl(25 95% 53% / 0.3);
+  .sidebar-nav {
+    background: #111113;
+    border-right: 0.5px solid #2C2C2A;
   }
 
-  .neon-border {
-    border: 1px solid hsl(25 95% 53% / 0.25);
+  .sidebar-item {
+    @apply flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer;
+    color: #888780;
   }
 
-  .neon-line {
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      hsl(25 95% 53% / 0.3) 30%,
-      hsl(25 95% 53% / 0.5) 50%,
-      hsl(25 95% 53% / 0.3) 70%,
-      transparent 100%
-    );
+  .sidebar-item:hover {
+    color: #B4B2A9;
+    background: rgba(65, 36, 2, 0.3);
   }
 
-  .neon-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: hsl(25 95% 53%);
-    box-shadow: 0 0 6px hsl(25 95% 53% / 0.6);
-    animation: neon-pulse 2.5s ease-in-out infinite;
+  .sidebar-item.active {
+    background: #412402;
+    color: #FAC775;
   }
 
-  @keyframes neon-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+  .sidebar-label {
+    @apply text-[10px] font-semibold uppercase tracking-[0.15em] px-3 mb-2;
+    color: #5F5E5A;
+  }
+
+  .amber-badge {
+    background: #412402;
+    color: #EF9F27;
+    @apply text-[11px] font-medium px-2 py-0.5 rounded-full;
+  }
+
+  .status-active {
+    background: #27500A;
+    color: #C0DD97;
+    @apply text-[11px] font-medium px-2 py-0.5 rounded-full;
+  }
+
+  .status-pending {
+    background: #412402;
+    color: #FAC775;
+    @apply text-[11px] font-medium px-2 py-0.5 rounded-full;
   }
 }
