@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { FileSpreadsheet, Zap, History, Hash, DollarSign, ChevronRight } from "lucide-react";
+import { FileSpreadsheet, History, Hash, DollarSign, ChevronRight } from "lucide-react";
+import logo from "@/assets/logo.png";
 import { motion } from "framer-motion";
 import { clients } from "@/lib/clients";
 import { getStats } from "@/lib/history";
