@@ -17,4 +17,8 @@ export interface ProcessingResult {
   errors: ProcessingError[];
   totalValorBruto: number;
   totalDocumentos: number;
+  totalLinhasLidas: number;
+  totalLinhasFiltradas: number;
+  totalLinhasValidas: number;
+  totalLinhasComErro: number;
 }
