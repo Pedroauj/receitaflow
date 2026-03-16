@@ -49,6 +49,46 @@ const Index = () => {
         </div>
       </div>
 
+      {/* Stats */}
+      {stats.totalPlanilhas > 0 && (
+        <div className="max-w-5xl mx-auto px-6 pb-8">
+          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-4">
+            Estatísticas gerais
+          </h3>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="rounded-lg bg-secondary/50 p-4 flex items-center gap-3">
+              <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <FileSpreadsheet className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Planilhas processadas</p>
+                <p className="text-lg font-semibold tabular-nums text-foreground">{stats.totalPlanilhas}</p>
+              </div>
+            </div>
+            <div className="rounded-lg bg-secondary/50 p-4 flex items-center gap-3">
+              <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <Hash className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Documentos processados</p>
+                <p className="text-lg font-semibold tabular-nums text-foreground">{stats.totalDocumentos}</p>
+              </div>
+            </div>
+            <div className="rounded-lg bg-secondary/50 p-4 flex items-center gap-3">
+              <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <DollarSign className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Valor total processado</p>
+                <p className="text-lg font-semibold tabular-nums text-foreground">
+                  {stats.valorTotalProcessado.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Clients grid */}
       <main className="max-w-5xl mx-auto px-6 pb-20">
         <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-4">
