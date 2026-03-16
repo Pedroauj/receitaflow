@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const navigate = useNavigate();
+  const stats = getStats();
 
   return (
     <div className="min-h-screen bg-background">
