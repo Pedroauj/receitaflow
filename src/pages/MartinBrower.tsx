@@ -329,6 +329,53 @@ const MartinBrower = () => {
                 </div>
               )}
 
+              {/* Preview de validação */}
+              {result.preview.length > 0 && (
+                <div className="rounded-lg border border-border bg-secondary/30 p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Info className="h-4 w-4 text-muted-foreground" />
+                    <p className="text-sm font-medium text-foreground">
+                      Preview de validação (primeiras {result.preview.length} linhas)
+                    </p>
+                  </div>
+                  <div className="max-h-72 overflow-auto rounded-lg">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Linha</TableHead>
+                          <TableHead>Nº Fatura (original)</TableHead>
+                          <TableHead>Valor Bruto (original)</TableHead>
+                          <TableHead>Valor convertido</TableHead>
+                          <TableHead>Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {result.preview.map((p, i) => (
+                          <TableRow key={i}>
+                            <TableCell className="tabular-nums">{p.row}</TableCell>
+                            <TableCell className="font-mono text-sm">{p.faturaOriginal || "—"}</TableCell>
+                            <TableCell className="text-sm">{p.valorBrutoOriginal || "—"}</TableCell>
+                            <TableCell className="tabular-nums text-sm">
+                              {p.valorBrutoConvertido != null ? formatBRL(p.valorBrutoConvertido) : "—"}
+                            </TableCell>
+                            <TableCell>
+                              <span className={cn(
+                                "text-xs font-medium px-2 py-0.5 rounded-full",
+                                p.status === "válida" && "bg-success/10 text-success",
+                                p.status === "erro" && "bg-destructive/10 text-destructive",
+                                p.status === "ignorada" && "bg-secondary text-muted-foreground",
+                              )}>
+                                {p.status}
+                              </span>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              )}
+
               {/* Erros */}
               {result.errors.length > 0 && (
                 <div className="rounded-lg border border-warning/20 bg-warning/5 p-4">
