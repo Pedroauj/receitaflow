@@ -125,6 +125,7 @@ export function processarMartinBrower(
   const colValorBruto = findColumn(sampleKeys, "Valor Bruto");
   const colFatura = findColumn(sampleKeys, "Nº da Fatura");
   const colDataVcto = findColumn(sampleKeys, "Data Vcto.") || findColumn(sampleKeys, "Data Vcto");
+  const colDataPagamento = findColumn(sampleKeys, "Data de Pagamento") || findColumn(sampleKeys, "Data Pagamento") || findColumn(sampleKeys, "Dt Pagamento");
 
   const documents: ProcessedDocument[] = [];
   const errors: ProcessingError[] = [];
@@ -132,6 +133,7 @@ export function processarMartinBrower(
   let totalValorBruto = 0;
   let totalLinhasIgnoradas = 0;
   let totalLinhasFiltradasData = 0;
+  let totalLinhasRemovidasPagamento = 0;
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
@@ -140,12 +142,18 @@ export function processarMartinBrower(
     const rawFaturaVal = colFatura ? row[colFatura] : undefined;
     const rawValorVal = colValorBruto ? row[colValorBruto] : undefined;
     const rawDataVcto = colDataVcto ? row[colDataVcto] : undefined;
+    const rawDataPagamento = colDataPagamento ? row[colDataPagamento] : undefined;
     const faturaStr = String(rawFaturaVal ?? "").trim();
     const valorStr = String(rawValorVal ?? "").trim();
     const dataVctoStr = parseExcelDate(rawDataVcto);
     const dataVctoDisplay = dataVctoStr
       ? `${dataVctoStr.slice(8, 10)}/${dataVctoStr.slice(5, 7)}/${dataVctoStr.slice(0, 4)}`
       : String(rawDataVcto ?? "").trim();
+
+    const dataPagStr = parseExcelDate(rawDataPagamento);
+    const dataPagDisplay = dataPagStr
+      ? `${dataPagStr.slice(8, 10)}/${dataPagStr.slice(5, 7)}/${dataPagStr.slice(0, 4)}`
+      : String(rawDataPagamento ?? "").trim();
 
     // Skip empty rows
     if (!faturaStr && !valorStr) {
@@ -162,6 +170,17 @@ export function processarMartinBrower(
     // --- Filter by Data Vcto. ---
     if (!dataVctoStr || dataVctoStr !== dataVctoAlvo) {
       totalLinhasFiltradasData++;
+      continue;
+    }
+
+    // --- Filter: remove rows with Data de Pagamento filled ---
+    const hasPagamento = rawDataPagamento != null && String(rawDataPagamento).trim() !== "";
+    if (hasPagamento) {
+      totalLinhasRemovidasPagamento++;
+      if (preview.length < 20) {
+        const fd = isValidFatura(faturaStr) ? parseFatura(faturaStr) : { serie: "", documento: "" };
+        preview.push({ row: rowNum, dataVcto: dataVctoDisplay, dataPagamento: dataPagDisplay, faturaOriginal: faturaStr, serie: fd.serie, numeroDocumento: fd.documento, valorBrutoOriginal: valorStr, valorBrutoConvertido: null, status: "ignorada" });
+      }
       continue;
     }
 
