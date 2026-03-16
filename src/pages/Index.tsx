@@ -24,6 +24,10 @@ const Index = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" onClick={() => navigate("/historico")}>
+              <History className="h-4 w-4 mr-1.5" />
+              Histórico
+            </Button>
             <span className="text-xs text-muted-foreground bg-secondary px-2.5 py-1 rounded-full font-medium">v1.0</span>
           </div>
         </div>
