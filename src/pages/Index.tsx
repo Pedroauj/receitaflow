@@ -294,6 +294,72 @@ const Index = () => {
           </div>
         </motion.div>
       </div>
+
+      {/* Client picker modal */}
+      <AnimatePresence>
+        {showClientPicker && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center"
+            style={{ background: "rgba(0,0,0,0.6)", marginLeft: "-220px", paddingLeft: "220px" }}
+            onClick={() => setShowClientPicker(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.2 }}
+              className="card-elevated w-full max-w-md mx-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: "0.5px solid #2C2C2A" }}>
+                <div>
+                  <h2 className="text-sm font-semibold" style={{ color: "#F5F5F0" }}>Nova conversão</h2>
+                  <p className="text-[11px] mt-0.5" style={{ color: "#5F5E5A" }}>Selecione o cliente para iniciar</p>
+                </div>
+                <button
+                  onClick={() => setShowClientPicker(false)}
+                  className="h-7 w-7 rounded-md flex items-center justify-center transition-colors"
+                  style={{ color: "#5F5E5A" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "#2C2C2A"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="p-3 max-h-[400px] overflow-y-auto">
+                {clients.map((client) => {
+                  const color = clientColors[client.id] || "#BA7517";
+                  const initials = clientInitials[client.id] || client.name.slice(0, 2).toUpperCase();
+                  return (
+                    <div
+                      key={client.id}
+                      className="flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer transition-colors"
+                      onClick={() => { setShowClientPicker(false); navigate(client.route); }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "#242426")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                    >
+                      <div
+                        className="h-9 w-9 rounded-lg flex items-center justify-center text-[11px] font-bold shrink-0"
+                        style={{ background: `${color}20`, color }}
+                      >
+                        {initials}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium" style={{ color: "#F5F5F0" }}>{client.name}</p>
+                        <p className="text-[11px]" style={{ color: "#5F5E5A" }}>{client.description}</p>
+                      </div>
+                      <ArrowRight className="h-4 w-4 shrink-0" style={{ color: "#5F5E5A" }} />
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
