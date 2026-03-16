@@ -21,7 +21,7 @@ export interface PreviewRow {
   numeroDocumento: string;
   valorBrutoOriginal: string;
   valorBrutoConvertido: number | null;
-  status: "válida" | "erro" | "ignorada";
+  status: "válida" | "erro" | "removida por pagamento";
 }
 
 export interface ProcessingResult {
@@ -33,6 +33,8 @@ export interface ProcessingResult {
   totalLinhasLidas: number;
   totalLinhasFiltradasData: number;
   totalLinhasRemovidasPagamento: number;
+  totalLinhasPagamentoVazio: number;
+  totalLinhasPagamentoPreenchido: number;
   totalLinhasIgnoradas: number;
   totalLinhasValidas: number;
   totalLinhasComErro: number;

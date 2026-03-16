@@ -73,7 +73,7 @@ const MartinBrower = () => {
       if (res.totalLinhasValidas === 0) {
         toast({
           title: "Nenhuma linha válida encontrada",
-          description: "Nenhum documento encontrado para a data de vencimento informada.",
+          description: "Nenhum documento em aberto foi encontrado para a data de vencimento informada.",
           variant: "destructive",
         });
       } else {
