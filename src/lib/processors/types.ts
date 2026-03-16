@@ -15,6 +15,7 @@ export interface ProcessingError {
 export interface PreviewRow {
   row: number;
   dataVcto: string;
+  dataPagamento: string;
   faturaOriginal: string;
   serie: string;
   numeroDocumento: string;
@@ -31,6 +32,7 @@ export interface ProcessingResult {
   totalDocumentos: number;
   totalLinhasLidas: number;
   totalLinhasFiltradasData: number;
+  totalLinhasRemovidasPagamento: number;
   totalLinhasIgnoradas: number;
   totalLinhasValidas: number;
   totalLinhasComErro: number;
