@@ -248,7 +248,7 @@ const MartinBrower = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Resumo detalhado */}
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-4">
                 <div className="rounded-lg bg-secondary/50 p-4">
                   <p className="text-xs text-muted-foreground mb-1">Linhas lidas</p>
                   <p className="text-2xl font-semibold tabular-nums text-foreground">
@@ -259,6 +259,12 @@ const MartinBrower = () => {
                   <p className="text-xs text-muted-foreground mb-1">Válidas</p>
                   <p className="text-2xl font-semibold tabular-nums text-foreground">
                     {result.totalLinhasValidas}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-secondary/50 p-4">
+                  <p className="text-xs text-muted-foreground mb-1">Ignoradas</p>
+                  <p className="text-2xl font-semibold tabular-nums text-muted-foreground">
+                    {result.totalLinhasIgnoradas}
                   </p>
                 </div>
                 <div className="rounded-lg bg-secondary/50 p-4">

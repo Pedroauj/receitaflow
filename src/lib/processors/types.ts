@@ -12,13 +12,22 @@ export interface ProcessingError {
   motivo: string;
 }
 
+export interface PreviewRow {
+  row: number;
+  faturaOriginal: string;
+  valorBrutoOriginal: string;
+  valorBrutoConvertido: number | null;
+  status: "válida" | "erro" | "ignorada";
+}
+
 export interface ProcessingResult {
   documents: ProcessedDocument[];
   errors: ProcessingError[];
+  preview: PreviewRow[];
   totalValorBruto: number;
   totalDocumentos: number;
   totalLinhasLidas: number;
-  totalLinhasFiltradas: number;
+  totalLinhasIgnoradas: number;
   totalLinhasValidas: number;
   totalLinhasComErro: number;
 }

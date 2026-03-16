@@ -1,58 +1,7 @@
 import * as XLSX from "xlsx";
-import type { ProcessingResult, ProcessedDocument, ProcessingError } from "./types";
+import type { ProcessingResult, ProcessedDocument, ProcessingError, PreviewRow } from "./types";
 
-/** Convert Excel serial date to JS Date (UTC-safe) */
-function excelDateToJSDate(serial: number): Date {
-  const utcDays = Math.floor(serial - 25569);
-  return new Date(utcDays * 86400 * 1000);
-}
-
-function isSameDate(a: Date, b: Date): boolean {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
-}
-
-/** Try to parse a date from various formats */
-function parseDate(raw: unknown): Date | null {
-  if (raw == null || raw === "") return null;
-
-  // Excel serial number
-  if (typeof raw === "number") {
-    const d = excelDateToJSDate(raw);
-    return isNaN(d.getTime()) ? null : d;
-  }
-
-  // Date object
-  if (raw instanceof Date) {
-    return isNaN(raw.getTime()) ? null : raw;
-  }
-
-  const str = String(raw).trim();
-  if (!str) return null;
-
-  // DD/MM/YYYY or DD-MM-YYYY
-  const brMatch = str.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);
-  if (brMatch) {
-    const d = new Date(Number(brMatch[3]), Number(brMatch[2]) - 1, Number(brMatch[1]));
-    return isNaN(d.getTime()) ? null : d;
-  }
-
-  // YYYY-MM-DD
-  const isoMatch = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (isoMatch) {
-    const d = new Date(Number(isoMatch[1]), Number(isoMatch[2]) - 1, Number(isoMatch[3]));
-    return isNaN(d.getTime()) ? null : d;
-  }
-
-  // Fallback
-  const d = new Date(str);
-  return isNaN(d.getTime()) ? null : d;
-}
-
-/** Parse monetary value handling comma, dots, currency symbols, spaces */
+/** Parse monetary value handling Brazilian format */
 function parseValor(raw: unknown): number | null {
   if (raw == null) return null;
   if (typeof raw === "number") return isNaN(raw) ? null : raw;
@@ -65,7 +14,6 @@ function parseValor(raw: unknown): number | null {
 
   // Handle Brazilian format: 1.234,56 → 1234.56
   if (str.includes(",")) {
-    // If has both dot and comma, dot is thousands separator
     if (str.includes(".")) {
       str = str.replace(/\./g, "").replace(",", ".");
     } else {
@@ -90,27 +38,35 @@ function findColumn(rowKeys: string[], target: string): string | undefined {
   );
 }
 
-/** Clean and parse fatura number */
-function parseFatura(raw: unknown): { serie: string; documento: string } | { error: string } {
-  if (raw == null || String(raw).trim() === "") {
-    return { error: "Nº da Fatura vazio" };
-  }
+/** Keywords that indicate summary/total/subtitle rows */
+const SKIP_KEYWORDS = [
+  "total", "subtotal", "sub-total", "soma", "resumo",
+  "grand total", "total geral", "qtd", "quantidade",
+];
 
-  // Remove spaces, dots, dashes and non-numeric chars
-  const str = String(raw).trim().replace(/[\s.\-\/]/g, "");
+/** Check if a value looks like a summary/total/header row */
+function isSummaryRow(faturaRaw: string): boolean {
+  const lower = faturaRaw.toLowerCase().trim();
+  return SKIP_KEYWORDS.some((kw) => lower.includes(kw));
+}
 
-  if (!/^\d+$/.test(str)) {
-    return { error: `Nº da Fatura contém caracteres inválidos: "${String(raw).trim()}"` };
-  }
+/** Check if fatura is a valid document number starting with 36 or 1 */
+function isValidFatura(str: string): boolean {
+  // Must be purely numeric after cleanup
+  const cleaned = str.replace(/[\s.\-\/]/g, "");
+  if (!/^\d+$/.test(cleaned)) return false;
+  // Must start with 36 or 1
+  return cleaned.startsWith("36") || cleaned.startsWith("1");
+}
 
+/** Parse fatura into serie + documento */
+function parseFatura(cleaned: string): { serie: string; documento: string } {
+  const str = cleaned.replace(/[\s.\-\/]/g, "");
   if (str.startsWith("36") && str.length > 2) {
     return { serie: "36", documento: str.slice(2) };
   }
-  if (str.startsWith("1") && str.length > 1) {
-    return { serie: "1", documento: str.slice(1) };
-  }
-
-  return { error: `Padrão de fatura não reconhecido: "${String(raw).trim()}"` };
+  // starts with "1"
+  return { serie: "1", documento: str.slice(1) };
 }
 
 export function processarMartinBrower(
@@ -129,56 +85,90 @@ export function processarMartinBrower(
 
   const documents: ProcessedDocument[] = [];
   const errors: ProcessingError[] = [];
+  const preview: PreviewRow[] = [];
   let totalValorBruto = 0;
+  let totalLinhasIgnoradas = 0;
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
     const rowNum = i + 2; // +2 for header row + 0-index
 
-    // Validate Valor Bruto
-    const rawValor = colValorBruto ? row[colValorBruto] : undefined;
-    const valorBruto = parseValor(rawValor);
+    const rawFaturaVal = colFatura ? row[colFatura] : undefined;
+    const rawValorVal = colValorBruto ? row[colValorBruto] : undefined;
+    const faturaStr = String(rawFaturaVal ?? "").trim();
+    const valorStr = String(rawValorVal ?? "").trim();
 
-    if (valorBruto === null) {
-      errors.push({
-        row: rowNum,
-        fatura: String(colFatura ? row[colFatura] ?? "" : ""),
-        motivo: `Valor Bruto vazio ou inválido: "${String(rawValor ?? "")}"`,
-      });
+    // --- Ignorar linhas vazias ---
+    if (!faturaStr && !valorStr) {
+      totalLinhasIgnoradas++;
+      if (preview.length < 20) {
+        preview.push({ row: rowNum, faturaOriginal: "", valorBrutoOriginal: "", valorBrutoConvertido: null, status: "ignorada" });
+      }
       continue;
     }
 
+    // --- Ignorar linhas de total/subtotal/resumo/cabeçalho repetido ---
+    if (isSummaryRow(faturaStr) || faturaStr.toLowerCase() === "nº da fatura") {
+      totalLinhasIgnoradas++;
+      if (preview.length < 20) {
+        preview.push({ row: rowNum, faturaOriginal: faturaStr, valorBrutoOriginal: valorStr, valorBrutoConvertido: null, status: "ignorada" });
+      }
+      continue;
+    }
+
+    // --- Fatura precisa estar preenchida ---
+    if (!faturaStr) {
+      totalLinhasIgnoradas++;
+      if (preview.length < 20) {
+        preview.push({ row: rowNum, faturaOriginal: "", valorBrutoOriginal: valorStr, valorBrutoConvertido: null, status: "ignorada" });
+      }
+      continue;
+    }
+
+    // --- Fatura precisa ser um documento válido (começa com 36 ou 1) ---
+    if (!isValidFatura(faturaStr)) {
+      totalLinhasIgnoradas++;
+      if (preview.length < 20) {
+        preview.push({ row: rowNum, faturaOriginal: faturaStr, valorBrutoOriginal: valorStr, valorBrutoConvertido: null, status: "ignorada" });
+      }
+      continue;
+    }
+
+    // --- Valor Bruto precisa estar preenchido e ser numérico ---
+    const valorBruto = parseValor(rawValorVal);
+    if (valorBruto === null || valorBruto === 0) {
+      errors.push({ row: rowNum, fatura: faturaStr, motivo: `Valor Bruto vazio ou inválido: "${valorStr}"` });
+      if (preview.length < 20) {
+        preview.push({ row: rowNum, faturaOriginal: faturaStr, valorBrutoOriginal: valorStr, valorBrutoConvertido: null, status: "erro" });
+      }
+      continue;
+    }
+
+    // --- Linha válida ---
+    const faturaData = parseFatura(faturaStr);
     totalValorBruto += valorBruto;
-
-    // Validate Fatura
-    const rawFatura = colFatura ? row[colFatura] : undefined;
-    const faturaResult = parseFatura(rawFatura);
-
-    if ("error" in faturaResult) {
-      errors.push({
-        row: rowNum,
-        fatura: String(rawFatura ?? ""),
-        motivo: faturaResult.error,
-      });
-      continue;
-    }
 
     documents.push({
       filial: "01",
-      serie: faturaResult.serie,
-      numeroDocumento: faturaResult.documento,
+      serie: faturaData.serie,
+      numeroDocumento: faturaData.documento,
       tipoDocumento: "NF",
       valorPago: Math.round(valorBruto * 100) / 100,
     });
+
+    if (preview.length < 20) {
+      preview.push({ row: rowNum, faturaOriginal: faturaStr, valorBrutoOriginal: valorStr, valorBrutoConvertido: Math.round(valorBruto * 100) / 100, status: "válida" });
+    }
   }
 
   return {
     documents,
     errors,
+    preview,
     totalValorBruto: Math.round(totalValorBruto * 100) / 100,
     totalDocumentos: documents.length,
     totalLinhasLidas,
-    totalLinhasFiltradas: totalLinhasLidas,
+    totalLinhasIgnoradas,
     totalLinhasValidas: documents.length,
     totalLinhasComErro: errors.length,
   };
