@@ -188,7 +188,7 @@ export function processarMartinBrower(
     if (!faturaStr) {
       totalLinhasIgnoradas++;
       if (preview.length < 20) {
-        preview.push({ row: rowNum, dataVcto: dataVctoDisplay, faturaOriginal: "", serie: "", numeroDocumento: "", valorBrutoOriginal: valorStr, valorBrutoConvertido: null, status: "ignorada" });
+        preview.push({ row: rowNum, dataVcto: dataVctoDisplay, dataPagamento: "", faturaOriginal: "", serie: "", numeroDocumento: "", valorBrutoOriginal: valorStr, valorBrutoConvertido: null, status: "ignorada" });
       }
       continue;
     }
