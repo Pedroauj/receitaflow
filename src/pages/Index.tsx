@@ -33,22 +33,9 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Hero */}
-      <div className="max-w-5xl mx-auto px-6 pt-16 pb-12">
-        <div className="max-w-2xl">
-          <div className="inline-flex items-center gap-2 text-xs font-medium text-primary bg-primary/10 px-3 py-1.5 rounded-full mb-6">
-            <FileSpreadsheet className="h-3.5 w-3.5" />
-            Importação financeira automatizada
-          </div>
-          <p className="text-muted-foreground leading-relaxed">
-            Selecione um cliente abaixo para iniciar a conversão da planilha para o formato de importação financeira.
-          </p>
-        </div>
-      </div>
-
       {/* Stats */}
       {stats.totalPlanilhas > 0 && (
-        <div className="max-w-5xl mx-auto px-6 pb-8">
+        <div className="max-w-5xl mx-auto px-6 pt-16 pb-8">
           <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-4">
             Estatísticas gerais
           </h3>
@@ -85,6 +72,19 @@ const Index = () => {
           </div>
         </div>
       )}
+
+      {/* Hero */}
+      <div className={`max-w-5xl mx-auto px-6 ${stats.totalPlanilhas > 0 ? 'pt-8' : 'pt-16'} pb-12`}>
+        <div className="max-w-2xl">
+          <div className="inline-flex items-center gap-2 text-xs font-medium text-primary bg-primary/10 px-3 py-1.5 rounded-full mb-6">
+            <FileSpreadsheet className="h-3.5 w-3.5" />
+            Importação financeira automatizada
+          </div>
+          <p className="text-muted-foreground leading-relaxed">
+            Selecione um cliente abaixo para iniciar a conversão da planilha para o formato de importação financeira.
+          </p>
+        </div>
+      </div>
 
       {/* Clients grid */}
       <main className="max-w-5xl mx-auto px-6 pb-20">
