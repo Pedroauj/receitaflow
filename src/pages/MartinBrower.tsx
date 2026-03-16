@@ -20,12 +20,13 @@ const MartinBrower = () => {
   const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
   const [dataRecebimento, setDataRecebimento] = useState<Date>();
+  const [dataVencimento, setDataVencimento] = useState<Date>();
   const [valorBanco, setValorBanco] = useState("");
   const [result, setResult] = useState<ProcessingResult | null>(null);
   const [processing, setProcessing] = useState(false);
 
   const valorBancoNum = parseFloat(valorBanco.replace(",", ".")) || 0;
-  const canProcess = file && dataRecebimento && valorBancoNum > 0;
+  const canProcess = file && dataRecebimento && dataVencimento && valorBancoNum > 0;
 
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -47,20 +48,19 @@ const MartinBrower = () => {
   }, []);
 
   const handleProcess = async () => {
-    if (!file || !dataRecebimento) return;
+    if (!file || !dataRecebimento || !dataVencimento) return;
     setProcessing(true);
     try {
       const buffer = await file.arrayBuffer();
-      const res = processarMartinBrower(buffer);
+      const res = processarMartinBrower(buffer, dataVencimento);
       setResult(res);
 
-      // Save to history
       if (res.totalLinhasLidas > 0) {
         const statusConf = Math.abs(res.totalValorBruto - valorBancoNum) < 0.01 ? "confere" : "diverge";
         addRecord({
           cliente: "Martin Brower",
           dataProcessamento: new Date().toISOString(),
-          dataVencimento: dataRecebimento.toISOString(),
+          dataVencimento: dataVencimento.toISOString(),
           dataRecebimento: dataRecebimento.toISOString(),
           quantidadeDocumentos: res.totalDocumentos,
           valorTotal: res.totalValorBruto,
@@ -70,10 +70,10 @@ const MartinBrower = () => {
         });
       }
 
-      if (res.totalLinhasLidas === 0) {
+      if (res.totalLinhasValidas === 0) {
         toast({
-          title: "Nenhuma linha encontrada",
-          description: "A planilha não contém registros.",
+          title: "Nenhuma linha válida encontrada",
+          description: "Nenhum documento encontrado para a data de vencimento informada.",
           variant: "destructive",
         });
       } else {
@@ -189,7 +189,34 @@ const MartinBrower = () => {
             <CardTitle className="text-sm font-semibold tracking-tight">Parâmetros</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Data de vencimento</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !dataVencimento && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dataVencimento ? format(dataVencimento, "dd/MM/yyyy") : "Selecionar"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={dataVencimento}
+                      onSelect={setDataVencimento}
+                      locale={ptBR}
+                      className="p-3 pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
               <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">Data de recebimento</Label>
                 <Popover>
@@ -248,11 +275,17 @@ const MartinBrower = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Resumo detalhado */}
-              <div className="grid gap-3 sm:grid-cols-4">
+              <div className="grid gap-3 sm:grid-cols-5">
                 <div className="rounded-lg bg-secondary/50 p-4">
                   <p className="text-xs text-muted-foreground mb-1">Linhas lidas</p>
                   <p className="text-2xl font-semibold tabular-nums text-foreground">
                     {result.totalLinhasLidas}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-secondary/50 p-4">
+                  <p className="text-xs text-muted-foreground mb-1">Filtradas pela data</p>
+                  <p className="text-2xl font-semibold tabular-nums text-foreground">
+                    {result.totalLinhasLidas - result.totalLinhasFiltradasData - result.totalLinhasIgnoradas}
                   </p>
                 </div>
                 <div className="rounded-lg bg-secondary/50 p-4">
@@ -320,11 +353,11 @@ const MartinBrower = () => {
               </div>
 
               {/* Nenhuma linha encontrada */}
-              {result.totalLinhasLidas === 0 && (
+              {result.totalLinhasValidas === 0 && (
                 <div className="rounded-lg border border-border bg-secondary/30 p-4 flex items-center gap-3">
                   <Info className="h-5 w-5 text-muted-foreground shrink-0" />
                   <p className="text-sm text-muted-foreground">
-                    A planilha não contém registros.
+                    Nenhum documento válido encontrado para a data de vencimento selecionada.
                   </p>
                 </div>
               )}
@@ -335,7 +368,7 @@ const MartinBrower = () => {
                   <div className="flex items-center gap-2 mb-3">
                     <Info className="h-4 w-4 text-muted-foreground" />
                     <p className="text-sm font-medium text-foreground">
-                      Preview de validação (primeiras {result.preview.length} linhas)
+                      Preview de validação (primeiras {result.preview.length} linhas filtradas)
                     </p>
                   </div>
                   <div className="max-h-72 overflow-auto rounded-lg">
@@ -343,9 +376,11 @@ const MartinBrower = () => {
                       <TableHeader>
                         <TableRow>
                           <TableHead>Linha</TableHead>
-                          <TableHead>Nº Fatura (original)</TableHead>
-                          <TableHead>Valor Bruto (original)</TableHead>
-                          <TableHead>Valor convertido</TableHead>
+                          <TableHead>Data Vcto.</TableHead>
+                          <TableHead>Nº Fatura</TableHead>
+                          <TableHead>Série</TableHead>
+                          <TableHead>Nº Documento</TableHead>
+                          <TableHead>Valor Bruto</TableHead>
                           <TableHead>Status</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -353,10 +388,12 @@ const MartinBrower = () => {
                         {result.preview.map((p, i) => (
                           <TableRow key={i}>
                             <TableCell className="tabular-nums">{p.row}</TableCell>
+                            <TableCell className="text-sm">{p.dataVcto || "—"}</TableCell>
                             <TableCell className="font-mono text-sm">{p.faturaOriginal || "—"}</TableCell>
-                            <TableCell className="text-sm">{p.valorBrutoOriginal || "—"}</TableCell>
+                            <TableCell className="text-sm">{p.serie || "—"}</TableCell>
+                            <TableCell className="font-mono text-sm">{p.numeroDocumento || "—"}</TableCell>
                             <TableCell className="tabular-nums text-sm">
-                              {p.valorBrutoConvertido != null ? formatBRL(p.valorBrutoConvertido) : "—"}
+                              {p.valorBrutoConvertido != null ? formatBRL(p.valorBrutoConvertido) : p.valorBrutoOriginal || "—"}
                             </TableCell>
                             <TableCell>
                               <span className={cn(
