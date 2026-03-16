@@ -31,9 +31,7 @@ const Index = () => {
       >
         <div className="max-w-5xl mx-auto px-6 py-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-primary/15 flex items-center justify-center glow-icon">
-              <Zap className="h-5 w-5 text-primary" />
-            </div>
+            <img src={logo} alt="ReceitaFlow" className="h-10 w-10 object-contain glow-icon" />
             <div>
               <h1 className="text-xl font-bold text-primary tracking-tight neon-text">ReceitaFlow</h1>
               <p className="text-xs text-muted-foreground font-medium">Conversor de planilhas financeiras</p>
