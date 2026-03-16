@@ -383,6 +383,7 @@ const MartinBrower = () => {
                         <TableRow>
                           <TableHead>Linha</TableHead>
                           <TableHead>Data Vcto.</TableHead>
+                          <TableHead>Data Pagamento</TableHead>
                           <TableHead>Nº Fatura</TableHead>
                           <TableHead>Série</TableHead>
                           <TableHead>Nº Documento</TableHead>
@@ -395,6 +396,7 @@ const MartinBrower = () => {
                           <TableRow key={i}>
                             <TableCell className="tabular-nums">{p.row}</TableCell>
                             <TableCell className="text-sm">{p.dataVcto || "—"}</TableCell>
+                            <TableCell className="text-sm">{p.dataPagamento || "—"}</TableCell>
                             <TableCell className="font-mono text-sm">{p.faturaOriginal || "—"}</TableCell>
                             <TableCell className="text-sm">{p.serie || "—"}</TableCell>
                             <TableCell className="font-mono text-sm">{p.numeroDocumento || "—"}</TableCell>
