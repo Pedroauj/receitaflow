@@ -19,14 +19,13 @@ import { addRecord } from "@/lib/history";
 const MartinBrower = () => {
   const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
-  const [dataVencimento, setDataVencimento] = useState<Date>();
   const [dataRecebimento, setDataRecebimento] = useState<Date>();
   const [valorBanco, setValorBanco] = useState("");
   const [result, setResult] = useState<ProcessingResult | null>(null);
   const [processing, setProcessing] = useState(false);
 
   const valorBancoNum = parseFloat(valorBanco.replace(",", ".")) || 0;
-  const canProcess = file && dataVencimento && dataRecebimento && valorBancoNum > 0;
+  const canProcess = file && dataRecebimento && valorBancoNum > 0;
 
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -48,20 +47,20 @@ const MartinBrower = () => {
   }, []);
 
   const handleProcess = async () => {
-    if (!file || !dataVencimento) return;
+    if (!file || !dataRecebimento) return;
     setProcessing(true);
     try {
       const buffer = await file.arrayBuffer();
-      const res = processarMartinBrower(buffer, dataVencimento);
+      const res = processarMartinBrower(buffer);
       setResult(res);
 
       // Save to history
-      if (res.totalLinhasFiltradas > 0 && dataRecebimento) {
+      if (res.totalLinhasLidas > 0) {
         const statusConf = Math.abs(res.totalValorBruto - valorBancoNum) < 0.01 ? "confere" : "diverge";
         addRecord({
           cliente: "Martin Brower",
           dataProcessamento: new Date().toISOString(),
-          dataVencimento: dataVencimento.toISOString(),
+          dataVencimento: dataRecebimento.toISOString(),
           dataRecebimento: dataRecebimento.toISOString(),
           quantidadeDocumentos: res.totalDocumentos,
           valorTotal: res.totalValorBruto,
@@ -71,11 +70,10 @@ const MartinBrower = () => {
         });
       }
 
-
-      if (res.totalLinhasFiltradas === 0) {
+      if (res.totalLinhasLidas === 0) {
         toast({
           title: "Nenhuma linha encontrada",
-          description: "Não há registros com a data de vencimento informada.",
+          description: "A planilha não contém registros.",
           variant: "destructive",
         });
       } else {
@@ -191,34 +189,7 @@ const MartinBrower = () => {
             <CardTitle className="text-sm font-semibold tracking-tight">Parâmetros</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Data de vencimento</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !dataVencimento && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dataVencimento ? format(dataVencimento, "dd/MM/yyyy") : "Selecionar"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={dataVencimento}
-                      onSelect={setDataVencimento}
-                      locale={ptBR}
-                      className="p-3 pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">Data de recebimento</Label>
                 <Popover>
@@ -277,17 +248,11 @@ const MartinBrower = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Resumo detalhado */}
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-3 sm:grid-cols-3">
                 <div className="rounded-lg bg-secondary/50 p-4">
                   <p className="text-xs text-muted-foreground mb-1">Linhas lidas</p>
                   <p className="text-2xl font-semibold tabular-nums text-foreground">
                     {result.totalLinhasLidas}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-secondary/50 p-4">
-                  <p className="text-xs text-muted-foreground mb-1">Filtradas pela data</p>
-                  <p className="text-2xl font-semibold tabular-nums text-foreground">
-                    {result.totalLinhasFiltradas}
                   </p>
                 </div>
                 <div className="rounded-lg bg-secondary/50 p-4">
@@ -349,11 +314,11 @@ const MartinBrower = () => {
               </div>
 
               {/* Nenhuma linha encontrada */}
-              {result.totalLinhasFiltradas === 0 && (
+              {result.totalLinhasLidas === 0 && (
                 <div className="rounded-lg border border-border bg-secondary/30 p-4 flex items-center gap-3">
                   <Info className="h-5 w-5 text-muted-foreground shrink-0" />
                   <p className="text-sm text-muted-foreground">
-                    Nenhuma linha encontrada para a data de vencimento informada.
+                    A planilha não contém registros.
                   </p>
                 </div>
               )}

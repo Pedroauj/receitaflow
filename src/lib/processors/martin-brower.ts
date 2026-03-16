@@ -114,8 +114,7 @@ function parseFatura(raw: unknown): { serie: string; documento: string } | { err
 }
 
 export function processarMartinBrower(
-  fileBuffer: ArrayBuffer,
-  dataVencimento: Date
+  fileBuffer: ArrayBuffer
 ): ProcessingResult {
   const workbook = XLSX.read(fileBuffer, { type: "array" });
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
@@ -125,33 +124,16 @@ export function processarMartinBrower(
 
   // Discover actual column names from first row
   const sampleKeys = rows.length > 0 ? Object.keys(rows[0]) : [];
-  const colDataVcto = findColumn(sampleKeys, "Data Vcto.");
   const colValorBruto = findColumn(sampleKeys, "Valor Bruto");
   const colFatura = findColumn(sampleKeys, "Nº da Fatura");
 
   const documents: ProcessedDocument[] = [];
   const errors: ProcessingError[] = [];
   let totalValorBruto = 0;
-  let totalLinhasFiltradas = 0;
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
     const rowNum = i + 2; // +2 for header row + 0-index
-
-    // Get date value
-    const rawDate = colDataVcto ? row[colDataVcto] : undefined;
-    if (rawDate == null || String(rawDate).trim() === "") continue;
-
-    const rowDate = parseDate(rawDate);
-    if (!rowDate) {
-      // Row has a date field but it's unparseable — skip silently (not in filtered set)
-      continue;
-    }
-
-    if (!isSameDate(rowDate, dataVencimento)) continue;
-
-    // This row matches the date filter
-    totalLinhasFiltradas++;
 
     // Validate Valor Bruto
     const rawValor = colValorBruto ? row[colValorBruto] : undefined;
@@ -196,7 +178,7 @@ export function processarMartinBrower(
     totalValorBruto: Math.round(totalValorBruto * 100) / 100,
     totalDocumentos: documents.length,
     totalLinhasLidas,
-    totalLinhasFiltradas,
+    totalLinhasFiltradas: totalLinhasLidas,
     totalLinhasValidas: documents.length,
     totalLinhasComErro: errors.length,
   };
