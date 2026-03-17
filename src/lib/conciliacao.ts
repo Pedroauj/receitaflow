@@ -102,21 +102,30 @@ function normalizeDate(value: unknown) {
   const raw = String(value).trim();
   if (!raw) return "";
 
-  const normalized = raw.replace(/\./g, "/");
-  const matchBr = normalized.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  const cleaned = raw.replace(/\s+/g, " ").trim();
 
-  if (matchBr) {
-    const [, dd, mm, yyyyRaw] = matchBr;
+  const brMatch = cleaned.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  if (brMatch) {
+    const [, dd, mm, yyyyRaw] = brMatch;
     const yyyy = yyyyRaw.length === 2 ? `20${yyyyRaw}` : yyyyRaw;
     return `${yyyy.padStart(4, "0")}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
   }
 
-  const isoMatch = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  const isoMatch = cleaned.match(/(\d{4})-(\d{2})-(\d{2})/);
   if (isoMatch) {
-    return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+    const [, yyyy, mm, dd] = isoMatch;
+    return `${yyyy}-${mm}-${dd}`;
   }
 
-  const parsed = new Date(raw);
+  const normalized = cleaned.replace(/\./g, "/").replace(/-/g, "/");
+  const fallbackBr = normalized.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  if (fallbackBr) {
+    const [, dd, mm, yyyyRaw] = fallbackBr;
+    const yyyy = yyyyRaw.length === 2 ? `20${yyyyRaw}` : yyyyRaw;
+    return `${yyyy.padStart(4, "0")}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
+  }
+
+  const parsed = new Date(cleaned);
   if (!Number.isNaN(parsed.getTime())) {
     const yyyy = parsed.getFullYear();
     const mm = `${parsed.getMonth() + 1}`.padStart(2, "0");
