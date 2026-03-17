@@ -19,6 +19,7 @@ import Clientes from "./pages/Clientes";
 import Configuracoes from "./pages/Configuracoes";
 import NotFound from "./pages/NotFound";
 import ClientePlaceholder from "./pages/ClientePlaceholder";
+import Natura from "./pages/Natura";
 
 const queryClient = new QueryClient();
 
