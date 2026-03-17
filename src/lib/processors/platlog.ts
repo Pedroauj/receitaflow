@@ -83,7 +83,10 @@ function getRuleFromDocument(numeroDocumento: string): {
 } | null {
   if (!numeroDocumento) return null;
 
-  if (numeroDocumento.startsWith("9")) {
+  if (
+    numeroDocumento.startsWith("9") ||
+    numeroDocumento.startsWith("1")
+  ) {
     return {
       serie: "4",
       tipoDocumento: "CTRC",
@@ -128,6 +131,31 @@ function findHeaderRow(rows: unknown[][]): { headerRowIndex: number; headerMap: 
   throw new Error(
     "Não foi possível localizar as colunas N.Fiscal ou Número e Vl.Total ou Valor do pagamento na planilha."
   );
+}
+
+function getCellValue(row: unknown[], index?: number): unknown {
+  if (index === undefined) return undefined;
+  return row[index];
+}
+
+function getDocumentFromRow(row: unknown[], headerMap: HeaderMap): string {
+  const nfiscalValue = toDocumentString(getCellValue(row, headerMap["nfiscal"]));
+  if (nfiscalValue) return nfiscalValue;
+
+  const numeroValue = toDocumentString(getCellValue(row, headerMap["numero"]));
+  if (numeroValue) return numeroValue;
+
+  return "";
+}
+
+function getValueFromRow(row: unknown[], headerMap: HeaderMap): number | null {
+  const vlTotalValue = toNumber(getCellValue(row, headerMap["vltotal"]));
+  if (vlTotalValue !== null) return vlTotalValue;
+
+  const valorPagamentoValue = toNumber(getCellValue(row, headerMap["valordopagamento"]));
+  if (valorPagamentoValue !== null) return valorPagamentoValue;
+
+  return null;
 }
 
 function applyDiscounts(
@@ -197,16 +225,13 @@ export async function processarPlatlog(
 
   const { headerRowIndex, headerMap } = findHeaderRow(rows);
 
-  const nfiscalIndex = headerMap["nfiscal"] ?? headerMap["numero"];
-  const vltotalIndex = headerMap["vltotal"] ?? headerMap["valordopagamento"];
-
   const baseDocuments: PlatlogDocument[] = [];
 
   for (let i = headerRowIndex + 1; i < rows.length; i++) {
     const row = rows[i] ?? [];
 
-    const numeroDocumento = toDocumentString(row[nfiscalIndex]);
-    const valor = toNumber(row[vltotalIndex]);
+    const numeroDocumento = getDocumentFromRow(row, headerMap);
+    const valor = getValueFromRow(row, headerMap);
 
     if (!numeroDocumento || valor === null) continue;
 
