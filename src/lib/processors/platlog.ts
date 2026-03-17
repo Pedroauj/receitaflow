@@ -112,15 +112,20 @@ function findHeaderRow(rows: unknown[][]): { headerRowIndex: number; headerMap: 
       }
     });
 
-    const hasNFiscal = headerMap["nfiscal"] !== undefined;
-    const hasVlTotal = headerMap["vltotal"] !== undefined;
+    const hasNFiscal =
+  headerMap["nfiscal"] !== undefined ||
+  headerMap["numero"] !== undefined;
+
+const hasVlTotal =
+  headerMap["vltotal"] !== undefined ||
+  headerMap["valordopagamento"] !== undefined;
 
     if (hasNFiscal && hasVlTotal) {
       return { headerRowIndex: rowIndex, headerMap };
     }
   }
 
-  throw new Error("Não foi possível localizar as colunas N.Fiscal e Vl.Total na planilha.");
+  throw new Error("Não foi possível localizar as colunas N.Fiscal ou Número e Vl.Total ou Valor do pagamento na planilha.");
 }
 
 function applyDiscounts(
