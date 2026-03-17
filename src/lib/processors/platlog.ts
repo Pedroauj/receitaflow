@@ -195,8 +195,11 @@ export async function processarPlatlog(
 
   const { headerRowIndex, headerMap } = findHeaderRow(rows);
 
-  const nfiscalIndex = headerMap["nfiscal"];
-  const vltotalIndex = headerMap["vltotal"];
+  const nfiscalIndex =
+  headerMap["nfiscal"] ?? headerMap["numero"];
+
+  const vltotalIndex =
+  headerMap["vltotal"] ?? headerMap["valordopagamento"];
 
   const baseDocuments: PlatlogDocument[] = [];
 
