@@ -7,6 +7,7 @@ import {
   Settings,
   Hexagon,
   LogOut,
+  FileSearch,
 } from "lucide-react";
 import { getRecords } from "@/lib/history";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,6 +19,7 @@ const navItems = [
       { title: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
       { title: "Histórico", icon: History, path: "/historico", showBadge: true },
       { title: "Em andamento", icon: Loader2, path: "/em-andamento" },
+      { title: "Conciliação", icon: FileSearch, path: "/conciliacao" },
     ],
   },
   {
@@ -46,7 +48,12 @@ const DashboardSidebar = () => {
   };
 
   const initials = user?.user_metadata?.full_name
-    ? user.user_metadata.full_name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()
+    ? user.user_metadata.full_name
+        .split(" ")
+        .map((n: string) => n[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
     : user?.email?.slice(0, 2).toUpperCase() || "RF";
 
   const displayName = user?.user_metadata?.full_name || user?.email || "Usuário";
@@ -54,15 +61,23 @@ const DashboardSidebar = () => {
   return (
     <aside className="sidebar-nav fixed left-0 top-0 bottom-0 w-[220px] flex flex-col z-50">
       {/* Logo */}
-      <div className="px-5 py-5 flex items-center gap-3 cursor-pointer" onClick={() => navigate("/dashboard")}>
-        <div className="h-9 w-9 rounded-lg flex items-center justify-center" style={{ background: "#412402" }}>
+      <div
+        className="px-5 py-5 flex items-center gap-3 cursor-pointer"
+        onClick={() => navigate("/dashboard")}
+      >
+        <div
+          className="h-9 w-9 rounded-lg flex items-center justify-center"
+          style={{ background: "#412402" }}
+        >
           <Hexagon className="h-5 w-5" style={{ color: "#BA7517" }} />
         </div>
         <div>
           <h1 className="text-sm font-semibold" style={{ color: "#F5F5F0" }}>
             Receita<span style={{ color: "#FAC775" }}>Flow</span>
           </h1>
-          <p className="text-[10px]" style={{ color: "#5F5E5A" }}>Conversor financeiro</p>
+          <p className="text-[10px]" style={{ color: "#5F5E5A" }}>
+            Conversor financeiro
+          </p>
         </div>
       </div>
 
@@ -93,16 +108,32 @@ const DashboardSidebar = () => {
       {/* User */}
       <div className="px-4 py-4 border-t" style={{ borderColor: "#2C2C2A" }}>
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-semibold shrink-0" style={{ background: "#412402", color: "#FAC775" }}>
+          <div
+            className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-semibold shrink-0"
+            style={{ background: "#412402", color: "#FAC775" }}
+          >
             {initials}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium truncate" style={{ color: "#F5F5F0" }}>{displayName}</p>
-            <p className="text-[10px]" style={{ color: "#5F5E5A" }}>Administrador</p>
+            <p className="text-xs font-medium truncate" style={{ color: "#F5F5F0" }}>
+              {displayName}
+            </p>
+            <p className="text-[10px]" style={{ color: "#5F5E5A" }}>
+              Administrador
+            </p>
           </div>
-          <button onClick={handleLogout} className="h-7 w-7 rounded-md flex items-center justify-center transition-colors" style={{ color: "#5F5E5A" }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = "#412402"; e.currentTarget.style.color = "#FAC775"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#5F5E5A"; }}
+          <button
+            onClick={handleLogout}
+            className="h-7 w-7 rounded-md flex items-center justify-center transition-colors"
+            style={{ color: "#5F5E5A" }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#412402";
+              e.currentTarget.style.color = "#FAC775";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.color = "#5F5E5A";
+            }}
             title="Sair"
           >
             <LogOut className="h-3.5 w-3.5" />
