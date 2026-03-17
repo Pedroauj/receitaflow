@@ -40,45 +40,28 @@ export async function processarNatura(fileBuffer: ArrayBuffer): Promise<NaturaPr
     fullText += pageText + "\n";
   }
 
-  // Find section "COMPROMISSOS"
-  const compromissosIdx = fullText.toUpperCase().indexOf("COMPROMISSOS");
-  if (compromissosIdx === -1) {
-    return { documents: [], totalDocumentos: 0, totalValor: 0 };
-  }
-
-  const textAfter = fullText.substring(compromissosIdx);
-
-  // Extract "Nº do Documento" and "Valor da Operação" pairs
-  // Strategy: find all occurrences of document number and operation value patterns
   const documents: NaturaDocument[] = [];
 
-  // Pattern: look for document numbers and operation values
-  // We'll search for "Nº do Documento" or "N° do Documento" labels followed by values
-  // And "Valor da Operação" or "Valor da Operacao" labels followed by values
-
-  const docNumberPattern = /N[º°]\s*(?:do\s*)?Documento[:\s]*(\S+)/gi;
-  const valorPattern = /Valor\s*da\s*Opera[çc][ãa]o[:\s]*([\d.,]+)/gi;
+  // Search entire text for all "Nº DO DOCUMENTO" and "VALOR DA OPERAÇÃO" patterns
+  const docNumberPattern = /N[º°]\s*(?:DO\s*)?DOCUMENTO[:\s]*([\d.]+)/gi;
+  const valorPattern = /VALOR\s*DA\s*OPERA[ÇC][ÃA]O[:\s]*([\d.,]+)/gi;
 
   const docNumbers: string[] = [];
   const valores: number[] = [];
 
   let match: RegExpExecArray | null;
 
-  while ((match = docNumberPattern.exec(textAfter)) !== null) {
+  while ((match = docNumberPattern.exec(fullText)) !== null) {
     const docNum = match[1].trim();
-    if (docNum && docNum.length > 0) {
-      docNumbers.push(docNum);
-    }
+    if (docNum.length > 0) docNumbers.push(docNum);
   }
 
-  while ((match = valorPattern.exec(textAfter)) !== null) {
+  while ((match = valorPattern.exec(fullText)) !== null) {
     const val = parseValor(match[1]);
-    if (val !== null) {
-      valores.push(val);
-    }
+    if (val !== null) valores.push(val);
   }
 
-  // Pair them up: each doc number with its corresponding value
+  // Pair each doc number with its corresponding value
   const count = Math.min(docNumbers.length, valores.length);
   for (let i = 0; i < count; i++) {
     documents.push({
@@ -88,30 +71,6 @@ export async function processarNatura(fileBuffer: ArrayBuffer): Promise<NaturaPr
       tipoDocumento: "CTRC",
       valor: valores[i],
     });
-  }
-
-  // If we found doc numbers but no matched valores (or vice versa), try alternative parsing
-  // Try line-by-line approach as fallback
-  if (documents.length === 0) {
-    // Alternative: look for rows with numeric patterns that could be doc number + value
-    const lines = textAfter.split(/\n/);
-    for (const line of lines) {
-      // Try to find pairs in the same line
-      const altDocMatch = line.match(/N[º°]\s*(?:do\s*)?Documento[:\s]*(\S+)/i);
-      const altValMatch = line.match(/Valor\s*da\s*Opera[çc][ãa]o[:\s]*([\d.,]+)/i);
-      if (altDocMatch && altValMatch) {
-        const val = parseValor(altValMatch[1]);
-        if (val !== null) {
-          documents.push({
-            filial: "1",
-            serie: "1",
-            numeroDocumento: altDocMatch[1].trim(),
-            tipoDocumento: "CTRC",
-            valor: val,
-          });
-        }
-      }
-    }
   }
 
   const totalValor = documents.reduce((sum, d) => sum + d.valor, 0);
