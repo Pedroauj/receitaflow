@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import type { ChangeEvent, ComponentType, CSSProperties } from "react";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -8,78 +9,29 @@ import {
   ShieldAlert,
   UploadCloud,
 } from "lucide-react";
-
-type DivergenceType =
-  | "Não lançada"
-  | "Valor divergente"
-  | "Data divergente"
-  | "NF divergente"
-  | "CNPJ divergente"
-  | "Múltiplas divergências";
-
-type ComparisonRow = {
-  id: string;
-  dataEmissao: string;
-  numeroNF: string;
-  cnpjPrestador: string;
-  valor: number;
-  tipo: DivergenceType;
-  observacao: string;
-};
-
-const mockResults: ComparisonRow[] = [
-  {
-    id: "1",
-    dataEmissao: "12/03/2026",
-    numeroNF: "125487",
-    cnpjPrestador: "12.345.678/0001-90",
-    valor: 1840.5,
-    tipo: "Não lançada",
-    observacao: "Nota encontrada no governo e não localizada no sistema.",
-  },
-  {
-    id: "2",
-    dataEmissao: "12/03/2026",
-    numeroNF: "125490",
-    cnpjPrestador: "98.765.432/0001-12",
-    valor: 2599.9,
-    tipo: "Valor divergente",
-    observacao: "Mesma NF localizada com valor diferente no sistema.",
-  },
-  {
-    id: "3",
-    dataEmissao: "13/03/2026",
-    numeroNF: "125512",
-    cnpjPrestador: "45.111.222/0001-33",
-    valor: 920,
-    tipo: "Data divergente",
-    observacao: "Mesma NF encontrada, porém com data de emissão divergente.",
-  },
-  {
-    id: "4",
-    dataEmissao: "13/03/2026",
-    numeroNF: "125530",
-    cnpjPrestador: "11.222.333/0001-44",
-    valor: 1475.35,
-    tipo: "Não lançada",
-    observacao: "Não há registro correspondente no sistema.",
-  },
-  {
-    id: "5",
-    dataEmissao: "14/03/2026",
-    numeroNF: "125551",
-    cnpjPrestador: "77.888.999/0001-55",
-    valor: 3010.75,
-    tipo: "Múltiplas divergências",
-    observacao: "Registro semelhante encontrado com diferença de valor e data.",
-  },
-];
+import {
+  compareReports,
+  exportNotLaunchedToExcel,
+  parseSpreadsheetFile,
+  type ComparisonRow,
+  type ComparisonSummary,
+  type DivergenceType,
+} from "@/lib/conciliacao";
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
   }).format(value);
+
+const emptySummary: ComparisonSummary = {
+  totalGovernmentNotes: 0,
+  totalSystemNotes: 0,
+  reconciled: 0,
+  notLaunchedCount: 0,
+  divergencesCount: 0,
+  notLaunchedValue: 0,
+};
 
 const typeStyles: Record<DivergenceType, string> = {
   "Não lançada": "bg-red-500/10 text-red-300 border border-red-500/20",
@@ -94,10 +46,13 @@ const Conciliacao = () => {
   const [systemFile, setSystemFile] = useState<File | null>(null);
   const [governmentFile, setGovernmentFile] = useState<File | null>(null);
   const [hasCompared, setHasCompared] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [results, setResults] = useState<ComparisonRow[]>([]);
+  const [summary, setSummary] = useState<ComparisonSummary>(emptySummary);
   const [filter, setFilter] = useState<"todos" | "nao-lancadas" | "divergencias">("todos");
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const canCompare = !!systemFile && !!governmentFile;
+  const canCompare = !!systemFile && !!governmentFile && !isProcessing;
 
   const filteredResults = useMemo(() => {
     if (filter === "nao-lancadas") {
@@ -111,74 +66,65 @@ const Conciliacao = () => {
     return results;
   }, [filter, results]);
 
-  const summary = useMemo(() => {
-    const totalGovernmentNotes = governmentFile ? 128 : 0;
-    const totalSystemNotes = systemFile ? 121 : 0;
-    const notLaunched = results.filter((item) => item.tipo === "Não lançada");
-    const divergences = results.filter((item) => item.tipo !== "Não lançada");
+  const handleSystemFileChange = (file: File | null) => {
+    setSystemFile(file);
+    setHasCompared(false);
+    setResults([]);
+    setSummary(emptySummary);
+    setErrorMessage("");
+  };
 
-    return {
-      totalGovernmentNotes,
-      totalSystemNotes,
-      reconciled:
-        hasCompared && governmentFile
-          ? Math.max(totalGovernmentNotes - results.length, 0)
-          : 0,
-      notLaunchedCount: notLaunched.length,
-      divergencesCount: divergences.length,
-      notLaunchedValue: notLaunched.reduce((acc, item) => acc + item.valor, 0),
-    };
-  }, [governmentFile, systemFile, results, hasCompared]);
+  const handleGovernmentFileChange = (file: File | null) => {
+    setGovernmentFile(file);
+    setHasCompared(false);
+    setResults([]);
+    setSummary(emptySummary);
+    setErrorMessage("");
+  };
 
-  const handleCompare = () => {
-    if (!canCompare) return;
+  const handleCompare = async () => {
+    if (!systemFile || !governmentFile) return;
 
-    setResults(mockResults);
-    setHasCompared(true);
-    setFilter("todos");
+    try {
+      setIsProcessing(true);
+      setErrorMessage("");
+
+      const [systemRecords, governmentRecords] = await Promise.all([
+        parseSpreadsheetFile(systemFile),
+        parseSpreadsheetFile(governmentFile),
+      ]);
+
+      const comparison = compareReports(governmentRecords, systemRecords);
+
+      setResults(comparison.results);
+      setSummary(comparison.summary);
+      setHasCompared(true);
+      setFilter("todos");
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Ocorreu um erro ao processar as planilhas.";
+
+      setHasCompared(false);
+      setResults([]);
+      setSummary(emptySummary);
+      setErrorMessage(message);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleExport = () => {
-    const notLaunchedRows = results.filter((item) => item.tipo === "Não lançada");
-
-    if (!notLaunchedRows.length) return;
-
-    const headers = [
-      "Data de Emissão",
-      "Número da NF",
-      "CNPJ do Prestador",
-      "Valor",
-      "Tipo",
-      "Observação",
-    ];
-
-    const csvRows = notLaunchedRows.map((row) => [
-      row.dataEmissao,
-      row.numeroNF,
-      row.cnpjPrestador,
-      row.valor.toFixed(2).replace(".", ","),
-      row.tipo,
-      row.observacao,
-    ]);
-
-    const csvContent = [headers, ...csvRows]
-      .map((line) =>
-        line.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(";")
-      )
-      .join("\n");
-
-    const blob = new Blob([`\uFEFF${csvContent}`], {
-      type: "text/csv;charset=utf-8;",
-    });
-
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", "notas-nao-lancadas.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    try {
+      exportNotLaunchedToExcel(results);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Não foi possível exportar o arquivo.";
+      setErrorMessage(message);
+    }
   };
 
   const FileCard = ({
@@ -203,7 +149,7 @@ const Conciliacao = () => {
         type="file"
         accept=".xlsx,.xls,.csv"
         className="hidden"
-        onChange={(e) => onChange(e.target.files?.[0] || null)}
+        onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.files?.[0] || null)}
       />
 
       <div className="flex items-start gap-4">
@@ -255,7 +201,7 @@ const Conciliacao = () => {
     title: string;
     value: string | number;
     subtitle: string;
-    icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
+    icon: ComponentType<{ className?: string; style?: CSSProperties }>;
   }) => (
     <div
       className="rounded-2xl border p-5"
@@ -305,14 +251,14 @@ const Conciliacao = () => {
             title="Planilha do sistema"
             description="Envie o relatório exportado do seu sistema interno."
             file={systemFile}
-            onChange={setSystemFile}
+            onChange={handleSystemFileChange}
           />
 
           <FileCard
             title="Planilha do governo"
             description="Envie o relatório baixado do portal do governo."
             file={governmentFile}
-            onChange={setGovernmentFile}
+            onChange={handleGovernmentFileChange}
           />
         </div>
 
@@ -341,16 +287,35 @@ const Conciliacao = () => {
               }}
             >
               <Search className="h-4 w-4" />
-              Comparar relatórios
+              {isProcessing ? "Processando..." : "Comparar relatórios"}
             </button>
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {!!errorMessage && (
+          <div
+            className="mt-5 rounded-2xl border px-4 py-3 text-sm"
+            style={{
+              background: "#2A1717",
+              borderColor: "#5C2A2A",
+              color: "#FFB4B4",
+            }}
+          >
+            {errorMessage}
+          </div>
+        )}
+
+        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
           <SummaryCard
             title="Notas no governo"
             value={summary.totalGovernmentNotes}
             subtitle="Total considerado na conciliação"
+            icon={FileSpreadsheet}
+          />
+          <SummaryCard
+            title="Notas no sistema"
+            value={summary.totalSystemNotes}
+            subtitle="Total considerado no relatório interno"
             icon={FileSpreadsheet}
           />
           <SummaryCard
@@ -378,13 +343,16 @@ const Conciliacao = () => {
             className="rounded-2xl border"
             style={{ background: "#1D1D20", borderColor: "#2C2C30" }}
           >
-            <div className="flex flex-col gap-4 border-b p-5 lg:flex-row lg:items-center lg:justify-between" style={{ borderColor: "#2C2C30" }}>
+            <div
+              className="flex flex-col gap-4 border-b p-5 lg:flex-row lg:items-center lg:justify-between"
+              style={{ borderColor: "#2C2C30" }}
+            >
               <div>
                 <h2 className="text-lg font-semibold" style={{ color: "#F5F5F0" }}>
                   Resultado da conciliação
                 </h2>
                 <p className="mt-1 text-sm" style={{ color: "#9A9AA3" }}>
-                  Visualize o resumo das notas não lançadas e das divergências encontradas.
+                  Visualize as notas não lançadas e as divergências encontradas.
                 </p>
               </div>
 
@@ -456,7 +424,10 @@ const Conciliacao = () => {
                 <h3 className="mt-4 text-lg font-semibold" style={{ color: "#F5F5F0" }}>
                   Nenhuma comparação realizada
                 </h3>
-                <p className="mx-auto mt-2 max-w-2xl text-sm leading-6" style={{ color: "#9A9AA3" }}>
+                <p
+                  className="mx-auto mt-2 max-w-2xl text-sm leading-6"
+                  style={{ color: "#9A9AA3" }}
+                >
                   Envie a planilha do sistema e a planilha do governo para visualizar
                   o resumo da conciliação e exportar as notas não lançadas.
                 </p>
