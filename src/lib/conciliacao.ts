@@ -44,10 +44,44 @@ type ComparisonResult = {
 };
 
 const REQUIRED_FIELDS = {
-  dataEmissao: ["data de emissao", "data emissão", "data emissao", "emissao", "data emissão nf", "data emissao nf"],
-  numeroNF: ["numero da nf", "número da nf", "nf", "nota fiscal", "numero nf", "número nf", "n° nf", "n nf"],
-  cnpjPrestador: ["cnpj do prestador", "cnpj prestador", "prestador", "cnpj fornecedor", "cnpj emitente", "cnpj"],
-  valor: ["valor", "valor nf", "valor nota", "valor da nf", "valor total"],
+  dataEmissao: [
+    "data de emissao",
+    "data emissão",
+    "data emissao",
+    "emissao",
+    "data emissão nf",
+    "data emissao nf",
+  ],
+  numeroNF: [
+    "numero da nf",
+    "número da nf",
+    "nf",
+    "nota fiscal",
+    "numero nf",
+    "número nf",
+    "n° nf",
+    "n nf",
+  ],
+  cnpjPrestador: [
+    "cnpj do prestador",
+    "cnpj prestador",
+    "prestador",
+    "cnpj fornecedor",
+    "cnpj emitente",
+    "cnpj",
+  ],
+  valor: [
+    "valor serviço (vserv)",
+    "valor servico (vserv)",
+    "valor serviço",
+    "valor servico",
+    "vserv",
+    "valor",
+    "valor nf",
+    "valor nota",
+    "valor da nf",
+    "valor total",
+  ],
 };
 
 function normalizeHeader(value: unknown) {
@@ -144,7 +178,10 @@ function normalizeCurrency(value: unknown) {
 function formatCNPJ(value: string) {
   const digits = digitsOnly(value);
   if (digits.length !== 14) return value || "-";
-  return digits.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
+  return digits.replace(
+    /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
+    "$1.$2.$3/$4-$5",
+  );
 }
 
 function getCompositeKey(record: ParsedRecord) {
@@ -287,7 +324,10 @@ function buildComparisonRow(
   };
 }
 
-export function compareReports(governmentRecords: ParsedRecord[], systemRecords: ParsedRecord[]): ComparisonResult {
+export function compareReports(
+  governmentRecords: ParsedRecord[],
+  systemRecords: ParsedRecord[],
+): ComparisonResult {
   const exactSystemKeys = new Set(systemRecords.map(getCompositeKey));
   const systemByNFAndCNPJ = new Map<string, ParsedRecord[]>();
   const systemByNFAndValue = new Map<string, ParsedRecord[]>();
@@ -341,19 +381,24 @@ export function compareReports(governmentRecords: ParsedRecord[], systemRecords:
 
     if (hasNFAndCNPJ && !sameValueWithinNFAndCNPJ && !sameDateWithinNFAndCNPJ) {
       tipo = "Múltiplas divergências";
-      observacao = "Mesma NF e mesmo CNPJ encontrados no sistema, mas com divergência de valor e data.";
+      observacao =
+        "Mesma NF e mesmo CNPJ encontrados no sistema, mas com divergência de valor e data.";
     } else if (hasNFAndCNPJ && !sameValueWithinNFAndCNPJ) {
       tipo = "Valor divergente";
-      observacao = "Mesma NF e mesmo CNPJ encontrados no sistema, porém com valor diferente.";
+      observacao =
+        "Mesma NF e mesmo CNPJ encontrados no sistema, porém com valor diferente.";
     } else if (hasNFAndCNPJ && !sameDateWithinNFAndCNPJ) {
       tipo = "Data divergente";
-      observacao = "Mesma NF e mesmo CNPJ encontrados no sistema, porém com data de emissão diferente.";
+      observacao =
+        "Mesma NF e mesmo CNPJ encontrados no sistema, porém com data de emissão diferente.";
     } else if (sameNFAndValueDifferentCNPJ) {
       tipo = "CNPJ divergente";
-      observacao = "Mesma NF e mesmo valor encontrados no sistema, mas com CNPJ do prestador diferente.";
+      observacao =
+        "Mesma NF e mesmo valor encontrados no sistema, mas com CNPJ do prestador diferente.";
     } else if (sameCNPJAndValueDifferentNF) {
       tipo = "NF divergente";
-      observacao = "Mesmo CNPJ e mesmo valor encontrados no sistema, mas com número da NF diferente.";
+      observacao =
+        "Mesmo CNPJ e mesmo valor encontrados no sistema, mas com número da NF diferente.";
     }
 
     results.push(buildComparisonRow(govRecord, tipo, observacao, `${index + 1}`));
