@@ -43,51 +43,23 @@ type ComparisonResult = {
   summary: ComparisonSummary;
 };
 
-const REQUIRED_FIELDS = {
-  dataEmissao: [
-    "data de emissao",
-    "data emissão",
-    "data emissao",
-    "emissao",
-    "data emissão nf",
-    "data emissao nf",
-  ],
-  numeroNF: [
-    "numero da nf",
-    "número da nf",
-    "nf",
-    "nota fiscal",
-    "numero nf",
-    "número nf",
-    "n° nf",
-    "n nf",
-  ],
-  cnpjPrestador: [
-    "cnpj do prestador",
-    "cnpj prestador",
-    "prestador",
-    "cnpj fornecedor",
-    "cnpj emitente",
-    "cnpj",
-  ],
-  valor: [
-    "valor serviço (vserv)",
-    "valor servico (vserv)",
-    "valor serviço",
-    "valor servico",
-    "vserv",
-    "valor",
-    "valor nf",
-    "valor nota",
-    "valor da nf",
-    "valor total",
-  ],
+type SpreadsheetKind = "system" | "government";
+
+type MappedRow = Record<string, unknown>;
+
+type ColumnIndexes = {
+  dataIndex: number;
+  nfIndex: number;
+  cnpjIndex: number;
+  valorIndex: number;
 };
 
 function normalizeHeader(value: unknown) {
   return String(value ?? "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\u00ba/g, "o")
+    .replace(/\u00b0/g, "o")
     .toLowerCase()
     .replace(/\s+/g, " ")
     .trim();
@@ -100,6 +72,11 @@ function digitsOnly(value: unknown) {
 function normalizeNF(value: unknown) {
   const cleaned = String(value ?? "").trim();
   if (!cleaned) return "";
+
+  if (/^\d+(\.0+)?$/.test(cleaned)) {
+    return cleaned.replace(/\.0+$/, "");
+  }
+
   const onlyDigits = cleaned.replace(/\D/g, "");
   return onlyDigits || cleaned.toUpperCase().replace(/\s+/g, "");
 }
@@ -125,7 +102,7 @@ function normalizeDate(value: unknown) {
   const raw = String(value).trim();
   if (!raw) return "";
 
-  const normalized = raw.replace(/\./g, "/").replace(/-/g, "/");
+  const normalized = raw.replace(/\./g, "/");
   const matchBr = normalized.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
 
   if (matchBr) {
@@ -205,85 +182,149 @@ function getCNPJAndValueKey(record: ParsedRecord) {
   return [record.normalizedCnpjPrestador, record.normalizedValor.toFixed(2)].join("|");
 }
 
-function findColumnKey(headers: string[], aliases: string[]) {
-  for (const alias of aliases) {
-    const normalizedAlias = normalizeHeader(alias);
-    const exact = headers.find((header) => header === normalizedAlias);
-    if (exact) return exact;
-  }
-
-  for (const alias of aliases) {
-    const normalizedAlias = normalizeHeader(alias);
-    const partial = headers.find(
-      (header) => header.includes(normalizedAlias) || normalizedAlias.includes(header),
-    );
-    if (partial) return partial;
-  }
-
-  return null;
-}
-
-function mapRequiredColumns(rows: Record<string, unknown>[]) {
-  if (!rows.length) {
-    throw new Error("A planilha está vazia ou não possui linhas para leitura.");
-  }
-
-  const normalizedRows = rows.map((row) => {
-    const entries = Object.entries(row).map(([key, value]) => [normalizeHeader(key), value]);
-    return Object.fromEntries(entries);
-  });
-
-  const headers = Object.keys(normalizedRows[0] ?? {});
-
-  const dataEmissaoKey = findColumnKey(headers, REQUIRED_FIELDS.dataEmissao);
-  const numeroNFKey = findColumnKey(headers, REQUIRED_FIELDS.numeroNF);
-  const cnpjPrestadorKey = findColumnKey(headers, REQUIRED_FIELDS.cnpjPrestador);
-  const valorKey = findColumnKey(headers, REQUIRED_FIELDS.valor);
-
-  const missing: string[] = [];
-  if (!dataEmissaoKey) missing.push("Data de emissão");
-  if (!numeroNFKey) missing.push("Número da NF");
-  if (!cnpjPrestadorKey) missing.push("CNPJ do prestador");
-  if (!valorKey) missing.push("Valor");
-
-  if (missing.length > 0) {
-    throw new Error(`Não encontrei estas colunas na planilha: ${missing.join(", ")}.`);
-  }
-
-  return {
-    normalizedRows,
-    keys: {
-      dataEmissaoKey,
-      numeroNFKey,
-      cnpjPrestadorKey,
-      valorKey,
-    },
-  };
-}
-
-export async function parseSpreadsheetFile(file: File) {
-  const buffer = await file.arrayBuffer();
-  const workbook = XLSX.read(buffer, { type: "array", cellDates: false });
+function getWorksheet(workbook: XLSX.WorkBook) {
   const firstSheetName = workbook.SheetNames[0];
 
   if (!firstSheetName) {
     throw new Error("Não foi possível localizar nenhuma aba na planilha enviada.");
   }
 
-  const worksheet = workbook.Sheets[firstSheetName];
-  const rawRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet, {
+  return workbook.Sheets[firstSheetName];
+}
+
+function getRowsAsArrays(worksheet: XLSX.WorkSheet) {
+  return XLSX.utils.sheet_to_json<unknown[]>(worksheet, {
+    header: 1,
     defval: "",
     raw: true,
   });
+}
 
-  const { normalizedRows, keys } = mapRequiredColumns(rawRows);
+function detectHeaderRow(rows: unknown[][], kind: SpreadsheetKind) {
+  const targets =
+    kind === "system"
+      ? ["data", "nonf", "nota/cnpj/cpf"]
+      : [
+          "numero (nnfse)",
+          "data da emissao (dhemi)",
+          "prestador (cnpj / cpf)",
+          "valor servico (vserv)",
+        ];
 
-  const parsed: ParsedRecord[] = normalizedRows
+  let bestIndex = -1;
+  let bestScore = -1;
+
+  rows.slice(0, 15).forEach((row, index) => {
+    const normalizedCells = row.map((cell) => normalizeHeader(cell));
+    const score = targets.reduce((acc, target) => {
+      return acc + (normalizedCells.some((cell) => cell.includes(target)) ? 1 : 0);
+    }, 0);
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestIndex = index;
+    }
+  });
+
+  if (bestIndex === -1) {
+    throw new Error("Não consegui identificar o cabeçalho da planilha.");
+  }
+
+  return bestIndex;
+}
+
+function findColumnIndex(headers: string[], possibleNames: string[]) {
+  for (const name of possibleNames) {
+    const normalizedName = normalizeHeader(name);
+    const exactIndex = headers.findIndex((header) => header === normalizedName);
+    if (exactIndex !== -1) return exactIndex;
+  }
+
+  for (const name of possibleNames) {
+    const normalizedName = normalizeHeader(name);
+    const partialIndex = headers.findIndex(
+      (header) => header.includes(normalizedName) || normalizedName.includes(header),
+    );
+    if (partialIndex !== -1) return partialIndex;
+  }
+
+  return -1;
+}
+
+function mapSystemColumns(headers: string[]): ColumnIndexes {
+  const dataIndex = findColumnIndex(headers, ["Data"]);
+  const nfIndex = findColumnIndex(headers, ["N°NF", "NoNF", "NºNF", "N NF", "NF"]);
+  const cnpjIndex = findColumnIndex(headers, ["NOTA/CNPJ/CPF", "CNPJ/CPF", "NOTA CNPJ CPF"]);
+
+  const missing: string[] = [];
+  if (dataIndex === -1) missing.push("Data");
+  if (nfIndex === -1) missing.push("N°NF");
+  if (cnpjIndex === -1) missing.push("NOTA/CNPJ/CPF");
+
+  const valorIndex = 9;
+
+  if (headers.length <= valorIndex) {
+    missing.push("coluna J (valor sem título)");
+  }
+
+  if (missing.length > 0) {
+    throw new Error(
+      `Na planilha do sistema não encontrei estas colunas esperadas: ${missing.join(", ")}.`,
+    );
+  }
+
+  return { dataIndex, nfIndex, cnpjIndex, valorIndex };
+}
+
+function mapGovernmentColumns(headers: string[]): ColumnIndexes {
+  const nfIndex = findColumnIndex(headers, ["Número (nNFSe)"]);
+  const dataIndex = findColumnIndex(headers, ["Data da Emissão (dhEmi)"]);
+  const cnpjIndex = findColumnIndex(headers, ["Prestador (CNPJ / CPF)"]);
+  const valorIndex = findColumnIndex(headers, ["Valor Serviço (vServ)"]);
+
+  const missing: string[] = [];
+  if (dataIndex === -1) missing.push("Data da Emissão (dhEmi)");
+  if (nfIndex === -1) missing.push("Número (nNFSe)");
+  if (cnpjIndex === -1) missing.push("Prestador (CNPJ / CPF)");
+  if (valorIndex === -1) missing.push("Valor Serviço (vServ)");
+
+  if (missing.length > 0) {
+    throw new Error(
+      `Na planilha do governo não encontrei estas colunas esperadas: ${missing.join(", ")}.`,
+    );
+  }
+
+  return { dataIndex, nfIndex, cnpjIndex, valorIndex };
+}
+
+function buildMappedRowsFromArrayRows(rows: unknown[][], headerRowIndex: number): MappedRow[] {
+  const headerRow = rows[headerRowIndex] ?? [];
+  const headers = headerRow.map((cell, index) => {
+    const normalized = normalizeHeader(cell);
+    return normalized || `__col_${index}`;
+  });
+
+  return rows
+    .slice(headerRowIndex + 1)
     .map((row) => {
-      const rawDataEmissao = String(row[keys.dataEmissaoKey] ?? "").trim();
-      const rawNumeroNF = String(row[keys.numeroNFKey] ?? "").trim();
-      const rawCnpjPrestador = String(row[keys.cnpjPrestadorKey] ?? "").trim();
-      const rawValor = row[keys.valorKey] ?? "";
+      const mapped: MappedRow = {};
+      headers.forEach((header, index) => {
+        mapped[header] = row[index] ?? "";
+      });
+      return mapped;
+    })
+    .filter((row) => Object.values(row).some((value) => String(value ?? "").trim() !== ""));
+}
+
+function parseRecordsByKind(rows: MappedRow[], indexes: ColumnIndexes): ParsedRecord[] {
+  return rows
+    .map((row) => {
+      const values = Object.values(row);
+
+      const rawDataEmissao = String(values[indexes.dataIndex] ?? "").trim();
+      const rawNumeroNF = String(values[indexes.nfIndex] ?? "").trim();
+      const rawCnpjPrestador = String(values[indexes.cnpjIndex] ?? "").trim();
+      const rawValor = values[indexes.valorIndex] ?? "";
 
       return {
         rawDataEmissao,
@@ -303,8 +344,24 @@ export async function parseSpreadsheetFile(file: File) {
         row.normalizedCnpjPrestador ||
         row.normalizedValor > 0,
     );
+}
 
-  return parsed;
+export async function parseSpreadsheetFile(file: File, kind: SpreadsheetKind) {
+  const buffer = await file.arrayBuffer();
+  const workbook = XLSX.read(buffer, { type: "array", cellDates: false });
+  const worksheet = getWorksheet(workbook);
+  const arrayRows = getRowsAsArrays(worksheet);
+  const headerRowIndex = detectHeaderRow(arrayRows, kind);
+  const mappedRows = buildMappedRowsFromArrayRows(arrayRows, headerRowIndex);
+
+  if (!mappedRows.length) {
+    throw new Error("A planilha está vazia ou não possui linhas para leitura.");
+  }
+
+  const headers = Object.keys(mappedRows[0] ?? {});
+  const indexes = kind === "system" ? mapSystemColumns(headers) : mapGovernmentColumns(headers);
+
+  return parseRecordsByKind(mappedRows, indexes);
 }
 
 function buildComparisonRow(

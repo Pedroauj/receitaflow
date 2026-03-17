@@ -90,9 +90,9 @@ const Conciliacao = () => {
       setErrorMessage("");
 
       const [systemRecords, governmentRecords] = await Promise.all([
-        parseSpreadsheetFile(systemFile),
-        parseSpreadsheetFile(governmentFile),
-      ]);
+  parseSpreadsheetFile(systemFile, "system"),
+  parseSpreadsheetFile(governmentFile, "government"),
+]);
 
       const comparison = compareReports(governmentRecords, systemRecords);
 
