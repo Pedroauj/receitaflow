@@ -14,6 +14,7 @@ export type ComparisonRow = {
   numeroNF: string;
   cnpjPrestador: string;
   valor: number;
+  valorSistema: number | null; // valor encontrado no sistema (null se não lançada)
   tipo: DivergenceType;
   observacao: string;
 };
@@ -25,6 +26,7 @@ export type ComparisonSummary = {
   notLaunchedCount: number;
   divergencesCount: number;
   notLaunchedValue: number;
+  divergencesValue: number; // soma do valor governo das notas com divergência (exceto não lançadas)
 };
 
 type ParsedRecord = {
@@ -388,17 +390,19 @@ export async function parseSpreadsheetFile(file: File, kind: SpreadsheetKind) {
 }
 
 function buildComparisonRow(
-  record: ParsedRecord,
+  govRecord: ParsedRecord,
+  systemRecord: ParsedRecord | null,
   tipo: DivergenceType,
   observacao: string,
   id: string,
 ): ComparisonRow {
   return {
     id,
-    dataEmissao: formatDateToBR(record.normalizedDataEmissao || record.rawDataEmissao),
-    numeroNF: record.normalizedNumeroNF || record.rawNumeroNF || "-",
-    cnpjPrestador: formatCNPJ(record.normalizedCnpjPrestador || record.rawCnpjPrestador),
-    valor: record.normalizedValor,
+    dataEmissao: formatDateToBR(govRecord.normalizedDataEmissao || govRecord.rawDataEmissao),
+    numeroNF: govRecord.normalizedNumeroNF || govRecord.rawNumeroNF || "-",
+    cnpjPrestador: formatCNPJ(govRecord.normalizedCnpjPrestador || govRecord.rawCnpjPrestador),
+    valor: govRecord.normalizedValor,
+    valorSistema: systemRecord ? systemRecord.normalizedValor : null,
     tipo,
     observacao,
   };
@@ -429,6 +433,7 @@ export function compareReports(
       results.push(
         buildComparisonRow(
           govRecord,
+          null,
           "Não lançada",
           "Nota encontrada no governo e não localizada no sistema.",
           `${index + 1}`,
@@ -446,6 +451,9 @@ export function compareReports(
       return;
     }
 
+    // Encontra o match mais próximo para exibir o valor do sistema
+    const bestMatch = matches[0]!;
+
     const sameDate = matches.some(
       (item) => item.normalizedDataEmissao === govRecord.normalizedDataEmissao,
     );
@@ -458,6 +466,7 @@ export function compareReports(
       results.push(
         buildComparisonRow(
           govRecord,
+          bestMatch,
           "Múltiplas divergências",
           "Nota localizada no sistema pelo mesmo número da NF e CNPJ, mas com divergência de data e valor.",
           `${index + 1}`,
@@ -470,6 +479,7 @@ export function compareReports(
       results.push(
         buildComparisonRow(
           govRecord,
+          bestMatch,
           "Data divergente",
           "Nota localizada no sistema pelo mesmo número da NF e CNPJ, porém com data de emissão diferente.",
           `${index + 1}`,
@@ -481,6 +491,7 @@ export function compareReports(
     results.push(
       buildComparisonRow(
         govRecord,
+        bestMatch,
         "Valor divergente",
         "Nota localizada no sistema pelo mesmo número da NF e CNPJ, porém com valor diferente.",
         `${index + 1}`,
@@ -501,6 +512,9 @@ export function compareReports(
       divergencesCount: divergences.length,
       notLaunchedValue: Number(
         notLaunched.reduce((acc, item) => acc + item.valor, 0).toFixed(2),
+      ),
+      divergencesValue: Number(
+        divergences.reduce((acc, item) => acc + item.valor, 0).toFixed(2),
       ),
     },
   };

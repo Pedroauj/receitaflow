@@ -31,6 +31,7 @@ const emptySummary: ComparisonSummary = {
   notLaunchedCount: 0,
   divergencesCount: 0,
   notLaunchedValue: 0,
+  divergencesValue: 0,
 };
 
 const typeStyles: Record<DivergenceType, string> = {
@@ -90,9 +91,9 @@ const Conciliacao = () => {
       setErrorMessage("");
 
       const [systemRecords, governmentRecords] = await Promise.all([
-  parseSpreadsheetFile(systemFile, "system"),
-  parseSpreadsheetFile(governmentFile, "government"),
-]);
+        parseSpreadsheetFile(systemFile, "system"),
+        parseSpreadsheetFile(governmentFile, "government"),
+      ]);
 
       const comparison = compareReports(governmentRecords, systemRecords);
 
@@ -230,6 +231,9 @@ const Conciliacao = () => {
     </div>
   );
 
+  // Decides if the "Valor sistema" column should be shown
+  const showSystemValue = filter !== "nao-lancadas";
+
   return (
     <div className="min-h-screen px-6 py-6" style={{ background: "#18181A" }}>
       <div className="mx-auto max-w-7xl">
@@ -305,7 +309,8 @@ const Conciliacao = () => {
           </div>
         )}
 
-        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
+        {/* Summary cards — 6 cards now */}
+        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
           <SummaryCard
             title="Notas no governo"
             value={summary.totalGovernmentNotes}
@@ -334,6 +339,12 @@ const Conciliacao = () => {
             title="Valor não lançado"
             value={formatCurrency(summary.notLaunchedValue)}
             subtitle="Soma das notas não localizadas no sistema"
+            icon={AlertTriangle}
+          />
+          <SummaryCard
+            title="Valor com divergência"
+            value={formatCurrency(summary.divergencesValue)}
+            subtitle="Soma das notas localizadas com divergência"
             icon={AlertTriangle}
           />
         </div>
@@ -459,8 +470,16 @@ const Conciliacao = () => {
                         className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide"
                         style={{ color: "#8A8A90" }}
                       >
-                        Valor
+                        Valor governo
                       </th>
+                      {showSystemValue && (
+                        <th
+                          className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide"
+                          style={{ color: "#8A8A90" }}
+                        >
+                          Valor sistema
+                        </th>
+                      )}
                       <th
                         className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide"
                         style={{ color: "#8A8A90" }}
@@ -495,6 +514,24 @@ const Conciliacao = () => {
                           <td className="px-5 py-4 text-sm" style={{ color: "#F5F5F0" }}>
                             {formatCurrency(row.valor)}
                           </td>
+                          {showSystemValue && (
+                            <td className="px-5 py-4 text-sm">
+                              {row.valorSistema !== null ? (
+                                <span
+                                  style={{
+                                    color:
+                                      row.valorSistema !== row.valor
+                                        ? "#FAC775"
+                                        : "#F5F5F0",
+                                  }}
+                                >
+                                  {formatCurrency(row.valorSistema)}
+                                </span>
+                              ) : (
+                                <span style={{ color: "#6E6E76" }}>—</span>
+                              )}
+                            </td>
+                          )}
                           <td className="px-5 py-4 text-sm">
                             <span
                               className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${typeStyles[row.tipo]}`}
@@ -510,7 +547,7 @@ const Conciliacao = () => {
                     ) : (
                       <tr>
                         <td
-                          colSpan={6}
+                          colSpan={showSystemValue ? 7 : 6}
                           className="px-5 py-10 text-center text-sm"
                           style={{ color: "#8A8A90" }}
                         >
