@@ -309,8 +309,8 @@ const Conciliacao = () => {
           </div>
         )}
 
-        {/* Summary cards — 6 cards now */}
-        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+        {/* Summary cards — linha 1: contagens */}
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <SummaryCard
             title="Notas no governo"
             value={summary.totalGovernmentNotes}
@@ -329,6 +329,10 @@ const Conciliacao = () => {
             subtitle="Registros compatíveis entre os relatórios"
             icon={CheckCircle2}
           />
+        </div>
+
+        {/* Summary cards — linha 2: pendências e valores */}
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <SummaryCard
             title="Não lançadas"
             value={summary.notLaunchedCount}
