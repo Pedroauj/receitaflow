@@ -1,14 +1,6 @@
-import { useMemo, useState } from "react";
-import type { ChangeEvent, ComponentType, CSSProperties } from "react";
-import {
-  AlertTriangle,
-  CheckCircle2,
-  Download,
-  FileSpreadsheet,
-  Search,
-  ShieldAlert,
-  UploadCloud,
-} from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { ChangeEvent } from "react";
+import { Download, Search, UploadCloud, FileSpreadsheet, X } from "lucide-react";
 import {
   compareReports,
   exportNotLaunchedToExcel,
@@ -19,10 +11,19 @@ import {
 } from "@/lib/conciliacao";
 
 const formatCurrency = (value: number) =>
-  new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  }).format(value);
+  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+
+const formatCurrencyShort = (value: number) => {
+  if (value >= 1_000_000) return `R$ ${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `R$ ${(value / 1_000).toFixed(1)}K`;
+  return formatCurrency(value);
+};
+
+const abbreviateCNPJ = (cnpj: string) => {
+  const digits = cnpj.replace(/\D/g, "");
+  if (digits.length === 14) return cnpj.slice(0, 10) + "/…";
+  return cnpj;
+};
 
 const emptySummary: ComparisonSummary = {
   totalGovernmentNotes: 0,
@@ -34,14 +35,88 @@ const emptySummary: ComparisonSummary = {
   divergencesValue: 0,
 };
 
-const typeStyles: Record<DivergenceType, string> = {
-  "Não lançada": "bg-red-500/10 text-red-300 border border-red-500/20",
-  "Valor divergente": "bg-amber-500/10 text-amber-300 border border-amber-500/20",
-  "Data divergente": "bg-yellow-500/10 text-yellow-300 border border-yellow-500/20",
-  "NF divergente": "bg-blue-500/10 text-blue-300 border border-blue-500/20",
-  "CNPJ divergente": "bg-cyan-500/10 text-cyan-300 border border-cyan-500/20",
-  "Múltiplas divergências": "bg-purple-500/10 text-purple-300 border border-purple-500/20",
+type BadgeVariant = "green" | "red" | "amber" | "yellow" | "blue" | "cyan" | "purple";
+
+const typeBadge: Record<DivergenceType, { variant: BadgeVariant; label: string }> = {
+  "Lançada":                { variant: "green",  label: "Lançada" },
+  "Não lançada":            { variant: "red",    label: "Não lançada" },
+  "Valor divergente":       { variant: "amber",  label: "Valor divergente" },
+  "Data divergente":        { variant: "yellow", label: "Data divergente" },
+  "NF divergente":          { variant: "blue",   label: "NF divergente" },
+  "CNPJ divergente":        { variant: "cyan",   label: "CNPJ divergente" },
+  "Múltiplas divergências": { variant: "purple", label: "Múltiplas diverg." },
 };
+
+const badgeStyles: Record<BadgeVariant, React.CSSProperties> = {
+  green:  { background: "rgba(99,153,34,.12)",   color: "#97C459", border: "0.5px solid rgba(99,153,34,.3)" },
+  red:    { background: "rgba(226,75,74,.12)",   color: "#F09595", border: "0.5px solid rgba(226,75,74,.3)" },
+  amber:  { background: "rgba(239,159,39,.10)",  color: "#FAC775", border: "0.5px solid rgba(239,159,39,.25)" },
+  yellow: { background: "rgba(234,220,100,.10)", color: "#e8d96b", border: "0.5px solid rgba(234,220,100,.25)" },
+  blue:   { background: "rgba(55,138,221,.10)",  color: "#85B7EB", border: "0.5px solid rgba(55,138,221,.25)" },
+  cyan:   { background: "rgba(29,158,117,.10)",  color: "#5DCAA5", border: "0.5px solid rgba(29,158,117,.25)" },
+  purple: { background: "rgba(127,119,221,.10)", color: "#AFA9EC", border: "0.5px solid rgba(127,119,221,.25)" },
+};
+
+function DonutChart({
+  reconciled,
+  notLaunched,
+  divergences,
+}: {
+  reconciled: number;
+  notLaunched: number;
+  divergences: number;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const total = reconciled + notLaunched + divergences;
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || total === 0) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const size = 72;
+    canvas.width = size * dpr;
+    canvas.height = size * dpr;
+    canvas.style.width = `${size}px`;
+    canvas.style.height = `${size}px`;
+    ctx.scale(dpr, dpr);
+
+    const cx = size / 2;
+    const cy = size / 2;
+    const radius = 28;
+    const lineW = 9;
+    const gap = 0.03;
+
+    const segments = [
+      { value: reconciled,  color: "#639922" },
+      { value: notLaunched, color: "#E24B4A" },
+      { value: divergences, color: "#EF9F27" },
+    ];
+
+    let start = -Math.PI / 2;
+    for (const { value, color } of segments) {
+      const sweep = (value / total) * Math.PI * 2 - gap;
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, start, start + sweep);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = lineW;
+      ctx.lineCap = "butt";
+      ctx.stroke();
+      start += sweep + gap;
+    }
+
+    const pct = Math.round((reconciled / total) * 100);
+    ctx.fillStyle = "#F5F5F0";
+    ctx.font = `500 12px sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(`${pct}%`, cx, cy);
+  }, [reconciled, notLaunched, divergences, total]);
+
+  return <canvas ref={canvasRef} />;
+}
 
 const Conciliacao = () => {
   const [systemFile, setSystemFile] = useState<File | null>(null);
@@ -56,61 +131,58 @@ const Conciliacao = () => {
   const canCompare = !!systemFile && !!governmentFile && !isProcessing;
 
   const filteredResults = useMemo(() => {
-    if (filter === "nao-lancadas") {
-      return results.filter((item) => item.tipo === "Não lançada");
-    }
-
-    if (filter === "divergencias") {
-      return results.filter((item) => item.tipo !== "Não lançada");
-    }
-
+    if (filter === "nao-lancadas") return results.filter((r) => r.tipo === "Não lançada");
+    if (filter === "divergencias") return results.filter((r) => r.tipo !== "Não lançada" && r.tipo !== "Lançada");
     return results;
   }, [filter, results]);
 
-  const handleSystemFileChange = (file: File | null) => {
-    setSystemFile(file);
+  const tabCounts = useMemo(() => ({
+    todos: results.length,
+    "nao-lancadas": results.filter((r) => r.tipo === "Não lançada").length,
+    divergencias: results.filter((r) => r.tipo !== "Não lançada" && r.tipo !== "Lançada").length,
+  }), [results]);
+
+  const reconciliationRate =
+    summary.totalGovernmentNotes > 0
+      ? ((summary.reconciled / summary.totalGovernmentNotes) * 100).toFixed(1)
+      : "0.0";
+
+  const reset = () => {
     setHasCompared(false);
     setResults([]);
     setSummary(emptySummary);
     setErrorMessage("");
+  };
+
+  const handleSystemFileChange = (file: File | null) => {
+    setSystemFile(file);
+    reset();
   };
 
   const handleGovernmentFileChange = (file: File | null) => {
     setGovernmentFile(file);
-    setHasCompared(false);
-    setResults([]);
-    setSummary(emptySummary);
-    setErrorMessage("");
+    reset();
   };
 
   const handleCompare = async () => {
     if (!systemFile || !governmentFile) return;
-
     try {
       setIsProcessing(true);
       setErrorMessage("");
-
       const [systemRecords, governmentRecords] = await Promise.all([
         parseSpreadsheetFile(systemFile, "system"),
         parseSpreadsheetFile(governmentFile, "government"),
       ]);
-
       const comparison = compareReports(governmentRecords, systemRecords);
-
       setResults(comparison.results);
       setSummary(comparison.summary);
       setHasCompared(true);
       setFilter("todos");
     } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Ocorreu um erro ao processar as planilhas.";
-
-      setHasCompared(false);
-      setResults([]);
-      setSummary(emptySummary);
-      setErrorMessage(message);
+      setErrorMessage(
+        error instanceof Error ? error.message : "Erro ao processar as planilhas.",
+      );
+      reset();
     } finally {
       setIsProcessing(false);
     }
@@ -120,188 +192,165 @@ const Conciliacao = () => {
     try {
       exportNotLaunchedToExcel(results);
     } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Não foi possível exportar o arquivo.";
-      setErrorMessage(message);
+      setErrorMessage(
+        error instanceof Error ? error.message : "Não foi possível exportar.",
+      );
     }
   };
 
-  const FileCard = ({
-    title,
-    description,
-    file,
-    onChange,
-  }: {
-    title: string;
-    description: string;
-    file: File | null;
-    onChange: (file: File | null) => void;
-  }) => (
-    <label
-      className="relative block rounded-2xl border border-dashed p-6 transition-all cursor-pointer"
-      style={{
-        background: "#1D1D20",
-        borderColor: file ? "#BA7517" : "#343438",
-      }}
-    >
-      <input
-        type="file"
-        accept=".xlsx,.xls,.csv"
-        className="hidden"
-        onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.files?.[0] || null)}
-      />
-
-      <div className="flex items-start gap-4">
-        <div
-          className="h-12 w-12 rounded-xl flex items-center justify-center shrink-0"
-          style={{ background: file ? "#412402" : "#242428" }}
-        >
-          {file ? (
-            <FileSpreadsheet className="h-6 w-6" style={{ color: "#FAC775" }} />
-          ) : (
-            <UploadCloud className="h-6 w-6" style={{ color: "#8A8A90" }} />
-          )}
-        </div>
-
-        <div className="min-w-0 flex-1">
-          <h3 className="text-base font-semibold" style={{ color: "#F5F5F0" }}>
-            {title}
-          </h3>
-          <p className="mt-1 text-sm" style={{ color: "#9A9AA3" }}>
-            {description}
-          </p>
-
-          <div
-            className="mt-4 rounded-xl px-4 py-3 text-sm"
-            style={{
-              background: file ? "#231A10" : "#18181A",
-              color: file ? "#FAC775" : "#6E6E76",
-              border: "1px solid",
-              borderColor: file ? "#5B3A0D" : "#2A2A2E",
-            }}
-          >
-            {file ? file.name : "Clique para selecionar o arquivo"}
-          </div>
-
-          <p className="mt-3 text-xs" style={{ color: "#6E6E76" }}>
-            Formatos aceitos: .xlsx, .xls e .csv
-          </p>
-        </div>
-      </div>
-    </label>
-  );
-
-  const SummaryCard = ({
-    title,
-    value,
-    subtitle,
-    icon: Icon,
-  }: {
-    title: string;
-    value: string | number;
-    subtitle: string;
-    icon: ComponentType<{ className?: string; style?: CSSProperties }>;
-  }) => (
-    <div
-      className="rounded-2xl border p-5"
-      style={{ background: "#1D1D20", borderColor: "#2C2C30" }}
-    >
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-sm" style={{ color: "#9A9AA3" }}>
-            {title}
-          </p>
-          <h3 className="mt-2 text-2xl font-semibold" style={{ color: "#F5F5F0" }}>
-            {value}
-          </h3>
-          <p className="mt-2 text-xs" style={{ color: "#6E6E76" }}>
-            {subtitle}
-          </p>
-        </div>
-
-        <div
-          className="h-11 w-11 rounded-xl flex items-center justify-center shrink-0"
-          style={{ background: "#412402" }}
-        >
-          <Icon className="h-5 w-5" style={{ color: "#FAC775" }} />
-        </div>
-      </div>
-    </div>
-  );
-
-  // Decides if the "Valor sistema" column should be shown
   const showSystemValue = filter !== "nao-lancadas";
 
   return (
-    <div className="min-h-screen px-6 py-6" style={{ background: "#18181A" }}>
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-6">
-          <p className="text-sm font-medium" style={{ color: "#BA7517" }}>
+    <div className="min-h-screen px-5 py-6" style={{ background: "#111113" }}>
+      <div className="mx-auto" style={{ maxWidth: 900 }}>
+
+        {/* Header */}
+        <div className="mb-5">
+          <p style={{ fontSize: 11, letterSpacing: "0.07em", textTransform: "uppercase", color: "#BA7517", fontWeight: 500 }}>
             Auditoria e conferência
           </p>
-          <h1 className="mt-1 text-3xl font-semibold" style={{ color: "#F5F5F0" }}>
+          <h1 style={{ fontSize: 22, fontWeight: 500, color: "#F5F5F0", margin: "4px 0 2px" }}>
             Conciliação de relatórios
           </h1>
-          <p className="mt-2 max-w-3xl text-sm leading-6" style={{ color: "#9A9AA3" }}>
-            Compare a planilha do sistema com a planilha do governo para identificar
-            notas não lançadas, divergências de valor, data, NF ou CNPJ do prestador.
-          </p>
+          {hasCompared && (
+            <p style={{ fontSize: 12, color: "#6E6E76" }}>
+              {summary.totalGovernmentNotes} notas no governo · {summary.totalSystemNotes} no sistema
+            </p>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-          <FileCard
-            title="Planilha do sistema"
-            description="Envie o relatório exportado do seu sistema interno."
-            file={systemFile}
-            onChange={handleSystemFileChange}
-          />
-
-          <FileCard
-            title="Planilha do governo"
-            description="Envie o relatório baixado do portal do governo."
-            file={governmentFile}
-            onChange={handleGovernmentFileChange}
-          />
-        </div>
-
-        <div
-          className="mt-5 rounded-2xl border p-4"
-          style={{ background: "#1D1D20", borderColor: "#2C2C30" }}
-        >
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <h2 className="text-base font-semibold" style={{ color: "#F5F5F0" }}>
-                Regras da comparação
-              </h2>
-              <p className="mt-1 text-sm" style={{ color: "#9A9AA3" }}>
-                Base de conferência: data de emissão, número da NF, CNPJ do prestador e valor.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleCompare}
-              disabled={!canCompare}
-              className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-medium transition-all disabled:cursor-not-allowed disabled:opacity-50"
+        {/* Upload */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          {[
+            {
+              label: "Planilha do sistema",
+              desc: "Relatório do seu sistema interno",
+              file: systemFile,
+              onChange: handleSystemFileChange,
+            },
+            {
+              label: "Planilha do governo",
+              desc: "Relatório do portal do governo",
+              file: governmentFile,
+              onChange: handleGovernmentFileChange,
+            },
+          ].map(({ label, desc, file, onChange }) => (
+            <label
+              key={label}
               style={{
-                background: canCompare ? "#BA7517" : "#3A3A3E",
-                color: canCompare ? "#18181A" : "#8A8A90",
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                background: file ? "#1A1208" : "#18181A",
+                border: `1.5px dashed ${file ? "#5B3A0D" : "#2E2E33"}`,
+                borderRadius: 10,
+                padding: "13px 16px",
+                cursor: "pointer",
               }}
             >
-              <Search className="h-4 w-4" />
-              {isProcessing ? "Processando..." : "Comparar relatórios"}
-            </button>
-          </div>
+              <input
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                style={{ display: "none" }}
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  onChange(e.target.files?.[0] || null)
+                }
+              />
+              <div
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: 8,
+                  flexShrink: 0,
+                  background: file ? "#2A1A06" : "#1E1E22",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {file ? (
+                  <FileSpreadsheet style={{ width: 16, height: 16, color: "#FAC775" }} />
+                ) : (
+                  <UploadCloud style={{ width: 16, height: 16, color: "#6E6E76" }} />
+                )}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontSize: 12, fontWeight: 500, color: "#F5F5F0", margin: 0 }}>{label}</p>
+                {file ? (
+                  <p
+                    style={{
+                      fontSize: 11,
+                      color: "#FAC775",
+                      margin: "3px 0 0",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {file.name}
+                  </p>
+                ) : (
+                  <p style={{ fontSize: 11, color: "#5A5A62", margin: "2px 0 0" }}>{desc}</p>
+                )}
+              </div>
+              {file && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onChange(null);
+                  }}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: 2,
+                    color: "#5A5A62",
+                    display: "flex",
+                  }}
+                >
+                  <X style={{ width: 14, height: 14 }} />
+                </button>
+              )}
+            </label>
+          ))}
         </div>
 
+        {/* Compare button */}
+        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}>
+          <button
+            type="button"
+            onClick={handleCompare}
+            disabled={!canCompare}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 7,
+              background: canCompare ? "#BA7517" : "#222226",
+              color: canCompare ? "#111113" : "#5A5A62",
+              border: "none",
+              borderRadius: 8,
+              padding: "9px 20px",
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: canCompare ? "pointer" : "not-allowed",
+            }}
+          >
+            <Search style={{ width: 14, height: 14 }} />
+            {isProcessing ? "Processando…" : "Comparar relatórios"}
+          </button>
+        </div>
+
+        {/* Error */}
         {!!errorMessage && (
           <div
-            className="mt-5 rounded-2xl border px-4 py-3 text-sm"
             style={{
-              background: "#2A1717",
-              borderColor: "#5C2A2A",
+              marginTop: 12,
+              background: "#1E0E0E",
+              border: "0.5px solid #5C2A2A",
+              borderRadius: 8,
+              padding: "10px 14px",
+              fontSize: 12,
               color: "#FFB4B4",
             }}
           >
@@ -309,251 +358,343 @@ const Conciliacao = () => {
           </div>
         )}
 
-        {/* Summary cards — linha 1: contagens */}
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <SummaryCard
-            title="Notas no governo"
-            value={summary.totalGovernmentNotes}
-            subtitle="Total considerado na conciliação"
-            icon={FileSpreadsheet}
-          />
-          <SummaryCard
-            title="Notas no sistema"
-            value={summary.totalSystemNotes}
-            subtitle="Total considerado no relatório interno"
-            icon={FileSpreadsheet}
-          />
-          <SummaryCard
-            title="Notas conciliadas"
-            value={summary.reconciled}
-            subtitle="Registros compatíveis entre os relatórios"
-            icon={CheckCircle2}
-          />
-        </div>
-
-        {/* Summary cards — linha 2: pendências e valores */}
-        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <SummaryCard
-            title="Não lançadas"
-            value={summary.notLaunchedCount}
-            subtitle="Encontradas no governo e ausentes no sistema"
-            icon={ShieldAlert}
-          />
-          <SummaryCard
-            title="Valor não lançado"
-            value={formatCurrency(summary.notLaunchedValue)}
-            subtitle="Soma das notas não localizadas no sistema"
-            icon={AlertTriangle}
-          />
-          <SummaryCard
-            title="Valor com divergência"
-            value={formatCurrency(summary.divergencesValue)}
-            subtitle="Soma das notas localizadas com divergência"
-            icon={AlertTriangle}
-          />
-        </div>
-
-        <div className="mt-6">
-          <div
-            className="rounded-2xl border"
-            style={{ background: "#1D1D20", borderColor: "#2C2C30" }}
-          >
+        {/* Results */}
+        {hasCompared && (
+          <>
+            {/* Primary metrics */}
             <div
-              className="flex flex-col gap-4 border-b p-5 lg:flex-row lg:items-center lg:justify-between"
-              style={{ borderColor: "#2C2C30" }}
+              style={{
+                marginTop: 20,
+                display: "grid",
+                gridTemplateColumns: "repeat(3, 1fr)",
+                gap: 8,
+              }}
             >
-              <div>
-                <h2 className="text-lg font-semibold" style={{ color: "#F5F5F0" }}>
-                  Resultado da conciliação
-                </h2>
-                <p className="mt-1 text-sm" style={{ color: "#9A9AA3" }}>
-                  Visualize as notas não lançadas e as divergências encontradas.
-                </p>
-              </div>
-
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <div
-                  className="flex rounded-xl p-1"
-                  style={{ background: "#18181A", border: "1px solid #2C2C30" }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setFilter("todos")}
-                    className="rounded-lg px-4 py-2 text-sm transition-all"
-                    style={{
-                      background: filter === "todos" ? "#2B2B30" : "transparent",
-                      color: filter === "todos" ? "#F5F5F0" : "#8A8A90",
-                    }}
-                  >
-                    Todos
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFilter("nao-lancadas")}
-                    className="rounded-lg px-4 py-2 text-sm transition-all"
-                    style={{
-                      background: filter === "nao-lancadas" ? "#2B2B30" : "transparent",
-                      color: filter === "nao-lancadas" ? "#F5F5F0" : "#8A8A90",
-                    }}
-                  >
-                    Não lançadas
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFilter("divergencias")}
-                    className="rounded-lg px-4 py-2 text-sm transition-all"
-                    style={{
-                      background: filter === "divergencias" ? "#2B2B30" : "transparent",
-                      color: filter === "divergencias" ? "#F5F5F0" : "#8A8A90",
-                    }}
-                  >
-                    Divergências
-                  </button>
+              {[
+                { label: "Conciliadas",  value: summary.reconciled,       color: "#97C459" },
+                { label: "Não lançadas", value: summary.notLaunchedCount, color: "#F09595" },
+                { label: "Divergências", value: summary.divergencesCount, color: "#FAC775" },
+              ].map(({ label, value, color }) => (
+                <div key={label} style={{ background: "#1A1A1E", borderRadius: 8, padding: "12px 14px" }}>
+                  <p style={{ fontSize: 11, color: "#6E6E76", margin: 0 }}>{label}</p>
+                  <p style={{ fontSize: 24, fontWeight: 500, color, margin: "3px 0 0" }}>{value}</p>
                 </div>
+              ))}
+            </div>
 
-                <button
-                  type="button"
-                  onClick={handleExport}
-                  disabled={!results.some((item) => item.tipo === "Não lançada")}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all disabled:cursor-not-allowed disabled:opacity-50"
+            {/* Secondary metrics */}
+            <div
+              style={{
+                marginTop: 8,
+                display: "grid",
+                gridTemplateColumns: "repeat(3, 1fr)",
+                gap: 8,
+              }}
+            >
+              {[
+                {
+                  label: "Valor não lançado",
+                  value: formatCurrencyShort(summary.notLaunchedValue),
+                  accent: "#E24B4A",
+                  full: formatCurrency(summary.notLaunchedValue),
+                },
+                {
+                  label: "Valor com divergência",
+                  value: formatCurrencyShort(summary.divergencesValue),
+                  accent: "#EF9F27",
+                  full: formatCurrency(summary.divergencesValue),
+                },
+                {
+                  label: "Taxa de conciliação",
+                  value: `${reconciliationRate}%`,
+                  accent: "#7F77DD",
+                  full: `${summary.reconciled} de ${summary.totalGovernmentNotes} notas`,
+                },
+              ].map(({ label, value, accent, full }) => (
+                <div
+                  key={label}
+                  title={full}
                   style={{
-                    background: "#231A10",
-                    border: "1px solid #5B3A0D",
-                    color: "#FAC775",
+                    background: "#1A1A1E",
+                    borderRadius: 8,
+                    padding: "10px 14px",
+                    borderLeft: `2px solid ${accent}`,
                   }}
                 >
-                  <Download className="h-4 w-4" />
-                  Baixar Excel das não lançadas
-                </button>
+                  <p style={{ fontSize: 11, color: "#6E6E76", margin: 0 }}>{label}</p>
+                  <p style={{ fontSize: 14, fontWeight: 500, color: accent, margin: "3px 0 0" }}>
+                    {value}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* Donut + legend */}
+            <div
+              style={{
+                marginTop: 10,
+                background: "#1A1A1E",
+                borderRadius: 10,
+                padding: "14px 18px",
+                display: "flex",
+                alignItems: "center",
+                gap: 20,
+              }}
+            >
+              <DonutChart
+                reconciled={summary.reconciled}
+                notLaunched={summary.notLaunchedCount}
+                divergences={summary.divergencesCount}
+              />
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {[
+                  {
+                    color: "#639922",
+                    label: `${summary.reconciled} conciliadas`,
+                    pct: `${reconciliationRate}%`,
+                  },
+                  {
+                    color: "#E24B4A",
+                    label: `${summary.notLaunchedCount} não lançadas`,
+                    pct: `${((summary.notLaunchedCount / summary.totalGovernmentNotes) * 100).toFixed(1)}%`,
+                  },
+                  {
+                    color: "#EF9F27",
+                    label: `${summary.divergencesCount} divergências`,
+                    pct: `${((summary.divergencesCount / summary.totalGovernmentNotes) * 100).toFixed(1)}%`,
+                  },
+                ].map(({ color, label, pct }) => (
+                  <div
+                    key={label}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      fontSize: 12,
+                      color: "#9A9AA3",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: "50%",
+                        background: color,
+                        flexShrink: 0,
+                      }}
+                    />
+                    <span>{label}</span>
+                    <span style={{ color: "#5A5A62", marginLeft: "auto", paddingLeft: 16 }}>
+                      {pct}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {!hasCompared ? (
-              <div className="p-10 text-center">
-                <div
-                  className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl"
-                  style={{ background: "#242428" }}
-                >
-                  <Search className="h-7 w-7" style={{ color: "#8A8A90" }} />
-                </div>
-                <h3 className="mt-4 text-lg font-semibold" style={{ color: "#F5F5F0" }}>
-                  Nenhuma comparação realizada
-                </h3>
-                <p
-                  className="mx-auto mt-2 max-w-2xl text-sm leading-6"
-                  style={{ color: "#9A9AA3" }}
-                >
-                  Envie a planilha do sistema e a planilha do governo para visualizar
-                  o resumo da conciliação e exportar as notas não lançadas.
+            {/* Table */}
+            <div style={{ marginTop: 18 }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: 12,
+                }}
+              >
+                <p style={{ fontSize: 13, fontWeight: 500, color: "#F5F5F0", margin: 0 }}>
+                  Pendências encontradas
+                  <span style={{ fontSize: 11, color: "#5A5A62", fontWeight: 400, marginLeft: 8 }}>
+                    ({filteredResults.length})
+                  </span>
                 </p>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      background: "#18181A",
+                      border: "0.5px solid #2C2C30",
+                      borderRadius: 7,
+                      padding: 3,
+                      gap: 2,
+                    }}
+                  >
+                    {(["todos", "nao-lancadas", "divergencias"] as const).map((f) => (
+                      <button
+                        key={f}
+                        type="button"
+                        onClick={() => setFilter(f)}
+                        style={{
+                          fontSize: 11,
+                          padding: "4px 10px",
+                          borderRadius: 5,
+                          border: "none",
+                          cursor: "pointer",
+                          background: filter === f ? "#2B2B30" : "transparent",
+                          color: filter === f ? "#F5F5F0" : "#6E6E76",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 5,
+                        }}
+                      >
+                        {f === "todos" ? "Todos" : f === "nao-lancadas" ? "Não lançadas" : "Divergências"}
+                        <span style={{
+                          fontSize: 10,
+                          padding: "1px 5px",
+                          borderRadius: 999,
+                          background: filter === f ? "#3A3A40" : "#1E1E22",
+                          color: filter === f ? "#C8C8CC" : "#5A5A62",
+                        }}>
+                          {tabCounts[f]}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleExport}
+                    disabled={!results.some((r) => r.tipo === "Não lançada")}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5,
+                      fontSize: 11,
+                      color: "#FAC775",
+                      background: "#1A1208",
+                      border: "0.5px solid #5B3A0D",
+                      borderRadius: 6,
+                      padding: "5px 10px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <Download style={{ width: 12, height: 12 }} />
+                    Exportar
+                  </button>
+                </div>
               </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full">
+
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
+                  <colgroup>
+                    <col style={{ width: "10%" }} />
+                    <col style={{ width: "8%" }} />
+                    <col style={{ width: "18%" }} />
+                    <col style={{ width: "12%" }} />
+                    {showSystemValue && <col style={{ width: "12%" }} />}
+                    <col style={{ width: "14%" }} />
+                    <col />
+                  </colgroup>
                   <thead>
-                    <tr style={{ background: "#18181A" }}>
-                      <th
-                        className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide"
-                        style={{ color: "#8A8A90" }}
-                      >
-                        Data de emissão
-                      </th>
-                      <th
-                        className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide"
-                        style={{ color: "#8A8A90" }}
-                      >
-                        Número NF
-                      </th>
-                      <th
-                        className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide"
-                        style={{ color: "#8A8A90" }}
-                      >
-                        CNPJ do prestador
-                      </th>
-                      <th
-                        className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide"
-                        style={{ color: "#8A8A90" }}
-                      >
-                        Valor governo
-                      </th>
-                      {showSystemValue && (
+                    <tr style={{ background: "#111113" }}>
+                      {[
+                        "Data",
+                        "NF",
+                        "CNPJ",
+                        "Valor gov.",
+                        ...(showSystemValue ? ["Valor sist."] : []),
+                        "Tipo",
+                        "Observação",
+                      ].map((h) => (
                         <th
-                          className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide"
-                          style={{ color: "#8A8A90" }}
+                          key={h}
+                          style={{
+                            fontSize: 10,
+                            color: "#5A5A62",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.06em",
+                            padding: "0 10px 8px",
+                            textAlign: "left",
+                            fontWeight: 500,
+                          }}
                         >
-                          Valor sistema
+                          {h}
                         </th>
-                      )}
-                      <th
-                        className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide"
-                        style={{ color: "#8A8A90" }}
-                      >
-                        Tipo
-                      </th>
-                      <th
-                        className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide"
-                        style={{ color: "#8A8A90" }}
-                      >
-                        Observação
-                      </th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody>
                     {filteredResults.length > 0 ? (
-                      filteredResults.map((row) => (
-                        <tr
-                          key={row.id}
-                          className="border-t"
-                          style={{ borderColor: "#2C2C30" }}
-                        >
-                          <td className="px-5 py-4 text-sm" style={{ color: "#F5F5F0" }}>
-                            {row.dataEmissao}
-                          </td>
-                          <td className="px-5 py-4 text-sm" style={{ color: "#F5F5F0" }}>
-                            {row.numeroNF}
-                          </td>
-                          <td className="px-5 py-4 text-sm" style={{ color: "#F5F5F0" }}>
-                            {row.cnpjPrestador}
-                          </td>
-                          <td className="px-5 py-4 text-sm" style={{ color: "#F5F5F0" }}>
-                            {formatCurrency(row.valor)}
-                          </td>
-                          {showSystemValue && (
-                            <td className="px-5 py-4 text-sm">
-                              {row.valorSistema !== null ? (
-                                <span
-                                  style={{
-                                    color:
-                                      row.valorSistema !== row.valor
-                                        ? "#FAC775"
-                                        : "#F5F5F0",
-                                  }}
-                                >
-                                  {formatCurrency(row.valorSistema)}
-                                </span>
-                              ) : (
-                                <span style={{ color: "#6E6E76" }}>—</span>
-                              )}
+                      filteredResults.map((row) => {
+                        const badge = typeBadge[row.tipo];
+                        return (
+                          <tr key={row.id} style={{ borderTop: "0.5px solid #1E1E22" }}>
+                            <td style={{ fontSize: 12, color: "#C8C8CC", padding: "8px 10px" }}>
+                              {row.dataEmissao}
                             </td>
-                          )}
-                          <td className="px-5 py-4 text-sm">
-                            <span
-                              className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${typeStyles[row.tipo]}`}
+                            <td style={{ fontSize: 12, color: "#C8C8CC", padding: "8px 10px" }}>
+                              {row.numeroNF}
+                            </td>
+                            <td
+                              style={{
+                                fontSize: 11,
+                                color: "#9A9AA3",
+                                padding: "8px 10px",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                              }}
                             >
-                              {row.tipo}
-                            </span>
-                          </td>
-                          <td className="px-5 py-4 text-sm" style={{ color: "#9A9AA3" }}>
-                            {row.observacao}
-                          </td>
-                        </tr>
-                      ))
+                              {abbreviateCNPJ(row.cnpjPrestador)}
+                            </td>
+                            <td style={{ fontSize: 12, color: "#C8C8CC", padding: "8px 10px" }}>
+                              {formatCurrency(row.valor)}
+                            </td>
+                            {showSystemValue && (
+                              <td
+                                style={{
+                                  fontSize: 12,
+                                  padding: "8px 10px",
+                                  color:
+                                    row.valorSistema !== null && row.valorSistema !== row.valor
+                                      ? "#FAC775"
+                                      : "#9A9AA3",
+                                }}
+                              >
+                                {row.valorSistema !== null ? (
+                                  formatCurrency(row.valorSistema)
+                                ) : (
+                                  <span style={{ color: "#3A3A3E" }}>—</span>
+                                )}
+                              </td>
+                            )}
+                            <td style={{ padding: "8px 10px" }}>
+                              <span
+                                style={{
+                                  display: "inline-block",
+                                  fontSize: 10,
+                                  padding: "2px 8px",
+                                  borderRadius: 999,
+                                  ...badgeStyles[badge.variant],
+                                }}
+                              >
+                                {badge.label}
+                              </span>
+                            </td>
+                            <td
+                              style={{
+                                fontSize: 11,
+                                color: "#5A5A62",
+                                padding: "8px 10px",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {row.observacao}
+                            </td>
+                          </tr>
+                        );
+                      })
                     ) : (
                       <tr>
                         <td
                           colSpan={showSystemValue ? 7 : 6}
-                          className="px-5 py-10 text-center text-sm"
-                          style={{ color: "#8A8A90" }}
+                          style={{
+                            padding: "32px 10px",
+                            textAlign: "center",
+                            fontSize: 12,
+                            color: "#5A5A62",
+                          }}
                         >
                           Nenhum item encontrado para o filtro selecionado.
                         </td>
@@ -562,9 +703,35 @@ const Conciliacao = () => {
                   </tbody>
                 </table>
               </div>
-            )}
+            </div>
+          </>
+        )}
+
+        {/* Empty state */}
+        {!hasCompared && !errorMessage && (
+          <div style={{ marginTop: 48, textAlign: "center" }}>
+            <div
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 12,
+                background: "#1A1A1E",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto 12px",
+              }}
+            >
+              <Search style={{ width: 22, height: 22, color: "#3A3A3E" }} />
+            </div>
+            <p style={{ fontSize: 14, fontWeight: 500, color: "#3A3A3E", margin: 0 }}>
+              Nenhuma comparação realizada
+            </p>
+            <p style={{ fontSize: 12, color: "#2A2A2E", margin: "4px 0 0" }}>
+              Envie as duas planilhas e clique em comparar
+            </p>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

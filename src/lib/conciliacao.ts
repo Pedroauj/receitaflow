@@ -1,6 +1,7 @@
 import * as XLSX from "xlsx";
 
 export type DivergenceType =
+  | "Lançada"
   | "Não lançada"
   | "Valor divergente"
   | "Data divergente"
@@ -448,6 +449,18 @@ export function compareReports(
 
     if (exactMatch) {
       reconciled += 1;
+      const exactRecord = matches.find(
+        (item) => getCompositeKey(item) === getCompositeKey(govRecord),
+      )!;
+      results.push(
+        buildComparisonRow(
+          govRecord,
+          exactRecord,
+          "Lançada",
+          "Nota conciliada — registro idêntico encontrado no sistema.",
+          `${index + 1}`,
+        ),
+      );
       return;
     }
 
