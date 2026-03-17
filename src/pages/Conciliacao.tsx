@@ -154,14 +154,27 @@ const Conciliacao = () => {
     setErrorMessage("");
   };
 
-  const handleSystemFileChange = (file: File | null) => {
-    setSystemFile(file);
-    reset();
+  const [draggingOver, setDraggingOver] = useState<"system" | "government" | null>(null);
+
+  const handleSystemFileChange = (file: File | null) => { setSystemFile(file); reset(); };
+  const handleGovernmentFileChange = (file: File | null) => { setGovernmentFile(file); reset(); };
+
+  const handleDrop = (e: React.DragEvent, onChange: (f: File | null) => void, key: "system" | "government") => {
+    e.preventDefault();
+    setDraggingOver(null);
+    const file = e.dataTransfer.files?.[0];
+    if (file) onChange(file);
   };
 
-  const handleGovernmentFileChange = (file: File | null) => {
-    setGovernmentFile(file);
-    reset();
+  const handleDragOver = (e: React.DragEvent, key: "system" | "government") => {
+    e.preventDefault();
+    setDraggingOver(key);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setDraggingOver(null);
+    }
   };
 
   const handleCompare = async () => {
@@ -221,99 +234,73 @@ const Conciliacao = () => {
 
         {/* Upload */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          {[
-            {
-              label: "Planilha do sistema",
-              desc: "Relatório do seu sistema interno",
-              file: systemFile,
-              onChange: handleSystemFileChange,
-            },
-            {
-              label: "Planilha do governo",
-              desc: "Relatório do portal do governo",
-              file: governmentFile,
-              onChange: handleGovernmentFileChange,
-            },
-          ].map(({ label, desc, file, onChange }) => (
-            <label
-              key={label}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                background: file ? "#1A1208" : "#18181A",
-                border: `1.5px dashed ${file ? "#5B3A0D" : "#2E2E33"}`,
-                borderRadius: 10,
-                padding: "13px 16px",
-                cursor: "pointer",
-              }}
-            >
-              <input
-                type="file"
-                accept=".xlsx,.xls,.csv"
-                style={{ display: "none" }}
-                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                  onChange(e.target.files?.[0] || null)
-                }
-              />
-              <div
+          {([
+            { label: "Planilha do sistema",  desc: "Clique ou arraste o arquivo aqui", file: systemFile,     onChange: handleSystemFileChange,     dragKey: "system"     as const },
+            { label: "Planilha do governo",  desc: "Clique ou arraste o arquivo aqui", file: governmentFile, onChange: handleGovernmentFileChange, dragKey: "government" as const },
+          ]).map(({ label, desc, file, onChange, dragKey }) => {
+            const isDragging = draggingOver === dragKey;
+            return (
+              <label
+                key={label}
+                onDrop={(e) => handleDrop(e, onChange, dragKey)}
+                onDragOver={(e) => handleDragOver(e, dragKey)}
+                onDragLeave={handleDragLeave}
                 style={{
-                  width: 34,
-                  height: 34,
-                  borderRadius: 8,
-                  flexShrink: 0,
-                  background: file ? "#2A1A06" : "#1E1E22",
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "center",
+                  gap: 12,
+                  background: isDragging ? "#1E1A0E" : file ? "#1A1208" : "#18181A",
+                  border: `1.5px dashed ${isDragging ? "#BA7517" : file ? "#5B3A0D" : "#2E2E33"}`,
+                  borderRadius: 10,
+                  padding: "13px 16px",
+                  cursor: "pointer",
+                  transition: "background 0.15s, border-color 0.15s",
                 }}
               >
-                {file ? (
-                  <FileSpreadsheet style={{ width: 16, height: 16, color: "#FAC775" }} />
-                ) : (
-                  <UploadCloud style={{ width: 16, height: 16, color: "#6E6E76" }} />
-                )}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 12, fontWeight: 500, color: "#F5F5F0", margin: 0 }}>{label}</p>
-                {file ? (
-                  <p
-                    style={{
-                      fontSize: 11,
-                      color: "#FAC775",
-                      margin: "3px 0 0",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {file.name}
-                  </p>
-                ) : (
-                  <p style={{ fontSize: 11, color: "#5A5A62", margin: "2px 0 0" }}>{desc}</p>
-                )}
-              </div>
-              {file && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onChange(null);
-                  }}
+                <input
+                  type="file"
+                  accept=".xlsx,.xls,.csv"
+                  style={{ display: "none" }}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.files?.[0] || null)}
+                />
+                <div
                   style={{
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    padding: 2,
-                    color: "#5A5A62",
-                    display: "flex",
+                    width: 34, height: 34, borderRadius: 8, flexShrink: 0,
+                    background: isDragging ? "#2A1E06" : file ? "#2A1A06" : "#1E1E22",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    transition: "background 0.15s",
                   }}
                 >
-                  <X style={{ width: 14, height: 14 }} />
-                </button>
-              )}
-            </label>
-          ))}
+                  {file ? (
+                    <FileSpreadsheet style={{ width: 16, height: 16, color: "#FAC775" }} />
+                  ) : (
+                    <UploadCloud style={{ width: 16, height: 16, color: isDragging ? "#BA7517" : "#6E6E76" }} />
+                  )}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: 12, fontWeight: 500, color: "#F5F5F0", margin: 0 }}>{label}</p>
+                  {file ? (
+                    <p style={{ fontSize: 11, color: "#FAC775", margin: "3px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {file.name}
+                    </p>
+                  ) : (
+                    <p style={{ fontSize: 11, color: isDragging ? "#BA7517" : "#5A5A62", margin: "2px 0 0", transition: "color 0.15s" }}>
+                      {isDragging ? "Solte para carregar" : desc}
+                    </p>
+                  )}
+                </div>
+                {file && (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); onChange(null); }}
+                    style={{ background: "none", border: "none", cursor: "pointer", padding: 2, color: "#5A5A62", display: "flex" }}
+                  >
+                    <X style={{ width: 14, height: 14 }} />
+                  </button>
+                )}
+              </label>
+            );
+          })}
         </div>
 
         {/* Compare button */}
