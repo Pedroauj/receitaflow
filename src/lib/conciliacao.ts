@@ -99,26 +99,40 @@ function normalizeDate(value: unknown) {
     return excelDateToISO(value);
   }
 
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    const yyyy = value.getFullYear();
+    const mm = `${value.getMonth() + 1}`.padStart(2, "0");
+    const dd = `${value.getDate()}`.padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
   const raw = String(value).trim();
   if (!raw) return "";
 
+  if (/^\d+(\.0+)?$/.test(raw)) {
+    const numeric = Number(raw);
+    if (Number.isFinite(numeric)) {
+      return excelDateToISO(numeric);
+    }
+  }
+
   const cleaned = raw.replace(/\s+/g, " ").trim();
 
-  const brMatch = cleaned.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  const brMatch = cleaned.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
   if (brMatch) {
     const [, dd, mm, yyyyRaw] = brMatch;
     const yyyy = yyyyRaw.length === 2 ? `20${yyyyRaw}` : yyyyRaw;
     return `${yyyy.padStart(4, "0")}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
   }
 
-  const isoMatch = cleaned.match(/(\d{4})-(\d{2})-(\d{2})/);
+  const isoMatch = cleaned.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:T.*)?$/);
   if (isoMatch) {
     const [, yyyy, mm, dd] = isoMatch;
-    return `${yyyy}-${mm}-${dd}`;
+    return `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
   }
 
   const normalized = cleaned.replace(/\./g, "/").replace(/-/g, "/");
-  const fallbackBr = normalized.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  const fallbackBr = normalized.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
   if (fallbackBr) {
     const [, dd, mm, yyyyRaw] = fallbackBr;
     const yyyy = yyyyRaw.length === 2 ? `20${yyyyRaw}` : yyyyRaw;
@@ -181,14 +195,6 @@ function getCompositeKey(record: ParsedRecord) {
 
 function getNFAndCNPJKey(record: ParsedRecord) {
   return [record.normalizedNumeroNF, record.normalizedCnpjPrestador].join("|");
-}
-
-function getNFAndValueKey(record: ParsedRecord) {
-  return [record.normalizedNumeroNF, record.normalizedValor.toFixed(2)].join("|");
-}
-
-function getCNPJAndValueKey(record: ParsedRecord) {
-  return [record.normalizedCnpjPrestador, record.normalizedValor.toFixed(2)].join("|");
 }
 
 function getWorksheet(workbook: XLSX.WorkBook) {
@@ -330,20 +336,28 @@ function parseRecordsByKind(rows: MappedRow[], indexes: ColumnIndexes): ParsedRe
     .map((row) => {
       const values = Object.values(row);
 
-      const rawDataEmissao = String(values[indexes.dataIndex] ?? "").trim();
-      const rawNumeroNF = String(values[indexes.nfIndex] ?? "").trim();
-      const rawCnpjPrestador = String(values[indexes.cnpjIndex] ?? "").trim();
-      const rawValor = values[indexes.valorIndex] ?? "";
+      const originalDataEmissao = values[indexes.dataIndex];
+      const originalNumeroNF = values[indexes.nfIndex];
+      const originalCnpjPrestador = values[indexes.cnpjIndex];
+      const originalValor = values[indexes.valorIndex] ?? "";
+
+      const rawDataEmissao =
+        typeof originalDataEmissao === "number"
+          ? formatDateToBR(normalizeDate(originalDataEmissao))
+          : String(originalDataEmissao ?? "").trim();
+
+      const rawNumeroNF = String(originalNumeroNF ?? "").trim();
+      const rawCnpjPrestador = String(originalCnpjPrestador ?? "").trim();
 
       return {
         rawDataEmissao,
         rawNumeroNF,
         rawCnpjPrestador,
-        rawValor,
-        normalizedDataEmissao: normalizeDate(rawDataEmissao),
-        normalizedNumeroNF: normalizeNF(rawNumeroNF),
-        normalizedCnpjPrestador: digitsOnly(rawCnpjPrestador),
-        normalizedValor: normalizeCurrency(rawValor),
+        rawValor: typeof originalValor === "number" ? originalValor : String(originalValor ?? "").trim(),
+        normalizedDataEmissao: normalizeDate(originalDataEmissao),
+        normalizedNumeroNF: normalizeNF(originalNumeroNF),
+        normalizedCnpjPrestador: digitsOnly(originalCnpjPrestador),
+        normalizedValor: normalizeCurrency(originalValor),
       };
     })
     .filter(
@@ -423,6 +437,15 @@ export function compareReports(
       return;
     }
 
+    const exactMatch = matches.some(
+      (item) => getCompositeKey(item) === getCompositeKey(govRecord),
+    );
+
+    if (exactMatch) {
+      reconciled += 1;
+      return;
+    }
+
     const sameDate = matches.some(
       (item) => item.normalizedDataEmissao === govRecord.normalizedDataEmissao,
     );
@@ -430,11 +453,6 @@ export function compareReports(
     const sameValue = matches.some(
       (item) => item.normalizedValor === govRecord.normalizedValor,
     );
-
-    if (sameDate && sameValue) {
-      reconciled += 1;
-      return;
-    }
 
     if (!sameDate && !sameValue) {
       results.push(
