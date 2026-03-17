@@ -1,9 +1,9 @@
 import * as XLSX from "xlsx";
 import * as pdfjsLib from "pdfjs-dist";
-import type { ProcessedDocument } from "./types";
 
 // Configure PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs`;
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
 
 export interface NaturaDocument {
   filial: string;
@@ -21,55 +21,173 @@ export interface NaturaProcessingResult {
 
 function parseValor(raw: string): number | null {
   if (!raw || typeof raw !== "string") return null;
-  // Remove dots (thousands separator) and replace comma with dot
-  const cleaned = raw.replace(/\./g, "").replace(",", ".").trim();
-  const num = parseFloat(cleaned);
-  return isNaN(num) ? null : num;
+
+  const cleaned = raw
+    .replace(/R\$\s*/gi, "")
+    .replace(/\./g, "")
+    .replace(",", ".")
+    .trim();
+
+  const num = Number.parseFloat(cleaned);
+  return Number.isNaN(num) ? null : num;
+}
+
+function normalizeText(text: string): string {
+  return text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\u00A0/g, " ")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n{2,}/g, "\n")
+    .trim();
+}
+
+function extractPageTextWithLines(content: any): string {
+  const items = (content?.items ?? []) as any[];
+
+  const rows = items
+    .map((item) => {
+      const str = typeof item?.str === "string" ? item.str : "";
+      const x = Array.isArray(item?.transform) ? Number(item.transform[4] ?? 0) : 0;
+      const y = Array.isArray(item?.transform) ? Number(item.transform[5] ?? 0) : 0;
+
+      return {
+        str: str.trim(),
+        x,
+        y,
+      };
+    })
+    .filter((item) => item.str.length > 0);
+
+  if (rows.length === 0) return "";
+
+  rows.sort((a, b) => {
+    const yDiff = Math.abs(b.y - a.y);
+    if (yDiff > 2) return b.y - a.y;
+    return a.x - b.x;
+  });
+
+  const grouped: Array<{ y: number; items: Array<{ str: string; x: number }> }> = [];
+
+  for (const row of rows) {
+    const existing = grouped.find((group) => Math.abs(group.y - row.y) <= 2.5);
+
+    if (existing) {
+      existing.items.push({ str: row.str, x: row.x });
+    } else {
+      grouped.push({
+        y: row.y,
+        items: [{ str: row.str, x: row.x }],
+      });
+    }
+  }
+
+  grouped.sort((a, b) => b.y - a.y);
+
+  const lines = grouped.map((group) => {
+    const sortedItems = group.items.sort((a, b) => a.x - b.x);
+    return sortedItems.map((item) => item.str).join(" ").trim();
+  });
+
+  return lines.join("\n");
+}
+
+function collectMatches(regex: RegExp, text: string): Array<{ value: string; index: number }> {
+  const matches: Array<{ value: string; index: number }> = [];
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(text)) !== null) {
+    const value = match[1]?.trim();
+    const index = match.index ?? 0;
+
+    if (value) {
+      matches.push({ value, index });
+    }
+  }
+
+  return matches;
 }
 
 export async function processarNatura(fileBuffer: ArrayBuffer): Promise<NaturaProcessingResult> {
   const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(fileBuffer) }).promise;
 
   let fullText = "";
+
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
     const content = await page.getTextContent();
-    const pageText = content.items
-      .map((item: any) => item.str)
-      .join(" ");
-    fullText += pageText + "\n";
+    const pageText = extractPageTextWithLines(content);
+    fullText += `${pageText}\n`;
   }
 
-  const normalizedText = fullText
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
+  const normalizedText = normalizeText(fullText);
+
+  const documentoRegex =
+    /N[º°o]?\s*DO\s*DOCUMENTO\s*:?\s*([0-9.\-\/]+)/gi;
+
+  const valorRegex =
+    /VALOR\s*DA\s*OPERACAO\s*:?\s*(?:R\$\s*)?([0-9.]+,[0-9]{2})/gi;
+
+  const documentoMatches = collectMatches(documentoRegex, normalizedText);
+  const valorMatches = collectMatches(valorRegex, normalizedText);
 
   const documents: NaturaDocument[] = [];
-  const pairPattern = /N[º°]?\s*DO\s*DOCUMENTO\s*:?\s*([\d.-]+)[\s\S]{0,200}?VALOR\s*DA\s*OPERACAO\s*:?\s*([\d.,]+)/gi;
+  let valorCursor = 0;
 
-  let match: RegExpExecArray | null;
-  while ((match = pairPattern.exec(normalizedText)) !== null) {
-    const numeroDocumento = match[1]?.trim();
-    const valor = parseValor(match[2] ?? "");
+  for (let i = 0; i < documentoMatches.length; i++) {
+    const documento = documentoMatches[i];
+    const nextDocumentoIndex = documentoMatches[i + 1]?.index ?? Number.POSITIVE_INFINITY;
 
-    if (!numeroDocumento || valor === null) continue;
+    let matchedValor: { value: string; index: number } | null = null;
+
+    while (valorCursor < valorMatches.length) {
+      const valorAtual = valorMatches[valorCursor];
+
+      if (valorAtual.index > documento.index && valorAtual.index < nextDocumentoIndex) {
+        matchedValor = valorAtual;
+        valorCursor++;
+        break;
+      }
+
+      if (valorAtual.index <= documento.index) {
+        valorCursor++;
+        continue;
+      }
+
+      if (valorAtual.index >= nextDocumentoIndex) {
+        break;
+      }
+    }
+
+    if (!matchedValor) continue;
+
+    const valor = parseValor(matchedValor.value);
+    if (valor === null) continue;
 
     documents.push({
       filial: "1",
       serie: "1",
-      numeroDocumento,
+      numeroDocumento: documento.value,
       tipoDocumento: "CTRC",
       valor,
     });
   }
 
-  const totalValor = documents.reduce((sum, d) => sum + d.valor, 0);
+  const uniqueDocuments = documents.filter((doc, index, arr) => {
+    const firstIndex = arr.findIndex(
+      (item) =>
+        item.numeroDocumento === doc.numeroDocumento &&
+        item.valor === doc.valor
+    );
+
+    return firstIndex === index;
+  });
+
+  const totalValor = uniqueDocuments.reduce((sum, doc) => sum + doc.valor, 0);
 
   return {
-    documents,
-    totalDocumentos: documents.length,
+    documents: uniqueDocuments,
+    totalDocumentos: uniqueDocuments.length,
     totalValor,
   };
 }
@@ -79,8 +197,8 @@ export function gerarPlanilhaNatura(documents: NaturaDocument[]): ArrayBuffer {
     FILIAL: doc.filial,
     SERIE: doc.serie,
     "Nº DOCUMENTO": doc.numeroDocumento,
-    "TIPO DOCUMENTO": doc.tipoDocumento,
-    "VALOR PAGO": doc.valor,
+    TIPO: doc.tipoDocumento,
+    VALOR: doc.valor,
   }));
 
   const wb = XLSX.utils.book_new();
@@ -89,8 +207,8 @@ export function gerarPlanilhaNatura(documents: NaturaDocument[]): ArrayBuffer {
   ws["!cols"] = [
     { wch: 10 },
     { wch: 8 },
-    { wch: 15 },
     { wch: 18 },
+    { wch: 10 },
     { wch: 15 },
   ];
 
