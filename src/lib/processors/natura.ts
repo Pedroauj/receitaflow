@@ -40,36 +40,28 @@ export async function processarNatura(fileBuffer: ArrayBuffer): Promise<NaturaPr
     fullText += pageText + "\n";
   }
 
+  const normalizedText = fullText
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
   const documents: NaturaDocument[] = [];
-
-  // Search entire text for all "Nº DO DOCUMENTO" and "VALOR DA OPERAÇÃO" patterns
-  const docNumberPattern = /N[º°]\s*(?:DO\s*)?DOCUMENTO[:\s]*([\d.]+)/gi;
-  const valorPattern = /VALOR\s*DA\s*OPERA[ÇC][ÃA]O[:\s]*([\d.,]+)/gi;
-
-  const docNumbers: string[] = [];
-  const valores: number[] = [];
+  const pairPattern = /N[º°]?\s*DO\s*DOCUMENTO\s*:?\s*([\d.-]+)[\s\S]{0,200}?VALOR\s*DA\s*OPERACAO\s*:?\s*([\d.,]+)/gi;
 
   let match: RegExpExecArray | null;
+  while ((match = pairPattern.exec(normalizedText)) !== null) {
+    const numeroDocumento = match[1]?.trim();
+    const valor = parseValor(match[2] ?? "");
 
-  while ((match = docNumberPattern.exec(fullText)) !== null) {
-    const docNum = match[1].trim();
-    if (docNum.length > 0) docNumbers.push(docNum);
-  }
+    if (!numeroDocumento || valor === null) continue;
 
-  while ((match = valorPattern.exec(fullText)) !== null) {
-    const val = parseValor(match[1]);
-    if (val !== null) valores.push(val);
-  }
-
-  // Pair each doc number with its corresponding value
-  const count = Math.min(docNumbers.length, valores.length);
-  for (let i = 0; i < count; i++) {
     documents.push({
       filial: "1",
       serie: "1",
-      numeroDocumento: docNumbers[i],
+      numeroDocumento,
       tipoDocumento: "CTRC",
-      valor: valores[i],
+      valor,
     });
   }
 
