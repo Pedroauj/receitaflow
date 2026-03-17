@@ -1,66 +1,336 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider } from "@/contexts/AuthContext";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import DashboardLayout from "@/components/DashboardLayout";
-import Landing from "./pages/Landing";
-import Login from "./pages/Login";
-import Cadastro from "./pages/Cadastro";
-import EsqueciSenha from "./pages/EsqueciSenha";
-import ResetPassword from "./pages/ResetPassword";
-import Index from "./pages/Index";
-import MartinBrower from "./pages/MartinBrower";
-import Historico from "./pages/Historico";
-import EmAndamento from "./pages/EmAndamento";
-import Clientes from "./pages/Clientes";
-import Configuracoes from "./pages/Configuracoes";
-import NotFound from "./pages/NotFound";
-import ClientePlaceholder from "./pages/ClientePlaceholder";
-import Natura from "./pages/Natura";
-import Danone from "@/pages/Danone";
+import * as XLSX from "xlsx";
 
-const queryClient = new QueryClient();
+export interface PlatlogInputFile {
+  fileName: string;
+  buffer: ArrayBuffer;
+}
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AuthProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<Landing />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/cadastro" element={<Cadastro />} />
-            <Route path="/esqueci-senha" element={<EsqueciSenha />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
+export interface PlatlogDocument {
+  filial: string;
+  serie: string;
+  numeroDocumento: string;
+  tipoDocumento: string;
+  valorOriginal: number;
+  descontoAplicado: number;
+  valorFinal: number;
+  origemArquivo: string;
+}
 
-            {/* Protected routes */}
-            <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-              <Route path="/dashboard" element={<Index />} />
-              <Route path="/historico" element={<Historico />} />
-              <Route path="/em-andamento" element={<EmAndamento />} />
-              <Route path="/clientes" element={<Clientes />} />
-              <Route path="/configuracoes" element={<Configuracoes />} />
-              <Route path="/cliente/martin-brower" element={<MartinBrower />} />
-              <Route path="/cliente/minerva" element={<ClientePlaceholder clientName="Minerva" />} />
-              <Route path="/cliente/danone" element={<ClientePlaceholder clientName="Danone" />} />
-              <Route path="/cliente/platlog" element={<ClientePlaceholder clientName="Platlog" />} />
-              <Route path="/cliente/jbs" element={<ClientePlaceholder clientName="JBS" />} />
-              <Route path="/cliente/natura" element={<Natura />} />
-              <Route path="/danone" element={<Danone />} />
-            </Route>
+export interface PlatlogDiscountApplication {
+  valorDescontoAplicado: number;
+  documentoAlvo: string;
+  serieAlvo: string;
+  tipoDocumentoAlvo: string;
+  saldoRestante: number;
+}
 
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+export interface PlatlogProcessingResult {
+  documents: PlatlogDocument[];
+  descontosAplicados: PlatlogDiscountApplication[];
+  totalDocumentos: number;
+  totalValorOriginal: number;
+  totalDescontos: number;
+  totalValorFinal: number;
+  arquivoProcessado: string;
+}
 
-export default App;
+type HeaderMap = Record<string, number>;
+
+function normalizeHeader(value: unknown): string {
+  return String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, "")
+    .replace(/\./g, "")
+    .trim()
+    .toLowerCase();
+}
+
+function toNumber(value: unknown): number | null {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : null;
+  }
+
+  if (typeof value === "string") {
+    const cleaned = value
+      .replace(/[R$\s]/g, "")
+      .replace(/\./g, "")
+      .replace(",", ".")
+      .trim();
+
+    if (!cleaned) return null;
+
+    const parsed = Number.parseFloat(cleaned);
+    return Number.isNaN(parsed) ? null : parsed;
+  }
+
+  return null;
+}
+
+function toDocumentString(value: unknown): string {
+  if (value === null || value === undefined) return "";
+
+  if (typeof value === "number") {
+    return Math.trunc(value).toString();
+  }
+
+  return String(value).trim();
+}
+
+function getRuleFromDocument(numeroDocumento: string): {
+  serie: string;
+  tipoDocumento: string;
+} | null {
+  if (!numeroDocumento) return null;
+
+  if (numeroDocumento.startsWith("9")) {
+    return {
+      serie: "4",
+      tipoDocumento: "CTRC",
+    };
+  }
+
+  if (numeroDocumento.startsWith("2") || numeroDocumento.startsWith("3")) {
+    return {
+      serie: "NFD",
+      tipoDocumento: "NF",
+    };
+  }
+
+  return null;
+}
+
+function findHeaderRow(rows: unknown[][]): { headerRowIndex: number; headerMap: HeaderMap } {
+  for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+    const row = rows[rowIndex] ?? [];
+    const headerMap: HeaderMap = {};
+
+    row.forEach((cell, columnIndex) => {
+      const normalized = normalizeHeader(cell);
+      if (normalized) {
+        headerMap[normalized] = columnIndex;
+      }
+    });
+
+    const hasNFiscal = headerMap["nfiscal"] !== undefined;
+    const hasVlTotal = headerMap["vltotal"] !== undefined;
+
+    if (hasNFiscal && hasVlTotal) {
+      return { headerRowIndex: rowIndex, headerMap };
+    }
+  }
+
+  throw new Error("Não foi possível localizar as colunas N.Fiscal e Vl.Total na planilha.");
+}
+
+function applyDiscounts(
+  baseDocuments: PlatlogDocument[],
+  descontoTotal: number
+): {
+  documents: PlatlogDocument[];
+  descontosAplicados: PlatlogDiscountApplication[];
+} {
+  const documents = baseDocuments.map((doc) => ({ ...doc }));
+  const descontosAplicados: PlatlogDiscountApplication[] = [];
+
+  let restante = Number(descontoTotal.toFixed(2));
+
+  while (restante > 0) {
+    const elegiveis = documents
+      .map((doc, index) => ({ doc, index }))
+      .filter(({ doc }) => doc.valorFinal > 0)
+      .sort((a, b) => b.doc.valorFinal - a.doc.valorFinal);
+
+    if (elegiveis.length === 0) break;
+
+    const alvo = elegiveis[0].doc;
+    const valorAplicado = Math.min(restante, alvo.valorFinal);
+
+    alvo.descontoAplicado = Number((alvo.descontoAplicado + valorAplicado).toFixed(2));
+    alvo.valorFinal = Number((alvo.valorFinal - valorAplicado).toFixed(2));
+
+    descontosAplicados.push({
+      valorDescontoAplicado: Number(valorAplicado.toFixed(2)),
+      documentoAlvo: alvo.numeroDocumento,
+      serieAlvo: alvo.serie,
+      tipoDocumentoAlvo: alvo.tipoDocumento,
+      saldoRestante: alvo.valorFinal,
+    });
+
+    restante = Number((restante - valorAplicado).toFixed(2));
+  }
+
+  return { documents, descontosAplicados };
+}
+
+export async function processarPlatlog(
+  file: PlatlogInputFile,
+  descontoTotal = 0
+): Promise<PlatlogProcessingResult> {
+  const workbook = XLSX.read(file.buffer, { type: "array" });
+
+  if (!workbook.SheetNames.length) {
+    throw new Error("A planilha enviada está vazia.");
+  }
+
+  const preferredSheetName =
+    workbook.SheetNames.find((name) => name.trim().toUpperCase() === "SGT") ??
+    workbook.SheetNames[0];
+
+  const worksheet = workbook.Sheets[preferredSheetName];
+  const rows = XLSX.utils.sheet_to_json<unknown[]>(worksheet, {
+    header: 1,
+    raw: true,
+    defval: "",
+  });
+
+  if (!rows.length) {
+    throw new Error("Não foi possível ler os dados da planilha.");
+  }
+
+  const { headerRowIndex, headerMap } = findHeaderRow(rows);
+
+  const nfiscalIndex = headerMap["nfiscal"];
+  const vltotalIndex = headerMap["vltotal"];
+
+  const baseDocuments: PlatlogDocument[] = [];
+
+  for (let i = headerRowIndex + 1; i < rows.length; i++) {
+    const row = rows[i] ?? [];
+
+    const numeroDocumento = toDocumentString(row[nfiscalIndex]);
+    const valor = toNumber(row[vltotalIndex]);
+
+    if (!numeroDocumento || valor === null) continue;
+
+    const rule = getRuleFromDocument(numeroDocumento);
+    if (!rule) continue;
+
+    baseDocuments.push({
+      filial: "1",
+      serie: rule.serie,
+      numeroDocumento,
+      tipoDocumento: rule.tipoDocumento,
+      valorOriginal: Number(valor.toFixed(2)),
+      descontoAplicado: 0,
+      valorFinal: Number(valor.toFixed(2)),
+      origemArquivo: file.fileName,
+    });
+  }
+
+  if (baseDocuments.length === 0) {
+    return {
+      documents: [],
+      descontosAplicados: [],
+      totalDocumentos: 0,
+      totalValorOriginal: 0,
+      totalDescontos: 0,
+      totalValorFinal: 0,
+      arquivoProcessado: file.fileName,
+    };
+  }
+
+  const descontoNormalizado = Math.max(0, Number(descontoTotal || 0));
+  const { documents, descontosAplicados } = applyDiscounts(baseDocuments, descontoNormalizado);
+
+  const documentsValidos = documents.filter((doc) => doc.valorFinal > 0);
+
+  const totalValorOriginal = documents.reduce((sum, doc) => sum + doc.valorOriginal, 0);
+  const totalDescontos = descontosAplicados.reduce((sum, item) => sum + item.valorDescontoAplicado, 0);
+  const totalValorFinal = documentsValidos.reduce((sum, doc) => sum + doc.valorFinal, 0);
+
+  return {
+    documents: documentsValidos,
+    descontosAplicados,
+    totalDocumentos: documentsValidos.length,
+    totalValorOriginal: Number(totalValorOriginal.toFixed(2)),
+    totalDescontos: Number(totalDescontos.toFixed(2)),
+    totalValorFinal: Number(totalValorFinal.toFixed(2)),
+    arquivoProcessado: file.fileName,
+  };
+}
+
+export function gerarPlanilhaPlatlog(result: PlatlogProcessingResult): ArrayBuffer {
+  const baixaData = result.documents.map((doc) => ({
+    FILIAL: doc.filial,
+    SERIE: doc.serie,
+    "Nº DOCUMENTO": doc.numeroDocumento,
+    TIPO: doc.tipoDocumento,
+    VALOR: doc.valorFinal,
+  }));
+
+  const conferenciaData = result.documents.map((doc) => ({
+    ARQUIVO: doc.origemArquivo,
+    DOCUMENTO: doc.numeroDocumento,
+    SERIE: doc.serie,
+    TIPO: doc.tipoDocumento,
+    VALOR_ORIGINAL: doc.valorOriginal,
+    DESCONTO_APLICADO: doc.descontoAplicado,
+    SALDO_DEVEDOR: doc.valorFinal,
+  }));
+
+  const descontosData = result.descontosAplicados.map((item) => ({
+    DOCUMENTO_ALVO: item.documentoAlvo,
+    SERIE_ALVO: item.serieAlvo,
+    TIPO_DOCUMENTO: item.tipoDocumentoAlvo,
+    VALOR_DESCONTO_APLICADO: item.valorDescontoAplicado,
+    SALDO_RESTANTE: item.saldoRestante,
+  }));
+
+  const resumoData = [
+    {
+      ARQUIVO_PROCESSADO: result.arquivoProcessado,
+      TOTAL_DOCUMENTOS: result.totalDocumentos,
+      TOTAL_VALOR_ORIGINAL: result.totalValorOriginal,
+      TOTAL_DESCONTOS: result.totalDescontos,
+      TOTAL_VALOR_FINAL: result.totalValorFinal,
+    },
+  ];
+
+  const wb = XLSX.utils.book_new();
+
+  const wsBaixa = XLSX.utils.json_to_sheet(baixaData);
+  wsBaixa["!cols"] = [
+    { wch: 10 },
+    { wch: 10 },
+    { wch: 18 },
+    { wch: 12 },
+    { wch: 15 },
+  ];
+
+  const wsConferencia = XLSX.utils.json_to_sheet(conferenciaData);
+  wsConferencia["!cols"] = [
+    { wch: 35 },
+    { wch: 18 },
+    { wch: 10 },
+    { wch: 12 },
+    { wch: 15 },
+    { wch: 18 },
+    { wch: 15 },
+  ];
+
+  const wsDescontos = XLSX.utils.json_to_sheet(descontosData);
+  wsDescontos["!cols"] = [
+    { wch: 18 },
+    { wch: 10 },
+    { wch: 16 },
+    { wch: 22 },
+    { wch: 15 },
+  ];
+
+  const wsResumo = XLSX.utils.json_to_sheet(resumoData);
+  wsResumo["!cols"] = [
+    { wch: 35 },
+    { wch: 18 },
+    { wch: 20 },
+    { wch: 18 },
+    { wch: 18 },
+  ];
+
+  XLSX.utils.book_append_sheet(wb, wsBaixa, "Baixa Platlog");
+  XLSX.utils.book_append_sheet(wb, wsConferencia, "Conferencia");
+  XLSX.utils.book_append_sheet(wb, wsDescontos, "Descontos");
+  XLSX.utils.book_append_sheet(wb, wsResumo, "Resumo");
+
+  return XLSX.write(wb, { bookType: "xlsx", type: "array" });
+}
