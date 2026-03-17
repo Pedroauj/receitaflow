@@ -112,20 +112,22 @@ function findHeaderRow(rows: unknown[][]): { headerRowIndex: number; headerMap: 
       }
     });
 
-    const hasNFiscal =
-  headerMap["nfiscal"] !== undefined ||
-  headerMap["numero"] !== undefined;
+    const hasNumeroDocumento =
+      headerMap["nfiscal"] !== undefined ||
+      headerMap["numero"] !== undefined;
 
-const hasVlTotal =
-  headerMap["vltotal"] !== undefined ||
-  headerMap["valordopagamento"] !== undefined;
+    const hasValor =
+      headerMap["vltotal"] !== undefined ||
+      headerMap["valordopagamento"] !== undefined;
 
-    if (hasNFiscal && hasVlTotal) {
+    if (hasNumeroDocumento && hasValor) {
       return { headerRowIndex: rowIndex, headerMap };
     }
   }
 
-  throw new Error("Não foi possível localizar as colunas N.Fiscal ou Número e Vl.Total ou Valor do pagamento na planilha.");
+  throw new Error(
+    "Não foi possível localizar as colunas N.Fiscal ou Número e Vl.Total ou Valor do pagamento na planilha."
+  );
 }
 
 function applyDiscounts(
@@ -195,11 +197,8 @@ export async function processarPlatlog(
 
   const { headerRowIndex, headerMap } = findHeaderRow(rows);
 
-  const nfiscalIndex =
-  headerMap["nfiscal"] ?? headerMap["numero"];
-
-  const vltotalIndex =
-  headerMap["vltotal"] ?? headerMap["valordopagamento"];
+  const nfiscalIndex = headerMap["nfiscal"] ?? headerMap["numero"];
+  const vltotalIndex = headerMap["vltotal"] ?? headerMap["valordopagamento"];
 
   const baseDocuments: PlatlogDocument[] = [];
 
