@@ -21,6 +21,7 @@ import NotFound from "./pages/NotFound";
 import ClientePlaceholder from "./pages/ClientePlaceholder";
 import Natura from "./pages/Natura";
 import Danone from "@/pages/Danone";
+import Platlog from "@/pages/Platlog";
 
 const queryClient = new QueryClient();
 
@@ -49,7 +50,7 @@ const App = () => (
               <Route path="/cliente/martin-brower" element={<MartinBrower />} />
               <Route path="/cliente/minerva" element={<ClientePlaceholder clientName="Minerva" />} />
               <Route path="/cliente/danone" element={<Danone />} />
-              <Route path="/cliente/platlog" element={<ClientePlaceholder clientName="Platlog" />} />
+              <Route path="/cliente/platlog" element={<Platlog />} />
               <Route path="/cliente/jbs" element={<ClientePlaceholder clientName="JBS" />} />
               <Route path="/cliente/natura" element={<Natura />} />
             </Route>
