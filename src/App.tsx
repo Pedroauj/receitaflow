@@ -53,7 +53,6 @@ const App = () => (
               <Route path="/cliente/platlog" element={<Platlog />} />
               <Route path="/cliente/jbs" element={<ClientePlaceholder clientName="JBS" />} />
               <Route path="/cliente/natura" element={<Natura />} />
-              <Route path="/danone" element={<Danone />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
