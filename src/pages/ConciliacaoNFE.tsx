@@ -295,10 +295,10 @@ const ConciliacaoNFE = () => {
       setFilter("todos");
       setSearchTerm("");
     } catch (error) {
-      setErrorMessage(
+     reset();
+     setErrorMessage(
         error instanceof Error ? error.message : "Erro ao processar as planilhas.",
       );
-      reset();
     } finally {
       setIsProcessing(false);
     }

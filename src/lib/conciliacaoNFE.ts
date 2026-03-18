@@ -306,7 +306,7 @@ function detectHeaderRow(rows: unknown[][], kind: SpreadsheetKind) {
   let bestIndex = -1;
   let bestScore = -1;
 
-  rows.slice(0, 15).forEach((row, index) => {
+  rows.slice(0, 20).forEach((row, index) => {
     const normalizedCells = row.map((cell) => normalizeHeader(cell));
     const score = targets.reduce((acc, target) => {
       return acc + (normalizedCells.some((cell) => cell.includes(target)) ? 1 : 0);
@@ -348,6 +348,7 @@ function getRowValues(row: MappedRow) {
 }
 
 function hasSystemAccessKey(row: MappedRow, chaveIndex: number) {
+  if (chaveIndex < 0) return false;
   const values = getRowValues(row);
   const chave = values[chaveIndex];
   return normalizeAccessKey(chave).length > 0;
@@ -402,14 +403,16 @@ function resolveSystemValueColumnIndex(
 ) {
   const headerValueIndex = findColumnIndex(headers, ["VALOR DOC", "VALOR"]);
 
-  const blocked = new Set([
-    indexes.tipoIndex,
-    indexes.dataIndex,
-    indexes.nfIndex,
-    indexes.cnpjIndex,
-    indexes.fornecedorIndex,
-    indexes.chaveIndex,
-  ]);
+  const blocked = new Set<number>(
+    [
+      indexes.tipoIndex,
+      indexes.dataIndex,
+      indexes.nfIndex,
+      indexes.cnpjIndex,
+      indexes.fornecedorIndex,
+      indexes.chaveIndex,
+    ].filter((index) => index >= 0),
+  );
 
   let bestIndex = -1;
   let bestScore = -9999;
@@ -585,7 +588,7 @@ function parseSystemRecords(rows: MappedRow[], indexes: ColumnIndexes): ParsedRe
         normalizedValor: normalizeCurrency(originalValor),
       };
     })
-    .filter((row) => row.normalizedChave);
+    .filter((row) => row.normalizedChave.length > 0);
 }
 
 function parseGovernmentRecords(rows: MappedRow[], indexes: ColumnIndexes): ParsedRecord[] {
@@ -713,8 +716,8 @@ export function compareReports(
     }
 
     const nfAndCnpjKey = getNFAndCNPJKey(record);
-    if (!systemByNFAndCNPJ.has(nfAndCNPJKey)) systemByNFAndCNPJ.set(nfAndCNPJKey, []);
-    systemByNFAndCNPJ.get(nfAndCNPJKey)!.push(record);
+    if (!systemByNFAndCNPJ.has(nfAndCnpjKey)) systemByNFAndCNPJ.set(nfAndCnpjKey, []);
+    systemByNFAndCNPJ.get(nfAndCnpjKey)!.push(record);
 
     const nfDateAndValueKey = getNFDateAndValueKey(record);
     if (!systemByNFDateAndValue.has(nfDateAndValueKey)) {
@@ -821,7 +824,7 @@ export function compareReports(
     }
 
     const nfAndCnpjKey = getNFAndCNPJKey(govRecord);
-    const nfAndCnpjMatches = systemByNFAndCNPJ.get(nfAndCNPJKey) ?? [];
+    const nfAndCnpjMatches = systemByNFAndCNPJ.get(nfAndCnpjKey) ?? [];
 
     if (nfAndCnpjMatches.length > 0) {
       const bestMatch = nfAndCnpjMatches[0]!;
