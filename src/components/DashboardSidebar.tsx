@@ -1,32 +1,72 @@
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard,
-  History,
-  Loader2,
-  Users,
-  Settings,
-  Hexagon,
-  LogOut,
+  Building2,
   FileSearch,
+  Hexagon,
+  History,
+  LayoutDashboard,
+  Loader2,
+  LogOut,
+  Settings,
+  Sparkles,
+  Users,
 } from "lucide-react";
 import { getRecords } from "@/lib/history";
 import { useAuth } from "@/contexts/AuthContext";
 
-const navItems = [
+const SIDEBAR_WIDTH = 272;
+
+const navSections = [
   {
-    label: "Principal",
+    label: "Visão geral",
     items: [
-      { title: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-      { title: "Histórico", icon: History, path: "/historico", showBadge: true },
-      { title: "Em andamento", icon: Loader2, path: "/em-andamento" },
-      { title: "Conciliação", icon: FileSearch, path: "/conciliacao" },
+      {
+        title: "Dashboard",
+        icon: LayoutDashboard,
+        path: "/dashboard",
+        description: "Resumo operacional",
+      },
+      {
+        title: "Histórico",
+        icon: History,
+        path: "/historico",
+        description: "Execuções anteriores",
+        showBadge: true,
+      },
+      {
+        title: "Em andamento",
+        icon: Loader2,
+        path: "/em-andamento",
+        description: "Processos em aberto",
+      },
     ],
   },
   {
-    label: "Configurações",
+    label: "Operação",
     items: [
-      { title: "Clientes", icon: Users, path: "/clientes" },
-      { title: "Configurações", icon: Settings, path: "/configuracoes" },
+      {
+        title: "Conciliação",
+        icon: FileSearch,
+        path: "/conciliacao",
+        description: "Motor de comparação",
+      },
+      {
+        title: "Clientes",
+        icon: Building2,
+        path: "/clientes",
+        description: "Centrais e módulos",
+      },
+    ],
+  },
+  {
+    label: "Sistema",
+    items: [
+      {
+        title: "Configurações",
+        icon: Settings,
+        path: "/configuracoes",
+        description: "Preferências da conta",
+      },
     ],
   },
 ];
@@ -59,85 +99,113 @@ const DashboardSidebar = () => {
   const displayName = user?.user_metadata?.full_name || user?.email || "Usuário";
 
   return (
-    <aside className="sidebar-nav fixed left-0 top-0 bottom-0 w-[220px] flex flex-col z-50">
-      {/* Logo */}
-      <div
-        className="px-5 py-5 flex items-center gap-3 cursor-pointer"
-        onClick={() => navigate("/dashboard")}
-      >
-        <div
-          className="h-9 w-9 rounded-lg flex items-center justify-center"
-          style={{ background: "#412402" }}
+    <aside
+      className="sidebar-shell fixed left-0 top-0 bottom-0 z-50 flex flex-col"
+      style={{ width: SIDEBAR_WIDTH }}
+    >
+      <div className="flex h-full flex-col px-4 py-4">
+        {/* Marca */}
+        <button
+          type="button"
+          onClick={() => navigate("/dashboard")}
+          className="surface-panel mb-5 flex w-full items-start gap-3 px-4 py-4 text-left transition-all hover:-translate-y-[1px]"
+          style={{ borderRadius: 20 }}
         >
-          <Hexagon className="h-5 w-5" style={{ color: "#BA7517" }} />
-        </div>
-        <div>
-          <h1 className="text-sm font-semibold" style={{ color: "#F5F5F0" }}>
-            Receita<span style={{ color: "#FAC775" }}>Flow</span>
-          </h1>
-          <p className="text-[10px]" style={{ color: "#5F5E5A" }}>
-            Conversor financeiro
-          </p>
-        </div>
-      </div>
+          <div className="sidebar-brand-badge flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl">
+            <Hexagon className="h-5 w-5" />
+          </div>
 
-      {/* Nav */}
-      <nav className="flex-1 px-3 pt-6 space-y-6 overflow-y-auto">
-        {navItems.map((section) => (
-          <div key={section.label}>
-            <p className="sidebar-label">{section.label}</p>
-            <div className="space-y-1">
-              {section.items.map((item) => (
-                <div
-                  key={item.path}
-                  className={`sidebar-item ${isActive(item.path) ? "active" : ""}`}
-                  onClick={() => navigate(item.path)}
-                >
-                  <item.icon className="h-4 w-4" />
-                  <span className="flex-1">{item.title}</span>
-                  {item.showBadge && historyCount > 0 && (
-                    <span className="amber-badge">{historyCount}</span>
-                  )}
-                </div>
-              ))}
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h1 className="truncate text-sm font-semibold text-[#F3F6FB]">
+                ReceitaFlow
+              </h1>
+              <span className="status-info inline-flex items-center gap-1">
+                <Sparkles className="h-3 w-3" />
+                Pro
+              </span>
             </div>
-          </div>
-        ))}
-      </nav>
 
-      {/* User */}
-      <div className="px-4 py-4 border-t" style={{ borderColor: "#2C2C2A" }}>
-        <div className="flex items-center gap-3">
+            <p className="mt-1 text-[11px] leading-relaxed text-[#8A96A8]">
+              Plataforma de conciliação financeira e fiscal
+            </p>
+          </div>
+        </button>
+
+        {/* Navegação */}
+        <nav className="flex-1 overflow-y-auto pr-1">
+          <div className="space-y-5">
+            {navSections.map((section) => (
+              <section key={section.label}>
+                <p className="sidebar-label">{section.label}</p>
+
+                <div className="space-y-1.5">
+                  {section.items.map((item) => {
+                    const active = isActive(item.path);
+
+                    return (
+                      <button
+                        key={item.path}
+                        type="button"
+                        onClick={() => navigate(item.path)}
+                        className={`sidebar-item w-full text-left ${active ? "active" : ""}`}
+                      >
+                        <div className="sidebar-item-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#121A24]">
+                          <item.icon className="h-4 w-4" />
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="truncate font-medium">{item.title}</span>
+
+                            {item.showBadge && historyCount > 0 && (
+                              <span className="sidebar-badge shrink-0">
+                                {historyCount}
+                              </span>
+                            )}
+                          </div>
+
+                          <p className="truncate text-[11px] text-[#6F7C8F]">
+                            {item.description}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            ))}
+          </div>
+        </nav>
+
+        {/* Rodapé */}
+        <div className="mt-5">
           <div
-            className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-semibold shrink-0"
-            style={{ background: "#412402", color: "#FAC775" }}
+            className="surface-panel flex items-center gap-3 px-3.5 py-3"
+            style={{ borderRadius: 18 }}
           >
-            {initials}
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[rgba(91,141,239,0.16)] text-sm font-semibold text-[#A9C3FF]">
+              {initials}
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-semibold text-[#F3F6FB]">
+                {displayName}
+              </p>
+              <div className="mt-1 flex items-center gap-2">
+                <span className="status-active">Administrador</span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-transparent text-[#7F8FA4] transition-all hover:border-[rgba(91,141,239,0.22)] hover:bg-[rgba(91,141,239,0.12)] hover:text-[#A9C3FF]"
+              title="Sair"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium truncate" style={{ color: "#F5F5F0" }}>
-              {displayName}
-            </p>
-            <p className="text-[10px]" style={{ color: "#5F5E5A" }}>
-              Administrador
-            </p>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="h-7 w-7 rounded-md flex items-center justify-center transition-colors"
-            style={{ color: "#5F5E5A" }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "#412402";
-              e.currentTarget.style.color = "#FAC775";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "transparent";
-              e.currentTarget.style.color = "#5F5E5A";
-            }}
-            title="Sair"
-          >
-            <LogOut className="h-3.5 w-3.5" />
-          </button>
         </div>
       </div>
     </aside>
