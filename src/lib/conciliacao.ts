@@ -348,6 +348,7 @@ function parseRecordsByKind(rows: MappedRow[], indexes: ColumnIndexes): ParsedRe
       const originalNumeroNF = values[indexes.nfIndex];
       const originalCnpjPrestador = values[indexes.cnpjIndex];
       const originalValor = values[indexes.valorIndex] ?? "";
+      const originalNomeFornecedor = indexes.nomeIndex >= 0 ? values[indexes.nomeIndex] : "";
 
       const rawDataEmissao =
         typeof originalDataEmissao === "number"
@@ -356,11 +357,13 @@ function parseRecordsByKind(rows: MappedRow[], indexes: ColumnIndexes): ParsedRe
 
       const rawNumeroNF = String(originalNumeroNF ?? "").trim();
       const rawCnpjPrestador = String(originalCnpjPrestador ?? "").trim();
+      const rawNomeFornecedor = String(originalNomeFornecedor ?? "").trim();
 
       return {
         rawDataEmissao,
         rawNumeroNF,
         rawCnpjPrestador,
+        rawNomeFornecedor,
         rawValor: typeof originalValor === "number" ? originalValor : String(originalValor ?? "").trim(),
         normalizedDataEmissao: normalizeDate(originalDataEmissao),
         normalizedNumeroNF: normalizeNF(originalNumeroNF),
