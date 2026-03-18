@@ -580,6 +580,7 @@ export function exportFilteredToExcel(rows: ComparisonRow[], filterLabel: string
     "Data de Emissão": item.dataEmissao,
     "Número da NF": item.numeroNF,
     "CNPJ do Prestador": item.cnpjPrestador,
+    "Fornecedor": item.nomeFornecedor || "",
     "Valor Gov.": item.valor,
     "Valor Sist.": item.valorSistema ?? "",
     Status: item.tipo,
