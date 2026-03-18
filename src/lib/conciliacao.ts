@@ -564,3 +564,36 @@ export function exportNotLaunchedToExcel(rows: ComparisonRow[]) {
   XLSX.utils.book_append_sheet(workbook, worksheet, "Não Lançadas");
   XLSX.writeFile(workbook, "notas-nao-lancadas.xlsx");
 }
+
+export function exportFilteredToExcel(rows: ComparisonRow[], filterLabel: string) {
+  const mapped = rows.map((item) => ({
+    "Data de Emissão": item.dataEmissao,
+    "Número da NF": item.numeroNF,
+    "CNPJ do Prestador": item.cnpjPrestador,
+    "Valor Gov.": item.valor,
+    "Valor Sist.": item.valorSistema ?? "",
+    Status: item.tipo,
+    Observação: item.observacao,
+  }));
+
+  if (!mapped.length) {
+    throw new Error("Nenhum registro encontrado para exportação.");
+  }
+
+  const worksheet = XLSX.utils.json_to_sheet(mapped);
+  const workbook = XLSX.utils.book_new();
+
+  worksheet["!cols"] = [
+    { wch: 16 },
+    { wch: 18 },
+    { wch: 22 },
+    { wch: 14 },
+    { wch: 14 },
+    { wch: 20 },
+    { wch: 60 },
+  ];
+
+  const sheetName = filterLabel.slice(0, 31);
+  XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+  XLSX.writeFile(workbook, `conciliacao-${filterLabel.toLowerCase().replace(/\s+/g, "-")}.xlsx`);
+}
