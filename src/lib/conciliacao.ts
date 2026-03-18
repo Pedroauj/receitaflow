@@ -549,6 +549,7 @@ export function exportNotLaunchedToExcel(rows: ComparisonRow[]) {
       "Data de Emissão": item.dataEmissao,
       "Número da NF": item.numeroNF,
       "CNPJ do Prestador": item.cnpjPrestador,
+      "Fornecedor": item.nomeFornecedor || "",
       Valor: item.valor,
       Status: item.tipo,
       Observação: item.observacao,
