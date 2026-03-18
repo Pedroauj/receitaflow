@@ -831,12 +831,12 @@ const Conciliacao = () => {
                       width: "100%",
                       borderCollapse: "collapse",
                       tableLayout: "fixed",
-                      minWidth: 1260,
+                      minWidth: 1340,
                     }}
                   >
                     <colgroup>
                       <col style={{ width: 110 }} />
-                      <col style={{ width: 74 }} />
+                      <col style={{ width: 150 }} />
                       <col style={{ width: 270 }} />
                       <col style={{ width: 140 }} />
                       {showSystemValue && <col style={{ width: 140 }} />}
@@ -911,10 +911,13 @@ const Conciliacao = () => {
                                   fontSize: 14,
                                   color: "#E2E2E7",
                                   padding: "15px 14px",
-                                  whiteSpace: "nowrap",
                                   verticalAlign: "middle",
                                   fontWeight: 600,
+                                  lineHeight: 1.2,
+                                  wordBreak: "break-all",
+                                  overflowWrap: "anywhere",
                                 }}
+                                title={row.numeroNF}
                               >
                                 {row.numeroNF}
                               </td>
