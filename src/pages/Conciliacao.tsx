@@ -487,15 +487,17 @@ const Conciliacao = () => {
 
             {/* Table */}
             <div style={{ marginTop: 20 }}>
+              {/* Sticky header bar */}
               <div
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
                   marginBottom: 14,
+                  minHeight: 40,
                 }}
               >
-                <p style={{ fontSize: 14, fontWeight: 500, color: "#F5F5F0", margin: 0 }}>
+                <p style={{ fontSize: 14, fontWeight: 500, color: "#F5F5F0", margin: 0, whiteSpace: "nowrap" }}>
                   Pendências encontradas
                   <span style={{ fontSize: 11, color: "#5A5A62", fontWeight: 400, marginLeft: 8 }}>
                     ({filteredResults.length})
@@ -519,7 +521,8 @@ const Conciliacao = () => {
                         onClick={() => setFilter(f)}
                         style={{
                           fontSize: 11,
-                          padding: "5px 12px",
+                          width: 130,
+                          padding: "5px 0",
                           borderRadius: 5,
                           border: "none",
                           cursor: "pointer",
@@ -527,6 +530,7 @@ const Conciliacao = () => {
                           color: filter === f ? "#F5F5F0" : "#6E6E76",
                           display: "inline-flex",
                           alignItems: "center",
+                          justifyContent: "center",
                           gap: 5,
                         }}
                       >
@@ -537,6 +541,8 @@ const Conciliacao = () => {
                           borderRadius: 999,
                           background: filter === f ? "#3A3A40" : "#1E1E22",
                           color: filter === f ? "#C8C8CC" : "#5A5A62",
+                          minWidth: 24,
+                          textAlign: "center",
                         }}>
                           {tabCounts[f]}
                         </span>
@@ -552,16 +558,18 @@ const Conciliacao = () => {
                       alignItems: "center",
                       gap: 5,
                       fontSize: 11,
+                      width: 100,
+                      justifyContent: "center",
                       color: filteredResults.length > 0 ? "#FAC775" : "#5A5A62",
                       background: filteredResults.length > 0 ? "#1A1208" : "#1A1A1E",
                       border: `0.5px solid ${filteredResults.length > 0 ? "#5B3A0D" : "#2C2C30"}`,
                       borderRadius: 6,
-                      padding: "6px 12px",
+                      padding: "6px 0",
                       cursor: filteredResults.length > 0 ? "pointer" : "not-allowed",
                     }}
                   >
                     <Download style={{ width: 12, height: 12 }} />
-                    Exportar {filterLabels[filter].toLowerCase()}
+                    Exportar
                   </button>
                 </div>
               </div>
@@ -575,14 +583,14 @@ const Conciliacao = () => {
                 }}
               >
                 <TooltipProvider delayDuration={200}>
-                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed", minWidth: 960 }}>
                     <colgroup>
-                      <col style={{ width: 110 }} />
-                      <col style={{ width: 90 }} />
-                      <col style={{ minWidth: 220 }} />
-                      <col style={{ width: 140 }} />
-                      {showSystemValue && <col style={{ width: 140 }} />}
-                      <col style={{ width: 160 }} />
+                      <col style={{ width: 100 }} />
+                      <col style={{ width: 80 }} />
+                      <col style={{ width: 240 }} />
+                      <col style={{ width: 120 }} />
+                      {showSystemValue && <col style={{ width: 120 }} />}
+                      <col style={{ width: 150 }} />
                       <col />
                     </colgroup>
                     <thead>
@@ -623,23 +631,29 @@ const Conciliacao = () => {
                               key={row.id}
                               style={{
                                 borderBottom: "0.5px solid #1E1E22",
+                                height: 48,
                                 transition: "background 0.1s",
                               }}
                               onMouseEnter={(e) => (e.currentTarget.style.background = "#1E1E22")}
                               onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                             >
-                              <td style={{ fontSize: 12, color: "#C8C8CC", padding: "10px 14px", whiteSpace: "nowrap" }}>
+                              <td style={{ fontSize: 12, color: "#C8C8CC", padding: "10px 14px", whiteSpace: "nowrap", verticalAlign: "middle" }}>
                                 {row.dataEmissao}
                               </td>
-                              <td style={{ fontSize: 12, color: "#C8C8CC", padding: "10px 14px", whiteSpace: "nowrap" }}>
+                              <td style={{ fontSize: 12, color: "#C8C8CC", padding: "10px 14px", whiteSpace: "nowrap", verticalAlign: "middle" }}>
                                 {row.numeroNF}
                               </td>
-                              <td style={{ padding: "10px 14px" }}>
-                                <div style={{ fontSize: 12, color: "#C8C8CC", lineHeight: 1.3 }}>
+                              <td style={{ padding: "10px 14px", verticalAlign: "middle" }}>
+                                <div style={{ fontSize: 12, color: "#C8C8CC", lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                   {row.cnpjPrestador}
                                 </div>
+                                {row.nomeFornecedor && (
+                                  <div style={{ fontSize: 10, color: "#6E6E76", lineHeight: 1.3, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                    {row.nomeFornecedor}
+                                  </div>
+                                )}
                               </td>
-                              <td style={{ fontSize: 12, color: "#C8C8CC", padding: "10px 14px", whiteSpace: "nowrap" }}>
+                              <td style={{ fontSize: 12, color: "#C8C8CC", padding: "10px 14px", whiteSpace: "nowrap", verticalAlign: "middle" }}>
                                 {formatCurrency(row.valor)}
                               </td>
                               {showSystemValue && (
@@ -648,6 +662,7 @@ const Conciliacao = () => {
                                     fontSize: 12,
                                     padding: "10px 14px",
                                     whiteSpace: "nowrap",
+                                    verticalAlign: "middle",
                                     color:
                                       row.valorSistema !== null && row.valorSistema !== row.valor
                                         ? "#FAC775"
@@ -661,7 +676,7 @@ const Conciliacao = () => {
                                   )}
                                 </td>
                               )}
-                              <td style={{ padding: "10px 14px" }}>
+                              <td style={{ padding: "10px 14px", verticalAlign: "middle" }}>
                                 <span
                                   style={{
                                     display: "inline-block",
@@ -675,7 +690,7 @@ const Conciliacao = () => {
                                   {badge.label}
                                 </span>
                               </td>
-                              <td style={{ padding: "10px 14px" }}>
+                              <td style={{ padding: "10px 14px", verticalAlign: "middle" }}>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <p
@@ -684,7 +699,6 @@ const Conciliacao = () => {
                                         color: "#7A7A82",
                                         margin: 0,
                                         lineHeight: 1.5,
-                                        maxWidth: 400,
                                         overflow: "hidden",
                                         display: "-webkit-box",
                                         WebkitLineClamp: 2,
