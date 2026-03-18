@@ -303,6 +303,7 @@ function mapGovernmentColumns(headers: string[]): ColumnIndexes {
   const dataIndex = findColumnIndex(headers, ["Data da Emissão (dhEmi)"]);
   const cnpjIndex = findColumnIndex(headers, ["Prestador (CNPJ / CPF)"]);
   const valorIndex = findColumnIndex(headers, ["Valor Serviço (vServ)"]);
+  const nomeIndex = findColumnIndex(headers, ["Razão Social", "Razao Social", "Nome", "Nome Prestador", "Nome do Prestador", "Prestador (Razão Social)", "Prestador (Razao Social)"]);
 
   const missing: string[] = [];
   if (dataIndex === -1) missing.push("Data da Emissão (dhEmi)");
@@ -316,7 +317,7 @@ function mapGovernmentColumns(headers: string[]): ColumnIndexes {
     );
   }
 
-  return { dataIndex, nfIndex, cnpjIndex, valorIndex };
+  return { dataIndex, nfIndex, cnpjIndex, valorIndex, nomeIndex };
 }
 
 function buildMappedRowsFromArrayRows(rows: unknown[][], headerRowIndex: number): MappedRow[] {
