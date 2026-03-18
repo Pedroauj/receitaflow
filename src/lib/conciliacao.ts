@@ -203,6 +203,14 @@ function getNFAndCNPJKey(record: ParsedRecord) {
   return [record.normalizedNumeroNF, record.normalizedCnpjPrestador].join("|");
 }
 
+function getCNPJDateAndValueKey(record: ParsedRecord) {
+  return [
+    record.normalizedCnpjPrestador,
+    record.normalizedDataEmissao,
+    record.normalizedValor.toFixed(2),
+  ].join("|");
+}
+
 function getWorksheet(workbook: XLSX.WorkBook) {
   const firstSheetName = workbook.SheetNames[0];
 
@@ -452,13 +460,20 @@ export function compareReports(
   let reconciled = 0;
 
   const systemByNFAndCNPJ = new Map<string, ParsedRecord[]>();
+  const systemByCNPJDateAndValue = new Map<string, ParsedRecord[]>();
 
   systemRecords.forEach((record) => {
-    const key = getNFAndCNPJKey(record);
-    if (!systemByNFAndCNPJ.has(key)) {
-      systemByNFAndCNPJ.set(key, []);
+    const nfAndCnpjKey = getNFAndCNPJKey(record);
+    if (!systemByNFAndCNPJ.has(nfAndCnpjKey)) {
+      systemByNFAndCNPJ.set(nfAndCnpjKey, []);
     }
-    systemByNFAndCNPJ.get(key)!.push(record);
+    systemByNFAndCNPJ.get(nfAndCnpjKey)!.push(record);
+
+    const cnpjDateAndValueKey = getCNPJDateAndValueKey(record);
+    if (!systemByCNPJDateAndValue.has(cnpjDateAndValueKey)) {
+      systemByCNPJDateAndValue.set(cnpjDateAndValueKey, []);
+    }
+    systemByCNPJDateAndValue.get(cnpjDateAndValueKey)!.push(record);
   });
 
   governmentRecords.forEach((govRecord, index) => {
@@ -466,6 +481,24 @@ export function compareReports(
     const matches = systemByNFAndCNPJ.get(key) ?? [];
 
     if (matches.length === 0) {
+      const nfDivergentKey = getCNPJDateAndValueKey(govRecord);
+      const nfDivergentMatches = systemByCNPJDateAndValue.get(nfDivergentKey) ?? [];
+
+      if (nfDivergentMatches.length > 0) {
+        const bestNFMatch = nfDivergentMatches[0]!;
+
+        results.push(
+          buildComparisonRow(
+            govRecord,
+            bestNFMatch,
+            "NF divergente",
+            "Nota localizada no sistema pelo mesmo CNPJ, data de emissão e valor, porém com número da NF diferente.",
+            `${index + 1}`,
+          ),
+        );
+        return;
+      }
+
       results.push(
         buildComparisonRow(
           govRecord,
