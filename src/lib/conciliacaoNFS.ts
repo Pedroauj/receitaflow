@@ -7,7 +7,6 @@ export type DivergenceType =
   | "Data divergente"
   | "NF divergente"
   | "CNPJ divergente"
-  | "CNPJ errado"
   | "Múltiplas divergências";
 
 export type ComparisonRow = {
@@ -207,14 +206,6 @@ function getNFAndCNPJKey(record: ParsedRecord) {
 function getCNPJDateAndValueKey(record: ParsedRecord) {
   return [
     record.normalizedCnpjPrestador,
-    record.normalizedDataEmissao,
-    record.normalizedValor.toFixed(2),
-  ].join("|");
-}
-
-function getNFDateAndValueKey(record: ParsedRecord) {
-  return [
-    record.normalizedNumeroNF,
     record.normalizedDataEmissao,
     record.normalizedValor.toFixed(2),
   ].join("|");
@@ -470,7 +461,6 @@ export function compareReports(
 
   const systemByNFAndCNPJ = new Map<string, ParsedRecord[]>();
   const systemByCNPJDateAndValue = new Map<string, ParsedRecord[]>();
-  const systemByNFDateAndValue = new Map<string, ParsedRecord[]>();
 
   systemRecords.forEach((record) => {
     const nfAndCnpjKey = getNFAndCNPJKey(record);
@@ -484,12 +474,6 @@ export function compareReports(
       systemByCNPJDateAndValue.set(cnpjDateAndValueKey, []);
     }
     systemByCNPJDateAndValue.get(cnpjDateAndValueKey)!.push(record);
-
-    const nfDateAndValueKey = getNFDateAndValueKey(record);
-    if (!systemByNFDateAndValue.has(nfDateAndValueKey)) {
-      systemByNFDateAndValue.set(nfDateAndValueKey, []);
-    }
-    systemByNFDateAndValue.get(nfDateAndValueKey)!.push(record);
   });
 
   governmentRecords.forEach((govRecord, index) => {
@@ -497,25 +481,6 @@ export function compareReports(
     const matches = systemByNFAndCNPJ.get(key) ?? [];
 
     if (matches.length === 0) {
-      const cnpjErradoKey = getNFDateAndValueKey(govRecord);
-      const cnpjErradoMatches = systemByNFDateAndValue.get(cnpjErradoKey) ?? [];
-      const cnpjErradoMatch = cnpjErradoMatches.find(
-        (item) => item.normalizedCnpjPrestador !== govRecord.normalizedCnpjPrestador,
-      );
-
-      if (cnpjErradoMatch) {
-        results.push(
-          buildComparisonRow(
-            govRecord,
-            cnpjErradoMatch,
-            "CNPJ errado",
-            "Nota localizada no sistema pelo mesmo número da NF, data de emissão e valor, porém com CNPJ diferente.",
-            `${index + 1}`,
-          ),
-        );
-        return;
-      }
-
       const nfDivergentKey = getCNPJDateAndValueKey(govRecord);
       const nfDivergentMatches = systemByCNPJDateAndValue.get(nfDivergentKey) ?? [];
 
