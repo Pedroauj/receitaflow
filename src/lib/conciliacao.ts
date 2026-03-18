@@ -16,7 +16,7 @@ export type ComparisonRow = {
   cnpjPrestador: string;
   nomeFornecedor: string;
   valor: number;
-  valorSistema: number | null; // valor encontrado no sistema (null se não lançada)
+  valorSistema: number | null;
   tipo: DivergenceType;
   observacao: string;
 };
@@ -28,7 +28,7 @@ export type ComparisonSummary = {
   notLaunchedCount: number;
   divergencesCount: number;
   notLaunchedValue: number;
-  divergencesValue: number; // soma do valor governo das notas com divergência (exceto não lançadas)
+  divergencesValue: number;
 };
 
 type ParsedRecord = {
@@ -276,7 +276,15 @@ function mapSystemColumns(headers: string[]): ColumnIndexes {
   const dataIndex = findColumnIndex(headers, ["Data"]);
   const nfIndex = findColumnIndex(headers, ["N°NF", "NoNF", "NºNF", "N NF", "NF"]);
   const cnpjIndex = findColumnIndex(headers, ["NOTA/CNPJ/CPF", "CNPJ/CPF", "NOTA CNPJ CPF"]);
-  const nomeIndex = findColumnIndex(headers, ["Razão Social", "Razao Social", "Nome", "Nome Fornecedor", "Nome do Fornecedor", "Prestador"]);
+  const nomeIndex = findColumnIndex(headers, [
+    "Razão Social",
+    "Razao Social",
+    "Nome",
+    "Nome Fornecedor",
+    "Nome do Fornecedor",
+    "Prestador",
+    "Fornecedor",
+  ]);
 
   const missing: string[] = [];
   if (dataIndex === -1) missing.push("Data");
@@ -303,7 +311,16 @@ function mapGovernmentColumns(headers: string[]): ColumnIndexes {
   const dataIndex = findColumnIndex(headers, ["Data da Emissão (dhEmi)"]);
   const cnpjIndex = findColumnIndex(headers, ["Prestador (CNPJ / CPF)"]);
   const valorIndex = findColumnIndex(headers, ["Valor Serviço (vServ)"]);
-  const nomeIndex = findColumnIndex(headers, ["Razão Social", "Razao Social", "Nome", "Nome Prestador", "Nome do Prestador", "Prestador (Razão Social)", "Prestador (Razao Social)"]);
+  const nomeIndex = findColumnIndex(headers, [
+    "Razão Social",
+    "Razao Social",
+    "Nome",
+    "Nome Prestador",
+    "Nome do Prestador",
+    "Prestador (Razão Social)",
+    "Prestador (Razao Social)",
+    "Fornecedor",
+  ]);
 
   const missing: string[] = [];
   if (dataIndex === -1) missing.push("Data da Emissão (dhEmi)");
@@ -364,7 +381,10 @@ function parseRecordsByKind(rows: MappedRow[], indexes: ColumnIndexes): ParsedRe
         rawNumeroNF,
         rawCnpjPrestador,
         rawNomeFornecedor,
-        rawValor: typeof originalValor === "number" ? originalValor : String(originalValor ?? "").trim(),
+        rawValor:
+          typeof originalValor === "number"
+            ? originalValor
+            : String(originalValor ?? "").trim(),
         normalizedDataEmissao: normalizeDate(originalDataEmissao),
         normalizedNumeroNF: normalizeNF(originalNumeroNF),
         normalizedCnpjPrestador: digitsOnly(originalCnpjPrestador),
@@ -398,6 +418,12 @@ export async function parseSpreadsheetFile(file: File, kind: SpreadsheetKind) {
   return parseRecordsByKind(mappedRows, indexes);
 }
 
+function resolveSupplierName(govRecord: ParsedRecord, systemRecord: ParsedRecord | null) {
+  const governmentName = String(govRecord.rawNomeFornecedor ?? "").trim();
+  const systemName = String(systemRecord?.rawNomeFornecedor ?? "").trim();
+  return governmentName || systemName || "";
+}
+
 function buildComparisonRow(
   govRecord: ParsedRecord,
   systemRecord: ParsedRecord | null,
@@ -410,7 +436,7 @@ function buildComparisonRow(
     dataEmissao: formatDateToBR(govRecord.normalizedDataEmissao || govRecord.rawDataEmissao),
     numeroNF: govRecord.normalizedNumeroNF || govRecord.rawNumeroNF || "-",
     cnpjPrestador: formatCNPJ(govRecord.normalizedCnpjPrestador || govRecord.rawCnpjPrestador),
-    nomeFornecedor: govRecord.rawNomeFornecedor || "",
+    nomeFornecedor: resolveSupplierName(govRecord, systemRecord),
     valor: govRecord.normalizedValor,
     valorSistema: systemRecord ? systemRecord.normalizedValor : null,
     tipo,
@@ -461,6 +487,7 @@ export function compareReports(
       const exactRecord = matches.find(
         (item) => getCompositeKey(item) === getCompositeKey(govRecord),
       )!;
+
       results.push(
         buildComparisonRow(
           govRecord,
@@ -473,7 +500,6 @@ export function compareReports(
       return;
     }
 
-    // Encontra o match mais próximo para exibir o valor do sistema
     const bestMatch = matches[0]!;
 
     const sameDate = matches.some(
@@ -522,7 +548,9 @@ export function compareReports(
   });
 
   const notLaunched = results.filter((item) => item.tipo === "Não lançada");
-  const divergences = results.filter((item) => item.tipo !== "Não lançada");
+  const divergences = results.filter(
+    (item) => item.tipo !== "Não lançada" && item.tipo !== "Lançada",
+  );
 
   return {
     results,
@@ -549,7 +577,7 @@ export function exportNotLaunchedToExcel(rows: ComparisonRow[]) {
       "Data de Emissão": item.dataEmissao,
       "Número da NF": item.numeroNF,
       "CNPJ do Prestador": item.cnpjPrestador,
-      "Fornecedor": item.nomeFornecedor || "",
+      Fornecedor: item.nomeFornecedor || "",
       Valor: item.valor,
       Status: item.tipo,
       Observação: item.observacao,
@@ -566,6 +594,7 @@ export function exportNotLaunchedToExcel(rows: ComparisonRow[]) {
     { wch: 16 },
     { wch: 18 },
     { wch: 22 },
+    { wch: 28 },
     { wch: 14 },
     { wch: 18 },
     { wch: 60 },
@@ -580,7 +609,7 @@ export function exportFilteredToExcel(rows: ComparisonRow[], filterLabel: string
     "Data de Emissão": item.dataEmissao,
     "Número da NF": item.numeroNF,
     "CNPJ do Prestador": item.cnpjPrestador,
-    "Fornecedor": item.nomeFornecedor || "",
+    Fornecedor: item.nomeFornecedor || "",
     "Valor Gov.": item.valor,
     "Valor Sist.": item.valorSistema ?? "",
     Status: item.tipo,
@@ -598,6 +627,7 @@ export function exportFilteredToExcel(rows: ComparisonRow[], filterLabel: string
     { wch: 16 },
     { wch: 18 },
     { wch: 22 },
+    { wch: 28 },
     { wch: 14 },
     { wch: 14 },
     { wch: 20 },
@@ -606,5 +636,8 @@ export function exportFilteredToExcel(rows: ComparisonRow[], filterLabel: string
 
   const sheetName = filterLabel.slice(0, 31);
   XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
-  XLSX.writeFile(workbook, `conciliacao-${filterLabel.toLowerCase().replace(/\s+/g, "-")}.xlsx`);
+  XLSX.writeFile(
+    workbook,
+    `conciliacao-${filterLabel.toLowerCase().replace(/\s+/g, "-")}.xlsx`,
+  );
 }
