@@ -57,6 +57,7 @@ type ColumnIndexes = {
   nfIndex: number;
   cnpjIndex: number;
   valorIndex: number;
+  nomeIndex: number;
 };
 
 function normalizeHeader(value: unknown) {
