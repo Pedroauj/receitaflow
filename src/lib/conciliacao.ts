@@ -14,6 +14,7 @@ export type ComparisonRow = {
   dataEmissao: string;
   numeroNF: string;
   cnpjPrestador: string;
+  nomeFornecedor: string;
   valor: number;
   valorSistema: number | null; // valor encontrado no sistema (null se não lançada)
   tipo: DivergenceType;
@@ -34,6 +35,7 @@ type ParsedRecord = {
   rawDataEmissao: string;
   rawNumeroNF: string;
   rawCnpjPrestador: string;
+  rawNomeFornecedor: string;
   rawValor: string | number;
   normalizedDataEmissao: string;
   normalizedNumeroNF: string;
@@ -55,6 +57,7 @@ type ColumnIndexes = {
   nfIndex: number;
   cnpjIndex: number;
   valorIndex: number;
+  nomeIndex: number;
 };
 
 function normalizeHeader(value: unknown) {
@@ -273,6 +276,7 @@ function mapSystemColumns(headers: string[]): ColumnIndexes {
   const dataIndex = findColumnIndex(headers, ["Data"]);
   const nfIndex = findColumnIndex(headers, ["N°NF", "NoNF", "NºNF", "N NF", "NF"]);
   const cnpjIndex = findColumnIndex(headers, ["NOTA/CNPJ/CPF", "CNPJ/CPF", "NOTA CNPJ CPF"]);
+  const nomeIndex = findColumnIndex(headers, ["Razão Social", "Razao Social", "Nome", "Nome Fornecedor", "Nome do Fornecedor", "Prestador"]);
 
   const missing: string[] = [];
   if (dataIndex === -1) missing.push("Data");
@@ -291,7 +295,7 @@ function mapSystemColumns(headers: string[]): ColumnIndexes {
     );
   }
 
-  return { dataIndex, nfIndex, cnpjIndex, valorIndex };
+  return { dataIndex, nfIndex, cnpjIndex, valorIndex, nomeIndex };
 }
 
 function mapGovernmentColumns(headers: string[]): ColumnIndexes {
@@ -299,6 +303,7 @@ function mapGovernmentColumns(headers: string[]): ColumnIndexes {
   const dataIndex = findColumnIndex(headers, ["Data da Emissão (dhEmi)"]);
   const cnpjIndex = findColumnIndex(headers, ["Prestador (CNPJ / CPF)"]);
   const valorIndex = findColumnIndex(headers, ["Valor Serviço (vServ)"]);
+  const nomeIndex = findColumnIndex(headers, ["Razão Social", "Razao Social", "Nome", "Nome Prestador", "Nome do Prestador", "Prestador (Razão Social)", "Prestador (Razao Social)"]);
 
   const missing: string[] = [];
   if (dataIndex === -1) missing.push("Data da Emissão (dhEmi)");
@@ -312,7 +317,7 @@ function mapGovernmentColumns(headers: string[]): ColumnIndexes {
     );
   }
 
-  return { dataIndex, nfIndex, cnpjIndex, valorIndex };
+  return { dataIndex, nfIndex, cnpjIndex, valorIndex, nomeIndex };
 }
 
 function buildMappedRowsFromArrayRows(rows: unknown[][], headerRowIndex: number): MappedRow[] {
@@ -343,6 +348,7 @@ function parseRecordsByKind(rows: MappedRow[], indexes: ColumnIndexes): ParsedRe
       const originalNumeroNF = values[indexes.nfIndex];
       const originalCnpjPrestador = values[indexes.cnpjIndex];
       const originalValor = values[indexes.valorIndex] ?? "";
+      const originalNomeFornecedor = indexes.nomeIndex >= 0 ? values[indexes.nomeIndex] : "";
 
       const rawDataEmissao =
         typeof originalDataEmissao === "number"
@@ -351,11 +357,13 @@ function parseRecordsByKind(rows: MappedRow[], indexes: ColumnIndexes): ParsedRe
 
       const rawNumeroNF = String(originalNumeroNF ?? "").trim();
       const rawCnpjPrestador = String(originalCnpjPrestador ?? "").trim();
+      const rawNomeFornecedor = String(originalNomeFornecedor ?? "").trim();
 
       return {
         rawDataEmissao,
         rawNumeroNF,
         rawCnpjPrestador,
+        rawNomeFornecedor,
         rawValor: typeof originalValor === "number" ? originalValor : String(originalValor ?? "").trim(),
         normalizedDataEmissao: normalizeDate(originalDataEmissao),
         normalizedNumeroNF: normalizeNF(originalNumeroNF),
@@ -402,6 +410,7 @@ function buildComparisonRow(
     dataEmissao: formatDateToBR(govRecord.normalizedDataEmissao || govRecord.rawDataEmissao),
     numeroNF: govRecord.normalizedNumeroNF || govRecord.rawNumeroNF || "-",
     cnpjPrestador: formatCNPJ(govRecord.normalizedCnpjPrestador || govRecord.rawCnpjPrestador),
+    nomeFornecedor: govRecord.rawNomeFornecedor || "",
     valor: govRecord.normalizedValor,
     valorSistema: systemRecord ? systemRecord.normalizedValor : null,
     tipo,
@@ -540,6 +549,7 @@ export function exportNotLaunchedToExcel(rows: ComparisonRow[]) {
       "Data de Emissão": item.dataEmissao,
       "Número da NF": item.numeroNF,
       "CNPJ do Prestador": item.cnpjPrestador,
+      "Fornecedor": item.nomeFornecedor || "",
       Valor: item.valor,
       Status: item.tipo,
       Observação: item.observacao,
@@ -570,6 +580,7 @@ export function exportFilteredToExcel(rows: ComparisonRow[], filterLabel: string
     "Data de Emissão": item.dataEmissao,
     "Número da NF": item.numeroNF,
     "CNPJ do Prestador": item.cnpjPrestador,
+    "Fornecedor": item.nomeFornecedor || "",
     "Valor Gov.": item.valor,
     "Valor Sist.": item.valorSistema ?? "",
     Status: item.tipo,
