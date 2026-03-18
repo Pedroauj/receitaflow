@@ -77,7 +77,7 @@ function DonutChart({
     if (!ctx) return;
 
     const dpr = window.devicePixelRatio || 1;
-    const size = 108;
+    const size = 92;
     canvas.width = size * dpr;
     canvas.height = size * dpr;
     canvas.style.width = `${size}px`;
@@ -86,8 +86,8 @@ function DonutChart({
 
     const cx = size / 2;
     const cy = size / 2;
-    const radius = 38;
-    const lineW = 12;
+    const radius = 32;
+    const lineW = 10;
     const gap = 0.035;
 
     ctx.clearRect(0, 0, size, size);
@@ -112,7 +112,7 @@ function DonutChart({
 
     const pct = Math.round((reconciled / total) * 100);
     ctx.fillStyle = "#F5F5F0";
-    ctx.font = `600 16px sans-serif`;
+    ctx.font = `600 14px sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(`${pct}%`, cx, cy);
@@ -128,10 +128,10 @@ const filterLabels: Record<string, string> = {
 };
 
 const sectionCardStyle: React.CSSProperties = {
-  background: "linear-gradient(180deg, #1A1A1E 0%, #17171B 100%)",
-  border: "1px solid #232329",
-  borderRadius: 18,
-  boxShadow: "0 10px 30px rgba(0,0,0,.22)",
+  background: "linear-gradient(180deg, #18191D 0%, #15161A 100%)",
+  border: "1px solid #22242A",
+  borderRadius: 16,
+  boxShadow: "0 8px 24px rgba(0,0,0,.16)",
 };
 
 const Conciliacao = () => {
@@ -263,21 +263,20 @@ const Conciliacao = () => {
     <div
       className="min-h-screen"
       style={{
-        background:
-          "radial-gradient(circle at top, rgba(186,117,23,.10) 0%, rgba(17,17,19,0) 28%), #111113",
-        padding: "32px 28px 48px",
+        background: "#111113",
+        padding: "24px 24px 40px",
       }}
     >
-      <div className="mx-auto" style={{ maxWidth: 1640 }}>
-        <div style={{ marginBottom: 28 }}>
+      <div className="mx-auto" style={{ maxWidth: 1560 }}>
+        <div style={{ marginBottom: 22 }}>
           <p
             style={{
-              fontSize: 13,
+              fontSize: 12,
               letterSpacing: "0.1em",
               textTransform: "uppercase",
               color: "#D7922B",
               fontWeight: 700,
-              marginBottom: 8,
+              marginBottom: 6,
             }}
           >
             Auditoria e conferência
@@ -288,14 +287,14 @@ const Conciliacao = () => {
               display: "flex",
               alignItems: "flex-end",
               justifyContent: "space-between",
-              gap: 24,
+              gap: 20,
               flexWrap: "wrap",
             }}
           >
             <div>
               <h1
                 style={{
-                  fontSize: 40,
+                  fontSize: 32,
                   lineHeight: 1.05,
                   fontWeight: 700,
                   color: "#F5F5F0",
@@ -307,9 +306,9 @@ const Conciliacao = () => {
 
               <p
                 style={{
-                  fontSize: 16,
+                  fontSize: 14,
                   color: "#8D8D96",
-                  margin: "10px 0 0",
+                  margin: "8px 0 0",
                 }}
               >
                 Compare planilhas do sistema e do governo, identifique não lançadas,
@@ -317,7 +316,7 @@ const Conciliacao = () => {
               </p>
 
               {hasCompared && (
-                <p style={{ fontSize: 15, color: "#6E6E76", margin: "10px 0 0" }}>
+                <p style={{ fontSize: 14, color: "#6E6E76", margin: "10px 0 0" }}>
                   {summary.totalGovernmentNotes} notas no governo · {summary.totalSystemNotes} no
                   sistema
                 </p>
@@ -331,27 +330,27 @@ const Conciliacao = () => {
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: 10,
+                gap: 8,
                 background: canCompare ? "#D7922B" : "#222226",
                 color: canCompare ? "#111113" : "#5A5A62",
                 border: "none",
-                borderRadius: 14,
-                padding: "15px 24px",
-                fontSize: 16,
+                borderRadius: 12,
+                padding: "12px 20px",
+                fontSize: 15,
                 fontWeight: 700,
                 cursor: canCompare ? "pointer" : "not-allowed",
-                minWidth: 228,
+                minWidth: 212,
                 justifyContent: "center",
-                boxShadow: canCompare ? "0 10px 24px rgba(215,146,43,.18)" : "none",
+                boxShadow: canCompare ? "0 8px 18px rgba(215,146,43,.14)" : "none",
               }}
             >
-              <Search style={{ width: 18, height: 18 }} />
+              <Search style={{ width: 17, height: 17 }} />
               {isProcessing ? "Processando…" : "Comparar relatórios"}
             </button>
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
           {([
             {
               label: "Planilha do sistema",
@@ -380,14 +379,14 @@ const Conciliacao = () => {
                   ...sectionCardStyle,
                   display: "flex",
                   alignItems: "center",
-                  gap: 18,
+                  gap: 16,
                   background: isDragging
-                    ? "#21180E"
+                    ? "#1E1A14"
                     : file
-                      ? "linear-gradient(180deg, #24180A 0%, #1D1308 100%)"
-                      : "linear-gradient(180deg, #1A1A1E 0%, #17171B 100%)",
-                  border: `1.5px dashed ${isDragging ? "#D7922B" : file ? "#7A4A12" : "#2D2D34"}`,
-                  padding: "22px 22px",
+                      ? "linear-gradient(180deg, #1F1710 0%, #1A140F 100%)"
+                      : "linear-gradient(180deg, #18191D 0%, #15161A 100%)",
+                  border: `1.5px dashed ${isDragging ? "#D7922B" : file ? "#7A4A12" : "#2D2F36"}`,
+                  padding: "18px 18px",
                   cursor: "pointer",
                   transition: "background .15s, border-color .15s, transform .15s",
                 }}
@@ -403,9 +402,9 @@ const Conciliacao = () => {
 
                 <div
                   style={{
-                    width: 52,
-                    height: 52,
-                    borderRadius: 14,
+                    width: 46,
+                    height: 46,
+                    borderRadius: 12,
                     flexShrink: 0,
                     background: isDragging ? "#302006" : file ? "#322008" : "#202026",
                     display: "flex",
@@ -414,12 +413,12 @@ const Conciliacao = () => {
                   }}
                 >
                   {file ? (
-                    <FileSpreadsheet style={{ width: 22, height: 22, color: "#FFD089" }} />
+                    <FileSpreadsheet style={{ width: 20, height: 20, color: "#FFD089" }} />
                   ) : (
                     <UploadCloud
                       style={{
-                        width: 22,
-                        height: 22,
+                        width: 20,
+                        height: 20,
                         color: isDragging ? "#D7922B" : "#84848B",
                       }}
                     />
@@ -427,16 +426,16 @@ const Conciliacao = () => {
                 </div>
 
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontSize: 17, fontWeight: 700, color: "#F5F5F0", margin: 0 }}>
+                  <p style={{ fontSize: 15, fontWeight: 700, color: "#F5F5F0", margin: 0 }}>
                     {label}
                   </p>
 
                   {file ? (
                     <p
                       style={{
-                        fontSize: 14,
+                        fontSize: 13,
                         color: "#FFD089",
-                        margin: "6px 0 0",
+                        margin: "5px 0 0",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         whiteSpace: "nowrap",
@@ -447,9 +446,9 @@ const Conciliacao = () => {
                   ) : (
                     <p
                       style={{
-                        fontSize: 14,
+                        fontSize: 13,
                         color: isDragging ? "#D7922B" : "#71717A",
-                        margin: "6px 0 0",
+                        margin: "5px 0 0",
                       }}
                     >
                       {isDragging ? "Solte para carregar" : desc}
@@ -473,7 +472,7 @@ const Conciliacao = () => {
                       display: "flex",
                     }}
                   >
-                    <X style={{ width: 18, height: 18 }} />
+                    <X style={{ width: 17, height: 17 }} />
                   </button>
                 )}
               </label>
@@ -484,12 +483,12 @@ const Conciliacao = () => {
         {!!errorMessage && (
           <div
             style={{
-              marginTop: 18,
+              marginTop: 16,
               background: "#231111",
               border: "1px solid #6A3232",
-              borderRadius: 14,
-              padding: "14px 18px",
-              fontSize: 15,
+              borderRadius: 12,
+              padding: "12px 16px",
+              fontSize: 14,
               color: "#FFB4B4",
             }}
           >
@@ -501,10 +500,10 @@ const Conciliacao = () => {
           <>
             <div
               style={{
-                marginTop: 28,
+                marginTop: 22,
                 display: "grid",
                 gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                gap: 18,
+                gap: 14,
               }}
             >
               {[
@@ -531,15 +530,15 @@ const Conciliacao = () => {
                   key={label}
                   style={{
                     ...sectionCardStyle,
-                    padding: "22px 22px 20px",
-                    minHeight: 132,
+                    padding: "18px 18px 16px",
+                    minHeight: 112,
                   }}
                 >
-                  <p style={{ fontSize: 15, color: "#8D8D96", margin: 0 }}>{label}</p>
-                  <p style={{ fontSize: 44, fontWeight: 700, color, margin: "10px 0 8px" }}>
+                  <p style={{ fontSize: 14, color: "#8D8D96", margin: 0 }}>{label}</p>
+                  <p style={{ fontSize: 30, fontWeight: 700, color, margin: "10px 0 8px" }}>
                     {value}
                   </p>
-                  <p style={{ fontSize: 14, color: "#66666F", margin: 0, lineHeight: 1.5 }}>
+                  <p style={{ fontSize: 13, color: "#66666F", margin: 0, lineHeight: 1.45 }}>
                     {subtitle}
                   </p>
                 </div>
@@ -548,10 +547,10 @@ const Conciliacao = () => {
 
             <div
               style={{
-                marginTop: 18,
+                marginTop: 14,
                 display: "grid",
                 gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                gap: 18,
+                gap: 14,
               }}
             >
               {[
@@ -579,12 +578,12 @@ const Conciliacao = () => {
                   title={full}
                   style={{
                     ...sectionCardStyle,
-                    padding: "20px 22px",
+                    padding: "18px 18px",
                     borderLeft: `4px solid ${accent}`,
                   }}
                 >
-                  <p style={{ fontSize: 15, color: "#8D8D96", margin: 0 }}>{label}</p>
-                  <p style={{ fontSize: 28, fontWeight: 700, color: accent, margin: "8px 0 0" }}>
+                  <p style={{ fontSize: 14, color: "#8D8D96", margin: 0 }}>{label}</p>
+                  <p style={{ fontSize: 22, fontWeight: 700, color: accent, margin: "8px 0 0" }}>
                     {value}
                   </p>
                 </div>
@@ -594,11 +593,11 @@ const Conciliacao = () => {
             <div
               style={{
                 ...sectionCardStyle,
-                marginTop: 18,
-                padding: "24px 28px",
+                marginTop: 14,
+                padding: "18px 22px",
                 display: "flex",
                 alignItems: "center",
-                gap: 28,
+                gap: 24,
                 flexWrap: "wrap",
               }}
             >
@@ -608,7 +607,7 @@ const Conciliacao = () => {
                 divergences={summary.divergencesCount}
               />
 
-              <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 320 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, minWidth: 280 }}>
                 {[
                   {
                     color: "#639922",
@@ -632,21 +631,21 @@ const Conciliacao = () => {
                       display: "flex",
                       alignItems: "center",
                       gap: 10,
-                      fontSize: 16,
+                      fontSize: 14,
                       color: "#D2D2D7",
                     }}
                   >
                     <div
                       style={{
-                        width: 10,
-                        height: 10,
+                        width: 9,
+                        height: 9,
                         borderRadius: "50%",
                         background: color,
                         flexShrink: 0,
                       }}
                     />
                     <span>{label}</span>
-                    <span style={{ color: "#7B7B84", marginLeft: "auto", paddingLeft: 20 }}>
+                    <span style={{ color: "#7B7B84", marginLeft: "auto", paddingLeft: 16 }}>
                       {pct}
                     </span>
                   </div>
@@ -654,21 +653,21 @@ const Conciliacao = () => {
               </div>
             </div>
 
-            <div style={{ marginTop: 30 }}>
+            <div style={{ marginTop: 24 }}>
               <div
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  gap: 18,
-                  marginBottom: 16,
+                  gap: 16,
+                  marginBottom: 14,
                   flexWrap: "wrap",
                 }}
               >
                 <div>
                   <p
                     style={{
-                      fontSize: 28,
+                      fontSize: 24,
                       lineHeight: 1.1,
                       fontWeight: 700,
                       color: "#F5F5F0",
@@ -677,18 +676,18 @@ const Conciliacao = () => {
                   >
                     Pendências encontradas
                   </p>
-                  <p style={{ fontSize: 15, color: "#7A7A82", margin: "6px 0 0" }}>
+                  <p style={{ fontSize: 14, color: "#7A7A82", margin: "4px 0 0" }}>
                     {filteredResults.length} registros no filtro atual
                   </p>
                 </div>
 
-                <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                   <div
                     style={{
                       display: "flex",
                       background: "#18181A",
                       border: "1px solid #2C2C30",
-                      borderRadius: 14,
+                      borderRadius: 13,
                       padding: 4,
                       gap: 4,
                     }}
@@ -699,11 +698,11 @@ const Conciliacao = () => {
                         type="button"
                         onClick={() => setFilter(f)}
                         style={{
-                          fontSize: 14,
+                          fontSize: 13,
                           fontWeight: 600,
-                          width: 160,
-                          height: 44,
-                          borderRadius: 10,
+                          width: 148,
+                          height: 40,
+                          borderRadius: 9,
                           border: "none",
                           cursor: "pointer",
                           background: filter === f ? "#2B2B30" : "transparent",
@@ -711,19 +710,19 @@ const Conciliacao = () => {
                           display: "inline-flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          gap: 8,
+                          gap: 7,
                         }}
                       >
                         {filterLabels[f]}
                         <span
                           style={{
-                            fontSize: 12,
+                            fontSize: 11,
                             fontWeight: 700,
                             padding: "3px 8px",
                             borderRadius: 999,
                             background: filter === f ? "#3A3A40" : "#1E1E22",
                             color: filter === f ? "#D8D8DD" : "#66666F",
-                            minWidth: 32,
+                            minWidth: 30,
                             textAlign: "center",
                           }}
                         >
@@ -740,20 +739,20 @@ const Conciliacao = () => {
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
-                      gap: 8,
-                      fontSize: 14,
+                      gap: 7,
+                      fontSize: 13,
                       fontWeight: 700,
-                      width: 132,
-                      height: 44,
+                      width: 118,
+                      height: 40,
                       justifyContent: "center",
                       color: filteredResults.length > 0 ? "#FFD089" : "#5A5A62",
                       background: filteredResults.length > 0 ? "#1A1208" : "#1A1A1E",
                       border: `1px solid ${filteredResults.length > 0 ? "#6E4714" : "#2C2C30"}`,
-                      borderRadius: 12,
+                      borderRadius: 11,
                       cursor: filteredResults.length > 0 ? "pointer" : "not-allowed",
                     }}
                   >
-                    <Download style={{ width: 15, height: 15 }} />
+                    <Download style={{ width: 14, height: 14 }} />
                     Exportar
                   </button>
                 </div>
@@ -763,7 +762,7 @@ const Conciliacao = () => {
                 style={{
                   ...sectionCardStyle,
                   overflowX: "auto",
-                  borderRadius: 18,
+                  borderRadius: 16,
                 }}
               >
                 <TooltipProvider delayDuration={200}>
@@ -776,17 +775,17 @@ const Conciliacao = () => {
                     }}
                   >
                     <colgroup>
-                      <col style={{ width: 118 }} />
-                      <col style={{ width: 80 }} />
-                      <col style={{ width: 290 }} />
-                      <col style={{ width: 150 }} />
-                      {showSystemValue && <col style={{ width: 150 }} />}
-                      <col style={{ width: 180 }} />
+                      <col style={{ width: 110 }} />
+                      <col style={{ width: 74 }} />
+                      <col style={{ width: 270 }} />
+                      <col style={{ width: 140 }} />
+                      {showSystemValue && <col style={{ width: 140 }} />}
+                      <col style={{ width: 170 }} />
                       <col />
                     </colgroup>
 
                     <thead>
-                      <tr style={{ background: "#151519" }}>
+                      <tr style={{ background: "#141519" }}>
                         {[
                           "Data",
                           "NF",
@@ -799,11 +798,11 @@ const Conciliacao = () => {
                           <th
                             key={h}
                             style={{
-                              fontSize: 12,
+                              fontSize: 11,
                               color: "#7A7A82",
                               textTransform: "uppercase",
                               letterSpacing: "0.08em",
-                              padding: "18px 16px",
+                              padding: "15px 14px",
                               textAlign: "left",
                               fontWeight: 700,
                               borderBottom: "1px solid #25252B",
@@ -828,7 +827,7 @@ const Conciliacao = () => {
                                 transition: "background .12s",
                               }}
                               onMouseEnter={(e) => {
-                                e.currentTarget.style.background = "#1E1E23";
+                                e.currentTarget.style.background = "#1B1C21";
                               }}
                               onMouseLeave={(e) => {
                                 e.currentTarget.style.background = "transparent";
@@ -836,9 +835,9 @@ const Conciliacao = () => {
                             >
                               <td
                                 style={{
-                                  fontSize: 15,
+                                  fontSize: 14,
                                   color: "#E2E2E7",
-                                  padding: "18px 16px",
+                                  padding: "15px 14px",
                                   whiteSpace: "nowrap",
                                   verticalAlign: "middle",
                                   fontWeight: 600,
@@ -849,9 +848,9 @@ const Conciliacao = () => {
 
                               <td
                                 style={{
-                                  fontSize: 15,
+                                  fontSize: 14,
                                   color: "#E2E2E7",
-                                  padding: "18px 16px",
+                                  padding: "15px 14px",
                                   whiteSpace: "nowrap",
                                   verticalAlign: "middle",
                                   fontWeight: 600,
@@ -860,10 +859,10 @@ const Conciliacao = () => {
                                 {row.numeroNF}
                               </td>
 
-                              <td style={{ padding: "18px 16px", verticalAlign: "middle" }}>
+                              <td style={{ padding: "15px 14px", verticalAlign: "middle" }}>
                                 <div
                                   style={{
-                                    fontSize: 15,
+                                    fontSize: 14,
                                     color: "#F0F0F2",
                                     lineHeight: 1.35,
                                     fontWeight: 600,
@@ -878,10 +877,10 @@ const Conciliacao = () => {
                                 {row.nomeFornecedor ? (
                                   <div
                                     style={{
-                                      fontSize: 13,
+                                      fontSize: 12,
                                       color: "#8E8E97",
                                       lineHeight: 1.4,
-                                      marginTop: 5,
+                                      marginTop: 4,
                                       overflow: "hidden",
                                       textOverflow: "ellipsis",
                                       whiteSpace: "nowrap",
@@ -892,10 +891,10 @@ const Conciliacao = () => {
                                 ) : (
                                   <div
                                     style={{
-                                      fontSize: 13,
+                                      fontSize: 12,
                                       color: "#5E5E67",
                                       lineHeight: 1.4,
-                                      marginTop: 5,
+                                      marginTop: 4,
                                     }}
                                   >
                                     Fornecedor não informado
@@ -905,9 +904,9 @@ const Conciliacao = () => {
 
                               <td
                                 style={{
-                                  fontSize: 15,
+                                  fontSize: 14,
                                   color: "#E2E2E7",
-                                  padding: "18px 16px",
+                                  padding: "15px 14px",
                                   whiteSpace: "nowrap",
                                   verticalAlign: "middle",
                                   fontWeight: 600,
@@ -919,8 +918,8 @@ const Conciliacao = () => {
                               {showSystemValue && (
                                 <td
                                   style={{
-                                    fontSize: 15,
-                                    padding: "18px 16px",
+                                    fontSize: 14,
+                                    padding: "15px 14px",
                                     whiteSpace: "nowrap",
                                     verticalAlign: "middle",
                                     fontWeight: 600,
@@ -938,13 +937,13 @@ const Conciliacao = () => {
                                 </td>
                               )}
 
-                              <td style={{ padding: "18px 16px", verticalAlign: "middle" }}>
+                              <td style={{ padding: "15px 14px", verticalAlign: "middle" }}>
                                 <span
                                   style={{
                                     display: "inline-block",
-                                    fontSize: 12,
+                                    fontSize: 11,
                                     fontWeight: 700,
-                                    padding: "6px 12px",
+                                    padding: "5px 11px",
                                     borderRadius: 999,
                                     whiteSpace: "nowrap",
                                     ...badgeStyles[badge.variant],
@@ -954,15 +953,15 @@ const Conciliacao = () => {
                                 </span>
                               </td>
 
-                              <td style={{ padding: "18px 16px", verticalAlign: "middle" }}>
+                              <td style={{ padding: "15px 14px", verticalAlign: "middle" }}>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <p
                                       style={{
-                                        fontSize: 14,
+                                        fontSize: 13,
                                         color: "#A1A1AA",
                                         margin: 0,
-                                        lineHeight: 1.55,
+                                        lineHeight: 1.5,
                                         overflow: "hidden",
                                         display: "-webkit-box",
                                         WebkitLineClamp: 2,
@@ -981,7 +980,7 @@ const Conciliacao = () => {
                                       background: "#2A2A30",
                                       border: "1px solid #3A3A40",
                                       color: "#D8D8DC",
-                                      fontSize: 13,
+                                      fontSize: 12,
                                       lineHeight: 1.5,
                                     }}
                                   >
@@ -997,9 +996,9 @@ const Conciliacao = () => {
                           <td
                             colSpan={showSystemValue ? 7 : 6}
                             style={{
-                              padding: "56px 16px",
+                              padding: "48px 14px",
                               textAlign: "center",
-                              fontSize: 15,
+                              fontSize: 14,
                               color: "#6E6E76",
                             }}
                           >
@@ -1016,28 +1015,28 @@ const Conciliacao = () => {
         )}
 
         {!hasCompared && !errorMessage && (
-          <div style={{ marginTop: 80, textAlign: "center" }}>
+          <div style={{ marginTop: 68, textAlign: "center" }}>
             <div
               style={{
-                width: 74,
-                height: 74,
-                borderRadius: 20,
+                width: 62,
+                height: 62,
+                borderRadius: 18,
                 background: "#1A1A1E",
                 border: "1px solid #232329",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                margin: "0 auto 18px",
-                boxShadow: "0 10px 24px rgba(0,0,0,.18)",
+                margin: "0 auto 16px",
+                boxShadow: "0 8px 20px rgba(0,0,0,.14)",
               }}
             >
-              <Search style={{ width: 28, height: 28, color: "#4B4B52" }} />
+              <Search style={{ width: 24, height: 24, color: "#4B4B52" }} />
             </div>
 
-            <p style={{ fontSize: 22, fontWeight: 700, color: "#D0D0D6", margin: 0 }}>
+            <p style={{ fontSize: 20, fontWeight: 700, color: "#D0D0D6", margin: 0 }}>
               Nenhuma comparação realizada
             </p>
-            <p style={{ fontSize: 15, color: "#6B6B73", margin: "8px 0 0" }}>
+            <p style={{ fontSize: 14, color: "#6B6B73", margin: "8px 0 0" }}>
               Envie as duas planilhas e clique em comparar para visualizar a conciliação.
             </p>
           </div>
