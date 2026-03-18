@@ -343,12 +343,131 @@ function findColumnIndex(headers: string[], possibleNames: string[]) {
   return -1;
 }
 
-function mapSystemColumns(headers: string[]): ColumnIndexes {
+function getRowValues(row: MappedRow) {
+  return Object.values(row);
+}
+
+function isSystemNFERow(row: MappedRow, tipoIndex: number) {
+  const values = getRowValues(row);
+  const tipo = normalizeHeader(values[tipoIndex]);
+  return tipo === "nfe";
+}
+
+function isProbablyMoneyCell(value: unknown) {
+  if (value == null || value === "") return false;
+
+  if (typeof value === "number") {
+    return Number.isFinite(value) && value > 0;
+  }
+
+  const raw = String(value).trim();
+  if (!raw) return false;
+
+  if (/[A-Za-z]/.test(raw)) return false;
+  if (raw.includes("/")) return false;
+
+  const normalized = normalizeCurrency(raw);
+  return normalized > 0;
+}
+
+function scoreValueColumn(rows: MappedRow[], columnIndex: number, tipoIndex: number) {
+  let score = 0;
+  let checked = 0;
+
+  for (const row of rows) {
+    if (!isSystemNFERow(row, tipoIndex)) continue;
+
+    const value = getRowValues(row)[columnIndex];
+    if (value == null || String(value).trim() === "") continue;
+
+    checked += 1;
+
+    if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+      score += 4;
+      continue;
+    }
+
+    const raw = String(value).trim();
+
+    if (/[A-Za-z]/.test(raw)) {
+      score -= 3;
+      continue;
+    }
+
+    if (raw.includes("/")) {
+      score -= 3;
+      continue;
+    }
+
+    const normalized = normalizeCurrency(raw);
+
+    if (normalized > 0) {
+      score += 3;
+    } else {
+      score -= 1;
+    }
+  }
+
+  if (checked === 0) return -9999;
+  return score;
+}
+
+function resolveSystemValueColumnIndex(
+  headers: string[],
+  rows: MappedRow[],
+  indexes: Omit<ColumnIndexes, "valorIndex" | "tagsIndex">,
+) {
+  const headerValueIndex = findColumnIndex(headers, ["VALOR DOC", "VALOR"]);
+
+  const blocked = new Set([
+    indexes.tipoIndex,
+    indexes.dataIndex,
+    indexes.nfIndex,
+    indexes.cnpjIndex,
+    indexes.fornecedorIndex,
+    indexes.chaveIndex,
+  ]);
+
+  let bestIndex = -1;
+  let bestScore = -9999;
+
+  headers.forEach((_, index) => {
+    if (blocked.has(index)) return;
+
+    const score = scoreValueColumn(rows, index, indexes.tipoIndex);
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestIndex = index;
+    }
+  });
+
+  if (headerValueIndex !== -1) {
+    const headerScore = scoreValueColumn(rows, headerValueIndex, indexes.tipoIndex);
+
+    if (headerScore >= 8) {
+      return headerValueIndex;
+    }
+
+    if (bestIndex !== -1 && bestScore > headerScore) {
+      return bestIndex;
+    }
+
+    return headerValueIndex;
+  }
+
+  if (bestIndex !== -1) {
+    return bestIndex;
+  }
+
+  throw new Error("Na planilha do sistema não consegui identificar a coluna de valor.");
+}
+
+function mapSystemColumns(headers: string[], rows: MappedRow[]): ColumnIndexes {
   const tipoIndex = findColumnIndex(headers, ["TIPO"]);
   const dataIndex = findColumnIndex(headers, ["DATA"]);
   const nfIndex = findColumnIndex(headers, ["Nº NF", "N° NF", "N NF", "NF"]);
   const cnpjIndex = findColumnIndex(headers, ["NOTA/CNPJ/CPF", "CNPJ/CPF"]);
-  const valorIndex = findColumnIndex(headers, ["VALOR DOC", "VALOR"]);
   const fornecedorIndex = findColumnIndex(headers, ["FORNECEDOR"]);
   const chaveIndex = findColumnIndex(headers, ["Chave", "CHAVE"]);
 
@@ -357,7 +476,6 @@ function mapSystemColumns(headers: string[]): ColumnIndexes {
   if (dataIndex === -1) missing.push("DATA");
   if (nfIndex === -1) missing.push("Nº NF");
   if (cnpjIndex === -1) missing.push("NOTA/CNPJ/CPF");
-  if (valorIndex === -1) missing.push("VALOR DOC");
   if (fornecedorIndex === -1) missing.push("FORNECEDOR");
   if (chaveIndex === -1) missing.push("Chave");
 
@@ -366,6 +484,15 @@ function mapSystemColumns(headers: string[]): ColumnIndexes {
       `Na planilha do sistema não encontrei estas colunas esperadas: ${missing.join(", ")}.`,
     );
   }
+
+  const valorIndex = resolveSystemValueColumnIndex(headers, rows, {
+    chaveIndex,
+    nfIndex,
+    dataIndex,
+    cnpjIndex,
+    fornecedorIndex,
+    tipoIndex,
+  });
 
   return {
     chaveIndex,
@@ -385,7 +512,11 @@ function mapGovernmentColumns(headers: string[]): ColumnIndexes {
   const dataIndex = findColumnIndex(headers, ["Data Emissão", "Data Emissao"]);
   const cnpjIndex = findColumnIndex(headers, ["CNPJ Emit"]);
   const valorIndex = findColumnIndex(headers, ["Valor"]);
-  const fornecedorIndex = findColumnIndex(headers, ["Razão Soc. Emit", "Razao Soc. Emit", "Nome Fant. Emit"]);
+  const fornecedorIndex = findColumnIndex(headers, [
+    "Razão Soc. Emit",
+    "Razao Soc. Emit",
+    "Nome Fant. Emit",
+  ]);
   const tagsIndex = findColumnIndex(headers, ["Tags"]);
 
   const missing: string[] = [];
@@ -436,13 +567,9 @@ function buildMappedRowsFromArrayRows(rows: unknown[][], headerRowIndex: number)
 
 function parseSystemRecords(rows: MappedRow[], indexes: ColumnIndexes): ParsedRecord[] {
   return rows
-    .filter((row) => {
-      const values = Object.values(row);
-      const tipo = normalizeHeader(values[indexes.tipoIndex]);
-      return tipo === "nfe";
-    })
+    .filter((row) => isSystemNFERow(row, indexes.tipoIndex))
     .map((row) => {
-      const values = Object.values(row);
+      const values = getRowValues(row);
 
       const originalChave = values[indexes.chaveIndex];
       const originalNF = values[indexes.nfIndex];
@@ -462,7 +589,10 @@ function parseSystemRecords(rows: MappedRow[], indexes: ColumnIndexes): ParsedRe
         rawDataEmissao,
         rawCnpjEmitente: extractCNPJFromMixedField(originalMixedCNPJ),
         rawNomeFornecedor: String(originalFornecedor ?? "").trim(),
-        rawValor: typeof originalValor === "number" ? originalValor : String(originalValor ?? "").trim(),
+        rawValor:
+          typeof originalValor === "number"
+            ? originalValor
+            : String(originalValor ?? "").trim(),
         rawTags: "",
         ativoImobilizado: false,
 
@@ -486,7 +616,7 @@ function parseSystemRecords(rows: MappedRow[], indexes: ColumnIndexes): ParsedRe
 function parseGovernmentRecords(rows: MappedRow[], indexes: ColumnIndexes): ParsedRecord[] {
   return rows
     .map((row) => {
-      const values = Object.values(row);
+      const values = getRowValues(row);
 
       const originalChave = values[indexes.chaveIndex];
       const originalNF = values[indexes.nfIndex];
@@ -507,7 +637,10 @@ function parseGovernmentRecords(rows: MappedRow[], indexes: ColumnIndexes): Pars
             : String(originalData ?? "").trim(),
         rawCnpjEmitente: String(originalCNPJ ?? "").trim(),
         rawNomeFornecedor: String(originalFornecedor ?? "").trim(),
-        rawValor: typeof originalValor === "number" ? originalValor : String(originalValor ?? "").trim(),
+        rawValor:
+          typeof originalValor === "number"
+            ? originalValor
+            : String(originalValor ?? "").trim(),
         rawTags,
         ativoImobilizado: isAtivoImobilizado(rawTags),
 
@@ -529,7 +662,10 @@ function parseGovernmentRecords(rows: MappedRow[], indexes: ColumnIndexes): Pars
     .filter((row) => !shouldExcludeSiegRecord(row.rawTags));
 }
 
-export async function parseSpreadsheetFile(file: File, kind: SpreadsheetKind): Promise<ParsedRecord[]> {
+export async function parseSpreadsheetFile(
+  file: File,
+  kind: SpreadsheetKind,
+): Promise<ParsedRecord[]> {
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { type: "array", cellDates: false });
   const worksheet = getWorksheet(workbook);
@@ -542,7 +678,10 @@ export async function parseSpreadsheetFile(file: File, kind: SpreadsheetKind): P
   }
 
   const headers = Object.keys(mappedRows[0] ?? {});
-  const indexes = kind === "system" ? mapSystemColumns(headers) : mapGovernmentColumns(headers);
+  const indexes =
+    kind === "system"
+      ? mapSystemColumns(headers, mappedRows)
+      : mapGovernmentColumns(headers);
 
   return kind === "system"
     ? parseSystemRecords(mappedRows, indexes)
@@ -603,11 +742,15 @@ export function compareReports(
     systemByNFAndCNPJ.get(nfAndCnpjKey)!.push(record);
 
     const nfDateAndValueKey = getNFDateAndValueKey(record);
-    if (!systemByNFDateAndValue.has(nfDateAndValueKey)) systemByNFDateAndValue.set(nfDateAndValueKey, []);
+    if (!systemByNFDateAndValue.has(nfDateAndValueKey)) {
+      systemByNFDateAndValue.set(nfDateAndValueKey, []);
+    }
     systemByNFDateAndValue.get(nfDateAndValueKey)!.push(record);
 
     const cnpjDateAndValueKey = getCNPJDateAndValueKey(record);
-    if (!systemByCNPJDateAndValue.has(cnpjDateAndValueKey)) systemByCNPJDateAndValue.set(cnpjDateAndValueKey, []);
+    if (!systemByCNPJDateAndValue.has(cnpjDateAndValueKey)) {
+      systemByCNPJDateAndValue.set(cnpjDateAndValueKey, []);
+    }
     systemByCNPJDateAndValue.get(cnpjDateAndValueKey)!.push(record);
 
     const nfOnlyKey = getNFOnlyKey(record);
