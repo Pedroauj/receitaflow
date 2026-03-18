@@ -276,6 +276,7 @@ function mapSystemColumns(headers: string[]): ColumnIndexes {
   const dataIndex = findColumnIndex(headers, ["Data"]);
   const nfIndex = findColumnIndex(headers, ["N°NF", "NoNF", "NºNF", "N NF", "NF"]);
   const cnpjIndex = findColumnIndex(headers, ["NOTA/CNPJ/CPF", "CNPJ/CPF", "NOTA CNPJ CPF"]);
+  const nomeIndex = findColumnIndex(headers, ["Razão Social", "Razao Social", "Nome", "Nome Fornecedor", "Nome do Fornecedor", "Prestador"]);
 
   const missing: string[] = [];
   if (dataIndex === -1) missing.push("Data");
@@ -294,7 +295,7 @@ function mapSystemColumns(headers: string[]): ColumnIndexes {
     );
   }
 
-  return { dataIndex, nfIndex, cnpjIndex, valorIndex };
+  return { dataIndex, nfIndex, cnpjIndex, valorIndex, nomeIndex };
 }
 
 function mapGovernmentColumns(headers: string[]): ColumnIndexes {
