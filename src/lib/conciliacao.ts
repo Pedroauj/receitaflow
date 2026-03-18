@@ -410,6 +410,7 @@ function buildComparisonRow(
     dataEmissao: formatDateToBR(govRecord.normalizedDataEmissao || govRecord.rawDataEmissao),
     numeroNF: govRecord.normalizedNumeroNF || govRecord.rawNumeroNF || "-",
     cnpjPrestador: formatCNPJ(govRecord.normalizedCnpjPrestador || govRecord.rawCnpjPrestador),
+    nomeFornecedor: govRecord.rawNomeFornecedor || "",
     valor: govRecord.normalizedValor,
     valorSistema: systemRecord ? systemRecord.normalizedValor : null,
     tipo,
