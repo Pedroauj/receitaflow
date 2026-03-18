@@ -108,7 +108,7 @@ const Conciliacao = () => {
             }}
           >
             <ReceiptText style={{ width: 16, height: 16 }} />
-            NFS
+            NFs
           </button>
 
           <button
