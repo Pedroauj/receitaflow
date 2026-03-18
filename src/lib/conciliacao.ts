@@ -35,6 +35,7 @@ type ParsedRecord = {
   rawDataEmissao: string;
   rawNumeroNF: string;
   rawCnpjPrestador: string;
+  rawNomeFornecedor: string;
   rawValor: string | number;
   normalizedDataEmissao: string;
   normalizedNumeroNF: string;
