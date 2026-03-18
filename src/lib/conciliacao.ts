@@ -14,6 +14,7 @@ export type ComparisonRow = {
   dataEmissao: string;
   numeroNF: string;
   cnpjPrestador: string;
+  nomeFornecedor: string;
   valor: number;
   valorSistema: number | null; // valor encontrado no sistema (null se não lançada)
   tipo: DivergenceType;
