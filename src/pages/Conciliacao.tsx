@@ -142,6 +142,7 @@ const Conciliacao = () => {
   const [results, setResults] = useState<ComparisonRow[]>([]);
   const [summary, setSummary] = useState<ComparisonSummary>(emptySummary);
   const [filter, setFilter] = useState<"todos" | "nao-lancadas" | "divergencias">("todos");
+  const [searchTerm, setSearchTerm] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
   const canCompare = !!systemFile && !!governmentFile && !isProcessing;
@@ -153,6 +154,16 @@ const Conciliacao = () => {
     }
     return results;
   }, [filter, results]);
+
+  const searchedResults = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+
+    if (!normalizedSearch) return filteredResults;
+
+    return filteredResults.filter((row) =>
+      String(row.numeroNF ?? "").toLowerCase().includes(normalizedSearch),
+    );
+  }, [filteredResults, searchTerm]);
 
   const tabCounts = useMemo(
     () => ({
@@ -182,6 +193,7 @@ const Conciliacao = () => {
     setHasCompared(false);
     setResults([]);
     setSummary(emptySummary);
+    setSearchTerm("");
     setErrorMessage("");
   };
 
@@ -237,6 +249,7 @@ const Conciliacao = () => {
       setSummary(comparison.summary);
       setHasCompared(true);
       setFilter("todos");
+      setSearchTerm("");
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "Erro ao processar as planilhas.",
@@ -249,7 +262,7 @@ const Conciliacao = () => {
 
   const handleExport = () => {
     try {
-      exportFilteredToExcel(filteredResults, filterLabels[filter]);
+      exportFilteredToExcel(searchedResults, filterLabels[filter]);
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "Não foi possível exportar.",
@@ -677,11 +690,58 @@ const Conciliacao = () => {
                     Pendências encontradas
                   </p>
                   <p style={{ fontSize: 14, color: "#7A7A82", margin: "4px 0 0" }}>
-                    {filteredResults.length} registros no filtro atual
+                    {searchedResults.length} registros no filtro atual
                   </p>
                 </div>
 
-                <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    flexWrap: "wrap",
+                    justifyContent: "flex-end",
+                    flex: 1,
+                  }}
+                >
+                  <div
+                    style={{
+                      position: "relative",
+                      width: 240,
+                      minWidth: 240,
+                    }}
+                  >
+                    <Search
+                      style={{
+                        width: 15,
+                        height: 15,
+                        color: "#6F6F78",
+                        position: "absolute",
+                        left: 12,
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        pointerEvents: "none",
+                      }}
+                    />
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Buscar número da nota"
+                      style={{
+                        width: "100%",
+                        height: 40,
+                        padding: "0 14px 0 36px",
+                        background: "#18181A",
+                        border: "1px solid #2C2C30",
+                        borderRadius: 11,
+                        color: "#F5F5F0",
+                        fontSize: 13,
+                        outline: "none",
+                      }}
+                    />
+                  </div>
+
                   <div
                     style={{
                       display: "flex",
@@ -735,7 +795,7 @@ const Conciliacao = () => {
                   <button
                     type="button"
                     onClick={handleExport}
-                    disabled={filteredResults.length === 0}
+                    disabled={searchedResults.length === 0}
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
@@ -745,11 +805,11 @@ const Conciliacao = () => {
                       width: 118,
                       height: 40,
                       justifyContent: "center",
-                      color: filteredResults.length > 0 ? "#FFD089" : "#5A5A62",
-                      background: filteredResults.length > 0 ? "#1A1208" : "#1A1A1E",
-                      border: `1px solid ${filteredResults.length > 0 ? "#6E4714" : "#2C2C30"}`,
+                      color: searchedResults.length > 0 ? "#FFD089" : "#5A5A62",
+                      background: searchedResults.length > 0 ? "#1A1208" : "#1A1A1E",
+                      border: `1px solid ${searchedResults.length > 0 ? "#6E4714" : "#2C2C30"}`,
                       borderRadius: 11,
-                      cursor: filteredResults.length > 0 ? "pointer" : "not-allowed",
+                      cursor: searchedResults.length > 0 ? "pointer" : "not-allowed",
                     }}
                   >
                     <Download style={{ width: 14, height: 14 }} />
@@ -815,8 +875,8 @@ const Conciliacao = () => {
                     </thead>
 
                     <tbody>
-                      {filteredResults.length > 0 ? (
-                        filteredResults.map((row) => {
+                      {searchedResults.length > 0 ? (
+                        searchedResults.map((row) => {
                           const badge = typeBadge[row.tipo];
 
                           return (
@@ -1002,7 +1062,9 @@ const Conciliacao = () => {
                               color: "#6E6E76",
                             }}
                           >
-                            Nenhum item encontrado para o filtro selecionado.
+                            {searchTerm.trim()
+                              ? "Nenhuma nota encontrada para a busca informada."
+                              : "Nenhum item encontrado para o filtro selecionado."}
                           </td>
                         </tr>
                       )}
