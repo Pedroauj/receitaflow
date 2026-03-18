@@ -3,12 +3,18 @@ import type { ChangeEvent } from "react";
 import { Download, Search, UploadCloud, FileSpreadsheet, X } from "lucide-react";
 import {
   compareReports,
-  exportNotLaunchedToExcel,
+  exportFilteredToExcel,
   parseSpreadsheetFile,
   type ComparisonRow,
   type ComparisonSummary,
   type DivergenceType,
 } from "@/lib/conciliacao";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -17,12 +23,6 @@ const formatCurrencyShort = (value: number) => {
   if (value >= 1_000_000) return `R$ ${(value / 1_000_000).toFixed(1)}M`;
   if (value >= 1_000) return `R$ ${(value / 1_000).toFixed(1)}K`;
   return formatCurrency(value);
-};
-
-const abbreviateCNPJ = (cnpj: string) => {
-  const digits = cnpj.replace(/\D/g, "");
-  if (digits.length === 14) return cnpj.slice(0, 10) + "/…";
-  return cnpj;
 };
 
 const emptySummary: ComparisonSummary = {
@@ -118,6 +118,12 @@ function DonutChart({
   return <canvas ref={canvasRef} />;
 }
 
+const filterLabels: Record<string, string> = {
+  todos: "Todos",
+  "nao-lancadas": "Não lançadas",
+  divergencias: "Divergências",
+};
+
 const Conciliacao = () => {
   const [systemFile, setSystemFile] = useState<File | null>(null);
   const [governmentFile, setGovernmentFile] = useState<File | null>(null);
@@ -203,7 +209,7 @@ const Conciliacao = () => {
 
   const handleExport = () => {
     try {
-      exportNotLaunchedToExcel(results);
+      exportFilteredToExcel(filteredResults, filterLabels[filter]);
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "Não foi possível exportar.",
@@ -214,11 +220,11 @@ const Conciliacao = () => {
   const showSystemValue = filter !== "nao-lancadas";
 
   return (
-    <div className="min-h-screen px-5 py-6" style={{ background: "#111113" }}>
-      <div className="mx-auto" style={{ maxWidth: 900 }}>
+    <div className="min-h-screen px-6 py-6" style={{ background: "#111113" }}>
+      <div className="mx-auto" style={{ maxWidth: 1440 }}>
 
         {/* Header */}
-        <div className="mb-5">
+        <div className="mb-6">
           <p style={{ fontSize: 11, letterSpacing: "0.07em", textTransform: "uppercase", color: "#BA7517", fontWeight: 500 }}>
             Auditoria e conferência
           </p>
@@ -233,7 +239,7 @@ const Conciliacao = () => {
         </div>
 
         {/* Upload */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           {([
             { label: "Planilha do sistema",  desc: "Clique ou arraste o arquivo aqui", file: systemFile,     onChange: handleSystemFileChange,     dragKey: "system"     as const },
             { label: "Planilha do governo",  desc: "Clique ou arraste o arquivo aqui", file: governmentFile, onChange: handleGovernmentFileChange, dragKey: "government" as const },
@@ -248,11 +254,11 @@ const Conciliacao = () => {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 12,
+                  gap: 14,
                   background: isDragging ? "#1E1A0E" : file ? "#1A1208" : "#18181A",
                   border: `1.5px dashed ${isDragging ? "#BA7517" : file ? "#5B3A0D" : "#2E2E33"}`,
                   borderRadius: 10,
-                  padding: "13px 16px",
+                  padding: "14px 18px",
                   cursor: "pointer",
                   transition: "background 0.15s, border-color 0.15s",
                 }}
@@ -265,7 +271,7 @@ const Conciliacao = () => {
                 />
                 <div
                   style={{
-                    width: 34, height: 34, borderRadius: 8, flexShrink: 0,
+                    width: 36, height: 36, borderRadius: 8, flexShrink: 0,
                     background: isDragging ? "#2A1E06" : file ? "#2A1A06" : "#1E1E22",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     transition: "background 0.15s",
@@ -304,7 +310,7 @@ const Conciliacao = () => {
         </div>
 
         {/* Compare button */}
-        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}>
+        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 12 }}>
           <button
             type="button"
             onClick={handleCompare}
@@ -354,7 +360,7 @@ const Conciliacao = () => {
                 marginTop: 20,
                 display: "grid",
                 gridTemplateColumns: "repeat(3, 1fr)",
-                gap: 8,
+                gap: 10,
               }}
             >
               {[
@@ -362,7 +368,7 @@ const Conciliacao = () => {
                 { label: "Não lançadas", value: summary.notLaunchedCount, color: "#F09595" },
                 { label: "Divergências", value: summary.divergencesCount, color: "#FAC775" },
               ].map(({ label, value, color }) => (
-                <div key={label} style={{ background: "#1A1A1E", borderRadius: 8, padding: "12px 14px" }}>
+                <div key={label} style={{ background: "#1A1A1E", borderRadius: 8, padding: "14px 16px" }}>
                   <p style={{ fontSize: 11, color: "#6E6E76", margin: 0 }}>{label}</p>
                   <p style={{ fontSize: 24, fontWeight: 500, color, margin: "3px 0 0" }}>{value}</p>
                 </div>
@@ -372,10 +378,10 @@ const Conciliacao = () => {
             {/* Secondary metrics */}
             <div
               style={{
-                marginTop: 8,
+                marginTop: 10,
                 display: "grid",
                 gridTemplateColumns: "repeat(3, 1fr)",
-                gap: 8,
+                gap: 10,
               }}
             >
               {[
@@ -404,7 +410,7 @@ const Conciliacao = () => {
                   style={{
                     background: "#1A1A1E",
                     borderRadius: 8,
-                    padding: "10px 14px",
+                    padding: "12px 16px",
                     borderLeft: `2px solid ${accent}`,
                   }}
                 >
@@ -480,16 +486,16 @@ const Conciliacao = () => {
             </div>
 
             {/* Table */}
-            <div style={{ marginTop: 18 }}>
+            <div style={{ marginTop: 20 }}>
               <div
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  marginBottom: 12,
+                  marginBottom: 14,
                 }}
               >
-                <p style={{ fontSize: 13, fontWeight: 500, color: "#F5F5F0", margin: 0 }}>
+                <p style={{ fontSize: 14, fontWeight: 500, color: "#F5F5F0", margin: 0 }}>
                   Pendências encontradas
                   <span style={{ fontSize: 11, color: "#5A5A62", fontWeight: 400, marginLeft: 8 }}>
                     ({filteredResults.length})
@@ -513,7 +519,7 @@ const Conciliacao = () => {
                         onClick={() => setFilter(f)}
                         style={{
                           fontSize: 11,
-                          padding: "4px 10px",
+                          padding: "5px 12px",
                           borderRadius: 5,
                           border: "none",
                           cursor: "pointer",
@@ -524,10 +530,10 @@ const Conciliacao = () => {
                           gap: 5,
                         }}
                       >
-                        {f === "todos" ? "Todos" : f === "nao-lancadas" ? "Não lançadas" : "Divergências"}
+                        {filterLabels[f]}
                         <span style={{
                           fontSize: 10,
-                          padding: "1px 5px",
+                          padding: "1px 6px",
                           borderRadius: 999,
                           background: filter === f ? "#3A3A40" : "#1E1E22",
                           color: filter === f ? "#C8C8CC" : "#5A5A62",
@@ -540,155 +546,185 @@ const Conciliacao = () => {
                   <button
                     type="button"
                     onClick={handleExport}
-                    disabled={!results.some((r) => r.tipo === "Não lançada")}
+                    disabled={filteredResults.length === 0}
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
                       gap: 5,
                       fontSize: 11,
-                      color: "#FAC775",
-                      background: "#1A1208",
-                      border: "0.5px solid #5B3A0D",
+                      color: filteredResults.length > 0 ? "#FAC775" : "#5A5A62",
+                      background: filteredResults.length > 0 ? "#1A1208" : "#1A1A1E",
+                      border: `0.5px solid ${filteredResults.length > 0 ? "#5B3A0D" : "#2C2C30"}`,
                       borderRadius: 6,
-                      padding: "5px 10px",
-                      cursor: "pointer",
+                      padding: "6px 12px",
+                      cursor: filteredResults.length > 0 ? "pointer" : "not-allowed",
                     }}
                   >
                     <Download style={{ width: 12, height: 12 }} />
-                    Exportar
+                    Exportar {filterLabels[filter].toLowerCase()}
                   </button>
                 </div>
               </div>
 
-              <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
-                  <colgroup>
-                    <col style={{ width: "10%" }} />
-                    <col style={{ width: "8%" }} />
-                    <col style={{ width: "18%" }} />
-                    <col style={{ width: "12%" }} />
-                    {showSystemValue && <col style={{ width: "12%" }} />}
-                    <col style={{ width: "14%" }} />
-                    <col />
-                  </colgroup>
-                  <thead>
-                    <tr style={{ background: "#111113" }}>
-                      {[
-                        "Data",
-                        "NF",
-                        "CNPJ",
-                        "Valor gov.",
-                        ...(showSystemValue ? ["Valor sist."] : []),
-                        "Tipo",
-                        "Observação",
-                      ].map((h) => (
-                        <th
-                          key={h}
-                          style={{
-                            fontSize: 10,
-                            color: "#5A5A62",
-                            textTransform: "uppercase",
-                            letterSpacing: "0.06em",
-                            padding: "0 10px 8px",
-                            textAlign: "left",
-                            fontWeight: 500,
-                          }}
-                        >
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredResults.length > 0 ? (
-                      filteredResults.map((row) => {
-                        const badge = typeBadge[row.tipo];
-                        return (
-                          <tr key={row.id} style={{ borderTop: "0.5px solid #1E1E22" }}>
-                            <td style={{ fontSize: 12, color: "#C8C8CC", padding: "8px 10px" }}>
-                              {row.dataEmissao}
-                            </td>
-                            <td style={{ fontSize: 12, color: "#C8C8CC", padding: "8px 10px" }}>
-                              {row.numeroNF}
-                            </td>
-                            <td
-                              style={{
-                                fontSize: 11,
-                                color: "#9A9AA3",
-                                padding: "8px 10px",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              {abbreviateCNPJ(row.cnpjPrestador)}
-                            </td>
-                            <td style={{ fontSize: 12, color: "#C8C8CC", padding: "8px 10px" }}>
-                              {formatCurrency(row.valor)}
-                            </td>
-                            {showSystemValue && (
-                              <td
-                                style={{
-                                  fontSize: 12,
-                                  padding: "8px 10px",
-                                  color:
-                                    row.valorSistema !== null && row.valorSistema !== row.valor
-                                      ? "#FAC775"
-                                      : "#9A9AA3",
-                                }}
-                              >
-                                {row.valorSistema !== null ? (
-                                  formatCurrency(row.valorSistema)
-                                ) : (
-                                  <span style={{ color: "#3A3A3E" }}>—</span>
-                                )}
-                              </td>
-                            )}
-                            <td style={{ padding: "8px 10px" }}>
-                              <span
-                                style={{
-                                  display: "inline-block",
-                                  fontSize: 10,
-                                  padding: "2px 8px",
-                                  borderRadius: 999,
-                                  ...badgeStyles[badge.variant],
-                                }}
-                              >
-                                {badge.label}
-                              </span>
-                            </td>
-                            <td
-                              style={{
-                                fontSize: 11,
-                                color: "#5A5A62",
-                                padding: "8px 10px",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              {row.observacao}
-                            </td>
-                          </tr>
-                        );
-                      })
-                    ) : (
-                      <tr>
-                        <td
-                          colSpan={showSystemValue ? 7 : 6}
-                          style={{
-                            padding: "32px 10px",
-                            textAlign: "center",
-                            fontSize: 12,
-                            color: "#5A5A62",
-                          }}
-                        >
-                          Nenhum item encontrado para o filtro selecionado.
-                        </td>
+              <div
+                style={{
+                  overflowX: "auto",
+                  background: "#1A1A1E",
+                  borderRadius: 10,
+                  border: "0.5px solid #222226",
+                }}
+              >
+                <TooltipProvider delayDuration={200}>
+                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <colgroup>
+                      <col style={{ width: 110 }} />
+                      <col style={{ width: 90 }} />
+                      <col style={{ minWidth: 220 }} />
+                      <col style={{ width: 140 }} />
+                      {showSystemValue && <col style={{ width: 140 }} />}
+                      <col style={{ width: 160 }} />
+                      <col />
+                    </colgroup>
+                    <thead>
+                      <tr style={{ background: "#161618" }}>
+                        {[
+                          "Data",
+                          "NF",
+                          "CNPJ / Fornecedor",
+                          "Valor gov.",
+                          ...(showSystemValue ? ["Valor sist."] : []),
+                          "Tipo",
+                          "Observação",
+                        ].map((h) => (
+                          <th
+                            key={h}
+                            style={{
+                              fontSize: 10,
+                              color: "#5A5A62",
+                              textTransform: "uppercase",
+                              letterSpacing: "0.06em",
+                              padding: "10px 14px",
+                              textAlign: "left",
+                              fontWeight: 500,
+                              borderBottom: "0.5px solid #222226",
+                            }}
+                          >
+                            {h}
+                          </th>
+                        ))}
                       </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {filteredResults.length > 0 ? (
+                        filteredResults.map((row) => {
+                          const badge = typeBadge[row.tipo];
+                          return (
+                            <tr
+                              key={row.id}
+                              style={{
+                                borderBottom: "0.5px solid #1E1E22",
+                                transition: "background 0.1s",
+                              }}
+                              onMouseEnter={(e) => (e.currentTarget.style.background = "#1E1E22")}
+                              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                            >
+                              <td style={{ fontSize: 12, color: "#C8C8CC", padding: "10px 14px", whiteSpace: "nowrap" }}>
+                                {row.dataEmissao}
+                              </td>
+                              <td style={{ fontSize: 12, color: "#C8C8CC", padding: "10px 14px", whiteSpace: "nowrap" }}>
+                                {row.numeroNF}
+                              </td>
+                              <td style={{ padding: "10px 14px" }}>
+                                <div style={{ fontSize: 12, color: "#C8C8CC", lineHeight: 1.3 }}>
+                                  {row.cnpjPrestador}
+                                </div>
+                              </td>
+                              <td style={{ fontSize: 12, color: "#C8C8CC", padding: "10px 14px", whiteSpace: "nowrap" }}>
+                                {formatCurrency(row.valor)}
+                              </td>
+                              {showSystemValue && (
+                                <td
+                                  style={{
+                                    fontSize: 12,
+                                    padding: "10px 14px",
+                                    whiteSpace: "nowrap",
+                                    color:
+                                      row.valorSistema !== null && row.valorSistema !== row.valor
+                                        ? "#FAC775"
+                                        : "#9A9AA3",
+                                  }}
+                                >
+                                  {row.valorSistema !== null ? (
+                                    formatCurrency(row.valorSistema)
+                                  ) : (
+                                    <span style={{ color: "#3A3A3E" }}>—</span>
+                                  )}
+                                </td>
+                              )}
+                              <td style={{ padding: "10px 14px" }}>
+                                <span
+                                  style={{
+                                    display: "inline-block",
+                                    fontSize: 10,
+                                    padding: "3px 10px",
+                                    borderRadius: 999,
+                                    whiteSpace: "nowrap",
+                                    ...badgeStyles[badge.variant],
+                                  }}
+                                >
+                                  {badge.label}
+                                </span>
+                              </td>
+                              <td style={{ padding: "10px 14px" }}>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <p
+                                      style={{
+                                        fontSize: 11,
+                                        color: "#7A7A82",
+                                        margin: 0,
+                                        lineHeight: 1.5,
+                                        maxWidth: 400,
+                                        overflow: "hidden",
+                                        display: "-webkit-box",
+                                        WebkitLineClamp: 2,
+                                        WebkitBoxOrient: "vertical",
+                                        cursor: "default",
+                                      }}
+                                    >
+                                      {row.observacao}
+                                    </p>
+                                  </TooltipTrigger>
+                                  <TooltipContent
+                                    side="top"
+                                    className="max-w-sm text-xs"
+                                    style={{ background: "#2A2A30", border: "0.5px solid #3A3A40", color: "#D8D8DC" }}
+                                  >
+                                    {row.observacao}
+                                  </TooltipContent>
+                                </Tooltip>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      ) : (
+                        <tr>
+                          <td
+                            colSpan={showSystemValue ? 7 : 6}
+                            style={{
+                              padding: "40px 14px",
+                              textAlign: "center",
+                              fontSize: 12,
+                              color: "#5A5A62",
+                            }}
+                          >
+                            Nenhum item encontrado para o filtro selecionado.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </TooltipProvider>
               </div>
             </div>
           </>
