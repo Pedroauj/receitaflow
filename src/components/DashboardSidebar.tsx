@@ -2,71 +2,37 @@ import { useLocation, useNavigate } from "react-router-dom";
 import {
   Building2,
   FileSearch,
-  Hexagon,
   History,
   LayoutDashboard,
   Loader2,
   LogOut,
   Settings,
-  Sparkles,
   Users,
 } from "lucide-react";
 import { getRecords } from "@/lib/history";
 import { useAuth } from "@/contexts/AuthContext";
-
-const SIDEBAR_WIDTH = 272;
+import logo from "@/assets/logo.png";
 
 const navSections = [
   {
     label: "Visão geral",
     items: [
-      {
-        title: "Dashboard",
-        icon: LayoutDashboard,
-        path: "/dashboard",
-        description: "Resumo operacional",
-      },
-      {
-        title: "Histórico",
-        icon: History,
-        path: "/historico",
-        description: "Execuções anteriores",
-        showBadge: true,
-      },
-      {
-        title: "Em andamento",
-        icon: Loader2,
-        path: "/em-andamento",
-        description: "Processos em aberto",
-      },
+      { title: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+      { title: "Histórico", icon: History, path: "/historico", showBadge: true },
+      { title: "Em andamento", icon: Loader2, path: "/em-andamento" },
     ],
   },
   {
     label: "Operação",
     items: [
-      {
-        title: "Conciliação",
-        icon: FileSearch,
-        path: "/conciliacao",
-        description: "Motor de comparação",
-      },
-      {
-        title: "Clientes",
-        icon: Building2,
-        path: "/clientes",
-        description: "Centrais e módulos",
-      },
+      { title: "Conciliação", icon: FileSearch, path: "/conciliacao" },
+      { title: "Clientes", icon: Building2, path: "/clientes" },
     ],
   },
   {
     label: "Sistema",
     items: [
-      {
-        title: "Configurações",
-        icon: Settings,
-        path: "/configuracoes",
-        description: "Preferências da conta",
-      },
+      { title: "Configurações", icon: Settings, path: "/configuracoes" },
     ],
   },
 ];
@@ -99,111 +65,70 @@ const DashboardSidebar = () => {
   const displayName = user?.user_metadata?.full_name || user?.email || "Usuário";
 
   return (
-    <aside
-      className="sidebar-shell fixed left-0 top-0 bottom-0 z-50 flex flex-col"
-      style={{ width: SIDEBAR_WIDTH }}
-    >
-      <div className="flex h-full flex-col px-4 py-4">
-        {/* Marca */}
+    <aside className="fixed left-0 top-0 bottom-0 z-50 flex flex-col w-[240px] bg-sidebar border-r border-sidebar-border">
+      <div className="flex h-full flex-col px-3 py-4">
+        {/* Brand */}
         <button
           type="button"
           onClick={() => navigate("/dashboard")}
-          className="surface-panel mb-5 flex w-full items-start gap-3 px-4 py-4 text-left transition-all hover:-translate-y-[1px]"
-          style={{ borderRadius: 20 }}
+          className="flex items-center gap-2.5 px-3 py-3 mb-6 rounded-lg transition-colors hover:bg-accent/50"
         >
-          <div className="sidebar-brand-badge flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl">
-            <Hexagon className="h-5 w-5" />
-          </div>
-
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <h1 className="truncate text-sm font-semibold text-[#F3F6FB]">
-                ReceitaFlow
-              </h1>
-              <span className="status-info inline-flex items-center gap-1">
-                <Sparkles className="h-3 w-3" />
-                Pro
-              </span>
-            </div>
-
-            <p className="mt-1 text-[11px] leading-relaxed text-[#8A96A8]">
-              Plataforma de conciliação financeira e fiscal
-            </p>
-          </div>
+          <img src={logo} alt="ReceitaFlow" className="h-7 w-7 rounded-lg" />
+          <span className="text-sm font-semibold text-foreground">ReceitaFlow</span>
         </button>
 
-        {/* Navegação */}
-        <nav className="flex-1 overflow-y-auto pr-1">
-          <div className="space-y-5">
-            {navSections.map((section) => (
-              <section key={section.label}>
-                <p className="sidebar-label">{section.label}</p>
-
-                <div className="space-y-1.5">
-                  {section.items.map((item) => {
-                    const active = isActive(item.path);
-
-                    return (
-                      <button
-                        key={item.path}
-                        type="button"
-                        onClick={() => navigate(item.path)}
-                        className={`sidebar-item w-full text-left ${active ? "active" : ""}`}
-                      >
-                        <div className="sidebar-item-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#121A24]">
-                          <item.icon className="h-4 w-4" />
-                        </div>
-
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="truncate font-medium">{item.title}</span>
-
-                            {item.showBadge && historyCount > 0 && (
-                              <span className="sidebar-badge shrink-0">
-                                {historyCount}
-                              </span>
-                            )}
-                          </div>
-
-                          <p className="truncate text-[11px] text-[#6F7C8F]">
-                            {item.description}
-                          </p>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </section>
-            ))}
-          </div>
-        </nav>
-
-        {/* Rodapé */}
-        <div className="mt-5">
-          <div
-            className="surface-panel flex items-center gap-3 px-3.5 py-3"
-            style={{ borderRadius: 18 }}
-          >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[rgba(91,141,239,0.16)] text-sm font-semibold text-[#A9C3FF]">
-              {initials}
-            </div>
-
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-semibold text-[#F3F6FB]">
-                {displayName}
+        {/* Nav */}
+        <nav className="flex-1 overflow-y-auto space-y-5">
+          {navSections.map((section) => (
+            <div key={section.label}>
+              <p className="px-3 mb-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+                {section.label}
               </p>
-              <div className="mt-1 flex items-center gap-2">
-                <span className="status-active">Administrador</span>
+              <div className="space-y-0.5">
+                {section.items.map((item) => {
+                  const active = isActive(item.path);
+                  return (
+                    <button
+                      key={item.path}
+                      type="button"
+                      onClick={() => navigate(item.path)}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-150 ${
+                        active
+                          ? "bg-accent text-foreground"
+                          : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                      }`}
+                    >
+                      <item.icon className={`h-4 w-4 shrink-0 ${active ? "text-primary" : ""}`} />
+                      <span className="flex-1 text-left">{item.title}</span>
+                      {item.showBadge && historyCount > 0 && (
+                        <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-md bg-primary/15 text-primary">
+                          {historyCount}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
+          ))}
+        </nav>
 
+        {/* Footer */}
+        <div className="mt-4 pt-4 border-t border-border">
+          <div className="flex items-center gap-2.5 px-2">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-[11px] font-semibold text-primary">
+              {initials}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[12px] font-medium text-foreground">{displayName}</p>
+            </div>
             <button
               type="button"
               onClick={handleLogout}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-transparent text-[#7F8FA4] transition-all hover:border-[rgba(91,141,239,0.22)] hover:bg-[rgba(91,141,239,0.12)] hover:text-[#A9C3FF]"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground hover:bg-accent"
               title="Sair"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-3.5 w-3.5" />
             </button>
           </div>
         </div>

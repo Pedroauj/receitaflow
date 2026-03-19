@@ -1,20 +1,12 @@
 import { Outlet } from "react-router-dom";
 import DashboardSidebar from "@/components/DashboardSidebar";
 
-const SIDEBAR_WIDTH = 272;
-
 const DashboardLayout = () => {
   return (
-    <div className="min-h-screen app-shell-bg">
+    <div className="min-h-screen bg-background flex">
       <DashboardSidebar />
-
-      <main
-        className="min-h-screen"
-        style={{
-          marginLeft: SIDEBAR_WIDTH,
-        }}
-      >
-        <div className="content-shell">
+      <main className="flex-1 min-h-screen ml-[240px]">
+        <div className="p-6 lg:p-8 max-w-[1440px]">
           <Outlet />
         </div>
       </main>
