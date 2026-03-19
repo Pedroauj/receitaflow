@@ -38,6 +38,7 @@ const typeBadge: Record<DivergenceType, { variant: BadgeVariant; label: string }
   "Data divergente": { variant: "yellow", label: "Data divergente" },
   "NF divergente": { variant: "blue", label: "NF divergente" },
   "CNPJ divergente": { variant: "cyan", label: "CNPJ divergente" },
+  "CNPJ errado": { variant: "cyan", label: "CNPJ errado" },
   "Múltiplas divergências": { variant: "purple", label: "Múltiplas diverg." },
 };
 

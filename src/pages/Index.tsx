@@ -6,7 +6,6 @@ import {
   Users,
   DollarSign,
   TrendingUp,
-  Filter,
   Plus,
   Eye,
   ArrowRight,
@@ -16,24 +15,14 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { clients } from "@/lib/clients";
 import { getStats, getRecords } from "@/lib/history";
-import { Button } from "@/components/ui/button";
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 10 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.05, duration: 0.35, ease: "easeOut" as const },
-  }),
-};
 
 const clientColors: Record<string, string> = {
-  "martin-brower": "#BA7517",
-  minerva: "#4A90D9",
-  danone: "#34A853",
-  platlog: "#9B59B6",
-  jbs: "#E74C3C",
-  natura: "#1ABC9C",
+  "martin-brower": "#D4922A",
+  minerva: "#5B9BD5",
+  danone: "#4AAF60",
+  platlog: "#9B7BD4",
+  jbs: "#D95F5F",
+  natura: "#3BBFA0",
 };
 
 const clientInitials: Record<string, string> = {
@@ -46,10 +35,10 @@ const clientInitials: Record<string, string> = {
 };
 
 const recentActivities = [
-  { color: "#BA7517", title: "Martin Brower — 12 documentos processados", time: "Há 2 horas" },
-  { color: "#34A853", title: "Danone — Novo cliente configurado", time: "Há 5 horas" },
-  { color: "#4A90D9", title: "Minerva — Aguardando configuração", time: "Há 1 dia" },
-  { color: "#9B59B6", title: "Platlog — Cadastro criado", time: "Há 2 dias" },
+  { color: "#D4922A", title: "Martin Brower — 12 documentos processados", time: "Há 2 horas" },
+  { color: "#4AAF60", title: "Danone — Novo cliente configurado", time: "Há 5 horas" },
+  { color: "#5B9BD5", title: "Minerva — Aguardando configuração", time: "Há 1 dia" },
+  { color: "#9B7BD4", title: "Platlog — Cadastro criado", time: "Há 2 dias" },
 ];
 
 const normalizeClientKey = (value: string) =>
@@ -75,24 +64,14 @@ const Index = () => {
   const enrichedClients = useMemo(() => {
     return clients.map((client) => {
       const clientKey = normalizeClientKey(client.id);
-
       const clientRecords = records.filter((record) =>
         record.cliente.toLowerCase().includes(clientKey)
       );
-
-      const docCount = clientRecords.reduce(
-        (sum, record) => sum + record.quantidadeDocumentos,
-        0
-      );
-
-      const totalValue = clientRecords.reduce(
-        (sum, record) => sum + record.valorTotal,
-        0
-      );
-
+      const docCount = clientRecords.reduce((sum, record) => sum + record.quantidadeDocumentos, 0);
+      const totalValue = clientRecords.reduce((sum, record) => sum + record.valorTotal, 0);
       return {
         ...client,
-        color: clientColors[client.id] || "#BA7517",
+        color: clientColors[client.id] || "#D4922A",
         initials: clientInitials[client.id] || client.name.slice(0, 2).toUpperCase(),
         docCount,
         totalValue,
@@ -101,372 +80,165 @@ const Index = () => {
     });
   }, [records]);
 
-  const activeClients =
-    enrichedClients.filter((client) => client.isActive).length || 1;
-
-  const maxDocs = Math.max(
-    ...enrichedClients.map((client) => client.docCount),
-    1
-  );
+  const activeClients = enrichedClients.filter((c) => c.isActive).length || 1;
+  const maxDocs = Math.max(...enrichedClients.map((c) => c.docCount), 1);
 
   const metricCards = [
-    {
-      icon: FileSpreadsheet,
-      label: "Planilhas processadas",
-      value: stats.totalPlanilhas,
-      delta: "+12%",
-      highlight: false,
-    },
-    {
-      icon: FileText,
-      label: "Documentos gerados",
-      value: stats.totalDocumentos,
-      delta: "+8%",
-      highlight: false,
-    },
-    {
-      icon: Users,
-      label: "Clientes ativos",
-      value: activeClients,
-      delta: `${clients.length} no total`,
-      highlight: false,
-    },
-    {
-      icon: DollarSign,
-      label: "Valor total processado",
-      value: formatCurrency(stats.valorTotalProcessado),
-      delta: "+15%",
-      highlight: true,
-    },
+    { icon: FileSpreadsheet, label: "Planilhas processadas", value: stats.totalPlanilhas, delta: "+12%" },
+    { icon: FileText, label: "Documentos gerados", value: stats.totalDocumentos, delta: "+8%" },
+    { icon: Users, label: "Clientes ativos", value: activeClients, delta: `${clients.length} total` },
+    { icon: DollarSign, label: "Valor total processado", value: formatCurrency(stats.valorTotalProcessado), delta: "+15%", highlight: true },
   ];
 
   return (
-    <div className="p-5 sm:p-6 xl:p-7">
+    <div>
+      {/* Header */}
       <motion.div
-        initial={{ opacity: 0, y: -8 }}
+        initial={{ opacity: 0, y: -6 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="mb-7"
+        transition={{ duration: 0.25 }}
+        className="mb-8"
       >
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div>
-            <span
-              className="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-medium mb-3"
-              style={{
-                background: "rgba(250, 199, 117, 0.08)",
-                color: "#FAC775",
-                border: "1px solid rgba(250, 199, 117, 0.14)",
-              }}
-            >
-              Dashboard operacional
-            </span>
-
-            <h1
-              className="text-[30px] leading-tight font-semibold"
-              style={{ color: "#F5F5F0" }}
-            >
-              Visão geral
-            </h1>
-
-            <p
-              className="text-sm mt-1 capitalize"
-              style={{ color: "#888780" }}
-            >
-              {today}
-            </p>
+            <h1 className="text-2xl font-semibold text-foreground tracking-tight">Visão geral</h1>
+            <p className="text-sm text-muted-foreground mt-1 capitalize">{today}</p>
           </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <span
-              className="h-9 px-3 inline-flex items-center rounded-xl text-[11px] font-medium"
-              style={{
-                background: "#1E1E21",
-                color: "#888780",
-                border: "1px solid rgba(255,255,255,0.06)",
-              }}
-            >
-              v1.0
-            </span>
-
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 rounded-xl px-3 text-xs border-0"
-              style={{
-                background: "#1E1E21",
-                color: "#B4B2A9",
-                boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.06)",
-              }}
-            >
-              <Filter className="h-3.5 w-3.5 mr-1.5" />
-              Filtrar
-            </Button>
-
-            <Button
-              size="sm"
-              className="h-9 rounded-xl px-4 text-xs border-0"
-              style={{
-                background: "#C8841C",
-                color: "#FFF7E8",
-              }}
+          <div className="flex items-center gap-2">
+            <button
               onClick={() => setShowClientPicker(true)}
+              className="h-9 px-4 rounded-lg text-[13px] font-medium bg-primary text-primary-foreground transition-all duration-150 hover:opacity-90 inline-flex items-center gap-2"
             >
-              <Plus className="h-3.5 w-3.5 mr-1.5" />
+              <Plus className="h-3.5 w-3.5" />
               Nova conversão
-            </Button>
+            </button>
           </div>
         </div>
       </motion.div>
 
-      <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4 mb-7">
+      {/* Metric Cards */}
+      <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-4 mb-8">
         {metricCards.map((card, i) => (
           <motion.div
             key={card.label}
-            custom={i}
-            initial="hidden"
-            animate="visible"
-            variants={fadeUp}
-            className="rounded-3xl border p-5"
-            style={{
-              background: card.highlight
-                ? "linear-gradient(180deg, rgba(30,30,33,1) 0%, rgba(37,27,14,1) 100%)"
-                : "#1E1E21",
-              borderColor: card.highlight
-                ? "rgba(200, 132, 28, 0.45)"
-                : "rgba(255,255,255,0.06)",
-              boxShadow: card.highlight
-                ? "0 0 0 1px rgba(200,132,28,0.08) inset"
-                : "none",
-            }}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.04, duration: 0.3 }}
+            className={`rounded-xl border p-5 transition-colors ${
+              card.highlight ? "border-primary/20 bg-primary/[0.04]" : "border-border bg-card"
+            }`}
           >
-            <div className="flex items-start justify-between gap-3 mb-6">
-              <div
-                className="h-11 w-11 rounded-2xl flex items-center justify-center shrink-0"
-                style={{
-                  background: card.highlight
-                    ? "rgba(250, 199, 117, 0.14)"
-                    : "rgba(250, 199, 117, 0.08)",
-                }}
-              >
-                <card.icon
-                  className="h-4.5 w-4.5"
-                  style={{ color: "#EF9F27" }}
-                />
+            <div className="flex items-center justify-between mb-4">
+              <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${
+                card.highlight ? "bg-primary/15" : "bg-muted"
+              }`}>
+                <card.icon className={`h-4 w-4 ${card.highlight ? "text-primary" : "text-muted-foreground"}`} />
               </div>
-
-              <span
-                className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium"
-                style={{
-                  background: "rgba(250, 199, 117, 0.08)",
-                  color: "#FAC775",
-                  border: "1px solid rgba(250, 199, 117, 0.10)",
-                }}
-              >
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-primary/80">
                 <TrendingUp className="h-3 w-3" />
                 {card.delta}
               </span>
             </div>
-
-            <p
-              className="text-[30px] leading-none font-semibold tracking-tight break-words"
-              style={{ color: card.highlight ? "#FAC775" : "#F5F5F0" }}
-            >
+            <p className={`text-2xl font-semibold tracking-tight ${card.highlight ? "text-primary" : "text-foreground"}`}>
               {card.value}
             </p>
-
-            <p
-              className="text-[12px] mt-2"
-              style={{ color: "#6E6C66" }}
-            >
-              {card.label}
-            </p>
+            <p className="text-[12px] text-muted-foreground mt-1">{card.label}</p>
           </motion.div>
         ))}
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.6fr)_360px]">
+      {/* Main grid */}
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.6fr)_340px]">
+        {/* Clients Table */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25, duration: 0.4 }}
-          className="rounded-3xl border overflow-hidden"
-          style={{
-            background: "#1E1E21",
-            borderColor: "rgba(255,255,255,0.06)",
-          }}
+          transition={{ delay: 0.15, duration: 0.3 }}
+          className="rounded-xl border border-border bg-card overflow-hidden"
         >
-          <div
-            className="px-5 sm:px-6 py-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
-            style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}
-          >
+          <div className="px-5 py-4 flex items-center justify-between border-b border-border">
             <div>
-              <h2
-                className="text-base font-semibold"
-                style={{ color: "#F5F5F0" }}
-              >
-                Clientes
-              </h2>
-              <p
-                className="text-xs mt-1"
-                style={{ color: "#6E6C66" }}
-              >
-                Resumo operacional por cliente
-              </p>
+              <h2 className="text-sm font-semibold text-foreground">Clientes</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">Resumo operacional por cliente</p>
             </div>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-9 rounded-xl px-3 text-xs self-start sm:self-auto"
-              style={{
-                color: "#B4B2A9",
-                background: "rgba(255,255,255,0.02)",
-              }}
+            <button
               onClick={() => navigate("/clientes")}
+              className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
             >
-              Ver todos
-              <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
-            </Button>
+              Ver todos <ArrowRight className="h-3 w-3" />
+            </button>
           </div>
 
-          <div className="px-3 sm:px-4 py-3">
-            <div className="hidden md:grid grid-cols-[minmax(0,1fr)_110px_120px_150px] px-3 py-2 text-[11px] uppercase tracking-[0.12em]">
-              <span style={{ color: "#66645E" }}>Cliente</span>
-              <span style={{ color: "#66645E" }}>Status</span>
-              <span style={{ color: "#66645E" }}>Documentos</span>
-              <span className="text-right" style={{ color: "#66645E" }}>
-                Valor processado
-              </span>
-            </div>
-
-            <div className="space-y-2">
-              {enrichedClients.map((client) => (
-                <button
-                  key={client.id}
-                  type="button"
-                  onClick={() => navigate(client.route)}
-                  className="w-full rounded-2xl border px-3 sm:px-4 py-3 text-left transition-all duration-200 hover:-translate-y-[1px]"
-                  style={{
-                    background: "rgba(255,255,255,0.02)",
-                    borderColor: "rgba(255,255,255,0.04)",
-                  }}
-                >
-                  <div className="flex flex-col gap-3 md:grid md:grid-cols-[minmax(0,1fr)_110px_120px_150px] md:items-center">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div
-                        className="h-10 w-10 rounded-2xl flex items-center justify-center text-[11px] font-bold shrink-0"
-                        style={{
-                          background: `${client.color}20`,
-                          color: client.color,
-                        }}
-                      >
-                        {client.initials}
-                      </div>
-
-                      <div className="min-w-0">
-                        <p
-                          className="text-sm font-medium truncate"
-                          style={{ color: "#F5F5F0" }}
-                        >
-                          {client.name}
-                        </p>
-                        <p
-                          className="text-[11px] mt-0.5"
-                          style={{ color: "#6E6C66" }}
-                        >
-                          {client.docCount > 0
-                            ? `${client.docCount} documentos processados`
-                            : "Nenhum documento processado"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div>
-                      <span
-                        className="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-medium"
-                        style={{
-                          background: client.isActive
-                            ? "rgba(52, 168, 83, 0.14)"
-                            : "rgba(231, 76, 60, 0.14)",
-                          color: client.isActive ? "#6AD488" : "#FF8A7A",
-                        }}
-                      >
-                        {client.isActive ? "Ativo" : "Pendente"}
-                      </span>
-                    </div>
-
-                    <div
-                      className="text-sm font-medium"
-                      style={{ color: "#E2E0D8" }}
-                    >
-                      {client.docCount}
-                    </div>
-
-                    <div
-                      className="text-sm font-semibold tabular-nums md:text-right"
-                      style={{ color: client.totalValue > 0 ? "#FAC775" : "#8A877F" }}
-                    >
-                      {client.totalValue > 0 ? formatCurrency(client.totalValue) : "—"}
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
+          {/* Table Header */}
+          <div className="hidden md:grid grid-cols-[minmax(0,1fr)_100px_100px_140px] px-5 py-2.5 text-[11px] uppercase tracking-wider text-muted-foreground/70 font-medium border-b border-border/50">
+            <span>Cliente</span>
+            <span>Status</span>
+            <span>Docs</span>
+            <span className="text-right">Valor</span>
           </div>
 
-          <div
-            className="px-5 sm:px-6 py-5"
-            style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <p
-                  className="text-[11px] font-semibold uppercase tracking-[0.14em]"
-                  style={{ color: "#66645E" }}
-                >
-                  Volume por cliente
-                </p>
-                <p
-                  className="text-xs mt-1"
-                  style={{ color: "#888780" }}
-                >
-                  Distribuição de documentos processados
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              {enrichedClients.map((client) => {
-                const pct = client.docCount > 0 ? Math.max((client.docCount / maxDocs) * 100, 4) : 0;
-
-                return (
-                  <div key={client.id} className="grid grid-cols-[32px_minmax(0,1fr)_52px] items-center gap-3">
-                    <span
-                      className="text-[11px] font-medium"
-                      style={{ color: "#A9A69C" }}
+          {/* Client Rows */}
+          <div>
+            {enrichedClients.map((client) => (
+              <button
+                key={client.id}
+                type="button"
+                onClick={() => navigate(client.route)}
+                className="w-full px-5 py-3 text-left transition-colors duration-150 hover:bg-accent/50 border-b border-border/30 last:border-b-0"
+              >
+                <div className="flex flex-col gap-2 md:grid md:grid-cols-[minmax(0,1fr)_100px_100px_140px] md:items-center">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className="h-8 w-8 rounded-lg flex items-center justify-center text-[11px] font-bold shrink-0"
+                      style={{ background: `${client.color}18`, color: client.color }}
                     >
                       {client.initials}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-medium text-foreground truncate">{client.name}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        {client.docCount > 0 ? `${client.docCount} docs` : "Nenhum doc"}
+                      </p>
+                    </div>
+                  </div>
+                  <div>
+                    <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium ${
+                      client.isActive
+                        ? "bg-green-500/10 text-green-400"
+                        : "bg-red-500/10 text-red-400"
+                    }`}>
+                      {client.isActive ? "Ativo" : "Pendente"}
                     </span>
+                  </div>
+                  <div className="text-[13px] font-medium text-foreground/80">{client.docCount}</div>
+                  <div className={`text-[13px] font-semibold tabular-nums md:text-right ${
+                    client.totalValue > 0 ? "text-primary" : "text-muted-foreground/50"
+                  }`}>
+                    {client.totalValue > 0 ? formatCurrency(client.totalValue) : "—"}
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
 
-                    <div
-                      className="h-2.5 rounded-full overflow-hidden"
-                      style={{ background: "#2A2A2D" }}
-                    >
+          {/* Volume Chart */}
+          <div className="px-5 py-4 border-t border-border">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70 mb-3">
+              Volume por cliente
+            </p>
+            <div className="space-y-2.5">
+              {enrichedClients.map((client) => {
+                const pct = client.docCount > 0 ? Math.max((client.docCount / maxDocs) * 100, 4) : 0;
+                return (
+                  <div key={client.id} className="grid grid-cols-[28px_minmax(0,1fr)_40px] items-center gap-2.5">
+                    <span className="text-[11px] font-medium text-muted-foreground">{client.initials}</span>
+                    <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-300"
-                        style={{
-                          width: `${pct}%`,
-                          background: client.docCount > 0 ? client.color : "#3A393D",
-                        }}
+                        style={{ width: `${pct}%`, background: client.docCount > 0 ? client.color : "hsl(var(--muted))" }}
                       />
                     </div>
-
-                    <span
-                      className="text-[11px] text-right tabular-nums"
-                      style={{ color: "#A9A69C" }}
-                    >
-                      {client.docCount}
-                    </span>
+                    <span className="text-[11px] text-right tabular-nums text-muted-foreground">{client.docCount}</span>
                   </div>
                 );
               })}
@@ -474,60 +246,26 @@ const Index = () => {
           </div>
         </motion.div>
 
+        {/* Activity Feed */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.4 }}
-          className="rounded-3xl border flex flex-col overflow-hidden"
-          style={{
-            background: "#1E1E21",
-            borderColor: "rgba(255,255,255,0.06)",
-          }}
+          transition={{ delay: 0.2, duration: 0.3 }}
+          className="rounded-xl border border-border bg-card flex flex-col overflow-hidden"
         >
-          <div
-            className="px-5 py-5"
-            style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}
-          >
-            <h2
-              className="text-base font-semibold"
-              style={{ color: "#F5F5F0" }}
-            >
-              Atividade recente
-            </h2>
-            <p
-              className="text-xs mt-1"
-              style={{ color: "#6E6C66" }}
-            >
-              Últimas ações registradas no sistema
-            </p>
+          <div className="px-5 py-4 border-b border-border">
+            <h2 className="text-sm font-semibold text-foreground">Atividade recente</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">Últimas ações registradas</p>
           </div>
 
-          <div className="flex-1 px-5 py-4 space-y-3">
+          <div className="flex-1 px-4 py-3 space-y-2">
             {recentActivities.map((activity, i) => (
-              <div
-                key={i}
-                className="rounded-2xl border p-3"
-                style={{
-                  background: "rgba(255,255,255,0.02)",
-                  borderColor: "rgba(255,255,255,0.04)",
-                }}
-              >
-                <div className="flex items-start gap-3">
-                  <div
-                    className="h-2.5 w-2.5 rounded-full mt-1.5 shrink-0"
-                    style={{ background: activity.color }}
-                  />
+              <div key={i} className="rounded-lg border border-border/50 p-3 transition-colors hover:bg-accent/30">
+                <div className="flex items-start gap-2.5">
+                  <div className="h-2 w-2 rounded-full mt-1.5 shrink-0" style={{ background: activity.color }} />
                   <div className="min-w-0">
-                    <p
-                      className="text-[13px] leading-relaxed"
-                      style={{ color: "#D1CEC4" }}
-                    >
-                      {activity.title}
-                    </p>
-                    <p
-                      className="text-[11px] flex items-center gap-1.5 mt-1"
-                      style={{ color: "#6E6C66" }}
-                    >
+                    <p className="text-[13px] text-foreground/80 leading-relaxed">{activity.title}</p>
+                    <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-1">
                       <Clock className="h-3 w-3" />
                       {activity.time}
                     </p>
@@ -537,30 +275,16 @@ const Index = () => {
             ))}
           </div>
 
-          <div
-            className="px-5 py-4 space-y-2"
-            style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
-          >
+          <div className="px-4 py-3 space-y-2 border-t border-border">
             <button
-              className="w-full h-10 rounded-xl text-xs font-medium flex items-center justify-center gap-2 transition-colors"
-              style={{
-                background: "rgba(250, 199, 117, 0.08)",
-                color: "#FAC775",
-                border: "1px solid rgba(250, 199, 117, 0.18)",
-              }}
+              className="w-full h-9 rounded-lg text-xs font-medium flex items-center justify-center gap-2 transition-colors bg-primary/10 text-primary border border-primary/20 hover:bg-primary/15"
               onClick={() => setShowClientPicker(true)}
             >
               <Plus className="h-3.5 w-3.5" />
               Iniciar nova conversão
             </button>
-
             <button
-              className="w-full h-10 rounded-xl text-xs font-medium flex items-center justify-center gap-2 transition-colors"
-              style={{
-                background: "#232326",
-                color: "#C0BDB3",
-                border: "1px solid rgba(255,255,255,0.06)",
-              }}
+              className="w-full h-9 rounded-lg text-xs font-medium flex items-center justify-center gap-2 transition-colors bg-accent text-muted-foreground border border-border hover:text-foreground"
               onClick={() => navigate("/historico")}
             >
               <Eye className="h-3.5 w-3.5" />
@@ -570,113 +294,57 @@ const Index = () => {
         </motion.div>
       </div>
 
+      {/* Client Picker Modal */}
       <AnimatePresence>
         {showClientPicker && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center"
-            style={{
-              background: "rgba(0,0,0,0.62)",
-              marginLeft: "-220px",
-              paddingLeft: "220px",
-            }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
             onClick={() => setShowClientPicker(false)}
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: 10 }}
+              initial={{ opacity: 0, scale: 0.97, y: 8 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 10 }}
+              exit={{ opacity: 0, scale: 0.97, y: 8 }}
               transition={{ duration: 0.2 }}
-              className="w-full max-w-md mx-4 rounded-3xl border overflow-hidden"
-              style={{
-                background: "#1E1E21",
-                borderColor: "rgba(255,255,255,0.06)",
-              }}
+              className="w-full max-w-md mx-4 rounded-xl border border-border bg-card overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
-              <div
-                className="px-5 py-4 flex items-center justify-between"
-                style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}
-              >
+              <div className="px-5 py-4 flex items-center justify-between border-b border-border">
                 <div>
-                  <h2
-                    className="text-base font-semibold"
-                    style={{ color: "#F5F5F0" }}
-                  >
-                    Nova conversão
-                  </h2>
-                  <p
-                    className="text-xs mt-1"
-                    style={{ color: "#6E6C66" }}
-                  >
-                    Selecione o cliente para iniciar
-                  </p>
+                  <h2 className="text-sm font-semibold text-foreground">Nova conversão</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">Selecione o cliente</p>
                 </div>
-
                 <button
                   onClick={() => setShowClientPicker(false)}
-                  className="h-9 w-9 rounded-xl flex items-center justify-center transition-colors"
-                  style={{
-                    color: "#888780",
-                    background: "rgba(255,255,255,0.02)",
-                    border: "1px solid rgba(255,255,255,0.05)",
-                  }}
+                  className="h-8 w-8 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
-
-              <div className="p-3 max-h-[420px] overflow-y-auto">
+              <div className="p-2 max-h-[400px] overflow-y-auto">
                 {enrichedClients.map((client) => (
                   <button
                     key={client.id}
                     type="button"
-                    className="w-full flex items-center gap-3 px-3 py-3 rounded-2xl text-left transition-colors"
-                    style={{ background: "transparent" }}
-                    onClick={() => {
-                      setShowClientPicker(false);
-                      navigate(client.route);
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "#242426";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "transparent";
-                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors hover:bg-accent"
+                    onClick={() => { setShowClientPicker(false); navigate(client.route); }}
                   >
                     <div
-                      className="h-10 w-10 rounded-2xl flex items-center justify-center text-[11px] font-bold shrink-0"
-                      style={{
-                        background: `${client.color}20`,
-                        color: client.color,
-                      }}
+                      className="h-8 w-8 rounded-lg flex items-center justify-center text-[11px] font-bold shrink-0"
+                      style={{ background: `${client.color}18`, color: client.color }}
                     >
                       {client.initials}
                     </div>
-
                     <div className="flex-1 min-w-0">
-                      <p
-                        className="text-sm font-medium truncate"
-                        style={{ color: "#F5F5F0" }}
-                      >
-                        {client.name}
-                      </p>
-                      <p
-                        className="text-[11px] mt-0.5"
-                        style={{ color: "#6E6C66" }}
-                      >
-                        {client.docCount > 0
-                          ? `${client.docCount} documentos disponíveis`
-                          : "Cliente aguardando movimentação"}
+                      <p className="text-[13px] font-medium text-foreground truncate">{client.name}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        {client.docCount > 0 ? `${client.docCount} documentos` : "Aguardando movimentação"}
                       </p>
                     </div>
-
-                    <ArrowRight
-                      className="h-4 w-4 shrink-0"
-                      style={{ color: "#888780" }}
-                    />
+                    <ArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                   </button>
                 ))}
               </div>

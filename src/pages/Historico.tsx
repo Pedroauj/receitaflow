@@ -12,6 +12,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label";
 import { getRecords, getStats, type HistoryRecord } from "@/lib/history";
 import { clients } from "@/lib/clients";
+import { usePagination } from "@/hooks/usePagination";
+import TablePagination from "@/components/TablePagination";
 
 const Historico = () => {
   const navigate = useNavigate();
@@ -40,27 +42,17 @@ const Historico = () => {
     });
   }, [records, clienteFilter, dateFrom, dateTo]);
 
-  const formatBRL = (v: number) =>
-    v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  const { page, setPage, totalPages, paginatedItems, from, to, totalItems } = usePagination(filtered, 20);
 
-  const formatDate = (iso: string) => {
-    try { return format(parseISO(iso), "dd/MM/yyyy HH:mm", { locale: ptBR }); } catch { return iso; }
-  };
-
-  const formatDateShort = (iso: string) => {
-    try { return format(parseISO(iso), "dd/MM/yyyy"); } catch { return iso; }
-  };
+  const formatBRL = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  const formatDate = (iso: string) => { try { return format(parseISO(iso), "dd/MM/yyyy HH:mm", { locale: ptBR }); } catch { return iso; } };
+  const formatDateShort = (iso: string) => { try { return format(parseISO(iso), "dd/MM/yyyy"); } catch { return iso; } };
 
   return (
-    <div className="p-7">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-xl font-semibold" style={{ color: "#F5F5F0" }}>
-          Histórico de Processamentos
-        </h1>
-        <p className="text-xs mt-0.5" style={{ color: "#888780" }}>
-          Registros de conversões realizadas
-        </p>
+    <div>
+      <div className="mb-6">
+        <h1 className="text-xl font-semibold text-foreground tracking-tight">Histórico de Processamentos</h1>
+        <p className="text-xs text-muted-foreground mt-1">Registros de conversões realizadas</p>
       </div>
 
       {/* Stats */}
@@ -70,140 +62,132 @@ const Historico = () => {
           { icon: Hash, label: "Documentos processados", value: stats.totalDocumentos },
           { icon: DollarSign, label: "Valor total processado", value: formatBRL(stats.valorTotalProcessado) },
         ].map((stat) => (
-          <div key={stat.label} className="card-elevated p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: "#412402" }}>
-              <stat.icon className="h-5 w-5" style={{ color: "#EF9F27" }} />
+          <div key={stat.label} className="rounded-xl border border-border bg-card p-4 flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg flex items-center justify-center shrink-0 bg-primary/10">
+              <stat.icon className="h-4 w-4 text-primary" />
             </div>
             <div>
-              <p className="text-[11px]" style={{ color: "#5F5E5A" }}>{stat.label}</p>
-              <p className="text-xl font-semibold tabular-nums" style={{ color: "#F5F5F0" }}>{stat.value}</p>
+              <p className="text-[11px] text-muted-foreground">{stat.label}</p>
+              <p className="text-lg font-semibold tabular-nums text-foreground">{stat.value}</p>
             </div>
           </div>
         ))}
       </div>
 
       {/* Filters */}
-      <div className="card-elevated p-5 mb-6">
-        <p className="text-sm font-semibold mb-4" style={{ color: "#F5F5F0" }}>Filtros</p>
+      <div className="rounded-xl border border-border bg-card p-5 mb-6">
+        <p className="text-sm font-medium text-foreground mb-3">Filtros</p>
         <div className="grid gap-4 sm:grid-cols-3">
-          <div className="space-y-2">
-            <Label className="text-[11px]" style={{ color: "#5F5E5A" }}>Cliente</Label>
+          <div className="space-y-1.5">
+            <Label className="text-[11px] text-muted-foreground">Cliente</Label>
             <Select value={clienteFilter} onValueChange={setClienteFilter}>
-              <SelectTrigger className="border-[#2C2C2A] bg-[#1E1E20]" style={{ color: "#B4B2A9" }}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-[#1E1E20] border-[#2C2C2A]">
+              <SelectTrigger className="border-border bg-muted text-foreground"><SelectValue /></SelectTrigger>
+              <SelectContent className="bg-card border-border">
                 <SelectItem value="all">Todos</SelectItem>
-                {clients.map((c) => (
-                  <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
-                ))}
+                {clients.map((c) => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
-            <Label className="text-[11px]" style={{ color: "#5F5E5A" }}>Data inicial</Label>
+          <div className="space-y-1.5">
+            <Label className="text-[11px] text-muted-foreground">Data inicial</Label>
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className={cn("w-full justify-start text-left font-normal border-[#2C2C2A] bg-[#1E1E20]", !dateFrom && "text-muted-foreground")} style={{ color: dateFrom ? "#B4B2A9" : undefined }}>
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "Selecionar"}
+                <Button variant="outline" className={cn("w-full justify-start text-left font-normal border-border bg-muted", !dateFrom && "text-muted-foreground")}>
+                  <CalendarIcon className="mr-2 h-4 w-4" />{dateFrom ? format(dateFrom, "dd/MM/yyyy") : "Selecionar"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 bg-[#1E1E20] border-[#2C2C2A]" align="start">
+              <PopoverContent className="w-auto p-0 bg-card border-border" align="start">
                 <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} locale={ptBR} className="p-3 pointer-events-auto" />
               </PopoverContent>
             </Popover>
           </div>
-          <div className="space-y-2">
-            <Label className="text-[11px]" style={{ color: "#5F5E5A" }}>Data final</Label>
+          <div className="space-y-1.5">
+            <Label className="text-[11px] text-muted-foreground">Data final</Label>
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className={cn("w-full justify-start text-left font-normal border-[#2C2C2A] bg-[#1E1E20]", !dateTo && "text-muted-foreground")} style={{ color: dateTo ? "#B4B2A9" : undefined }}>
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dateTo ? format(dateTo, "dd/MM/yyyy") : "Selecionar"}
+                <Button variant="outline" className={cn("w-full justify-start text-left font-normal border-border bg-muted", !dateTo && "text-muted-foreground")}>
+                  <CalendarIcon className="mr-2 h-4 w-4" />{dateTo ? format(dateTo, "dd/MM/yyyy") : "Selecionar"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 bg-[#1E1E20] border-[#2C2C2A]" align="start">
+              <PopoverContent className="w-auto p-0 bg-card border-border" align="start">
                 <Calendar mode="single" selected={dateTo} onSelect={setDateTo} locale={ptBR} className="p-3 pointer-events-auto" />
               </PopoverContent>
             </Popover>
           </div>
         </div>
         {(dateFrom || dateTo || clienteFilter !== "all") && (
-          <Button variant="ghost" size="sm" className="mt-3 text-xs" style={{ color: "#888780" }} onClick={() => { setClienteFilter("all"); setDateFrom(undefined); setDateTo(undefined); }}>
+          <Button variant="ghost" size="sm" className="mt-3 text-xs text-muted-foreground" onClick={() => { setClienteFilter("all"); setDateFrom(undefined); setDateTo(undefined); }}>
             Limpar filtros
           </Button>
         )}
       </div>
 
       {/* Table */}
-      <div className="card-elevated overflow-hidden">
-        <div className="px-5 py-4" style={{ borderBottom: "0.5px solid #2C2C2A" }}>
-          <p className="text-sm font-semibold" style={{ color: "#F5F5F0" }}>
-            Processamentos ({filtered.length})
-          </p>
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="px-5 py-3.5 border-b border-border">
+          <p className="text-sm font-medium text-foreground">Processamentos ({filtered.length})</p>
         </div>
         {filtered.length === 0 ? (
           <div className="text-center py-12">
-            <FileSpreadsheet className="h-10 w-10 mx-auto mb-3" style={{ color: "#5F5E5A" }} />
-            <p className="text-sm" style={{ color: "#888780" }}>Nenhum processamento encontrado.</p>
+            <FileSpreadsheet className="h-10 w-10 mx-auto mb-3 text-muted-foreground/40" />
+            <p className="text-sm text-muted-foreground">Nenhum processamento encontrado.</p>
           </div>
         ) : (
-          <div className="overflow-auto">
-            <table className="w-full">
-              <thead>
-                <tr style={{ borderBottom: "0.5px solid #2C2C2A" }}>
-                  {["Cliente", "Data processamento", "Data vencimento", "Documentos", "Valor total", "Status", "Ações"].map((h, i) => (
-                    <th key={h} className={cn("px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-left", (i === 3 || i === 4) && "text-right", i === 6 && "text-right")} style={{ color: "#5F5E5A" }}>
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((r) => (
-                  <tr key={r.id} className="transition-colors" style={{ borderBottom: "0.5px solid #2C2C2A" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = "#242426")}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                  >
-                    <td className="px-5 py-3 text-sm font-medium" style={{ color: "#F5F5F0" }}>{r.cliente}</td>
-                    <td className="px-5 py-3 text-sm tabular-nums" style={{ color: "#B4B2A9" }}>{formatDate(r.dataProcessamento)}</td>
-                    <td className="px-5 py-3 text-sm tabular-nums" style={{ color: "#B4B2A9" }}>{formatDateShort(r.dataVencimento)}</td>
-                    <td className="px-5 py-3 text-sm tabular-nums text-right" style={{ color: "#B4B2A9" }}>{r.quantidadeDocumentos}</td>
-                    <td className="px-5 py-3 text-sm tabular-nums text-right font-medium" style={{ color: "#FAC775" }}>{formatBRL(r.valorTotal)}</td>
-                    <td className="px-5 py-3">
-                      <div className="flex items-center gap-1.5">
-                        {r.statusConferencia === "confere" ? (
-                          <CheckCircle2 className="h-4 w-4" style={{ color: "#C0DD97" }} />
-                        ) : (
-                          <XCircle className="h-4 w-4" style={{ color: "#E74C3C" }} />
-                        )}
-                        <span className={cn("text-xs font-medium capitalize")} style={{ color: r.statusConferencia === "confere" ? "#C0DD97" : "#E74C3C" }}>
-                          {r.statusConferencia}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-5 py-3 text-right">
-                      <button onClick={() => setSelectedRecord(r)} className="h-7 w-7 rounded-md inline-flex items-center justify-center transition-colors" style={{ color: "#888780" }}
-                        onMouseEnter={(e) => { e.currentTarget.style.background = "#412402"; e.currentTarget.style.color = "#FAC775"; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#888780"; }}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </button>
-                    </td>
+          <>
+            <div className="overflow-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border">
+                    {["Cliente", "Data processamento", "Data vencimento", "Documentos", "Valor total", "Status", ""].map((h, i) => (
+                      <th key={h || 'actions'} className={cn("px-5 py-2.5 text-[11px] font-medium uppercase tracking-wider text-left text-muted-foreground/70", (i === 3 || i === 4) && "text-right", i === 6 && "text-right w-12")}>
+                        {h}
+                      </th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {paginatedItems.map((r) => (
+                    <tr key={r.id} className="border-b border-border/50 transition-colors hover:bg-accent/30">
+                      <td className="px-5 py-3 text-[13px] font-medium text-foreground">{r.cliente}</td>
+                      <td className="px-5 py-3 text-[13px] tabular-nums text-foreground/70">{formatDate(r.dataProcessamento)}</td>
+                      <td className="px-5 py-3 text-[13px] tabular-nums text-foreground/70">{formatDateShort(r.dataVencimento)}</td>
+                      <td className="px-5 py-3 text-[13px] tabular-nums text-right text-foreground/70">{r.quantidadeDocumentos}</td>
+                      <td className="px-5 py-3 text-[13px] tabular-nums text-right font-medium text-primary">{formatBRL(r.valorTotal)}</td>
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-1.5">
+                          {r.statusConferencia === "confere" ? (
+                            <CheckCircle2 className="h-3.5 w-3.5 text-green-400" />
+                          ) : (
+                            <XCircle className="h-3.5 w-3.5 text-red-400" />
+                          )}
+                          <span className={cn("text-xs font-medium capitalize", r.statusConferencia === "confere" ? "text-green-400" : "text-red-400")}>
+                            {r.statusConferencia}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3 text-right">
+                        <button
+                          onClick={() => setSelectedRecord(r)}
+                          className="h-7 w-7 rounded-md inline-flex items-center justify-center text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <TablePagination page={page} totalPages={totalPages} from={from} to={to} totalItems={totalItems} onPageChange={setPage} />
+          </>
         )}
       </div>
 
       {/* Detail Dialog */}
       <Dialog open={!!selectedRecord} onOpenChange={(open) => !open && setSelectedRecord(null)}>
-        <DialogContent className="sm:max-w-md" style={{ background: "#1E1E20", border: "0.5px solid #2C2C2A" }}>
+        <DialogContent className="sm:max-w-md bg-card border-border">
           <DialogHeader>
-            <DialogTitle className="text-base" style={{ color: "#F5F5F0" }}>Detalhes do Processamento</DialogTitle>
+            <DialogTitle className="text-sm font-semibold text-foreground">Detalhes do Processamento</DialogTitle>
           </DialogHeader>
           {selectedRecord && (
             <div className="space-y-0">
@@ -217,20 +201,20 @@ const Historico = () => {
                 ["Valor banco", formatBRL(selectedRecord.valorInformadoBanco)],
                 ["Erros", String(selectedRecord.quantidadeErros)],
               ].map(([label, value]) => (
-                <div key={label} className="flex justify-between py-3" style={{ borderBottom: "0.5px solid #2C2C2A" }}>
-                  <span className="text-sm" style={{ color: "#888780" }}>{label}</span>
-                  <span className="text-sm font-medium tabular-nums" style={{ color: "#F5F5F0" }}>{value}</span>
+                <div key={label} className="flex justify-between py-2.5 border-b border-border/50">
+                  <span className="text-[13px] text-muted-foreground">{label}</span>
+                  <span className="text-[13px] font-medium tabular-nums text-foreground">{value}</span>
                 </div>
               ))}
-              <div className="flex justify-between py-3">
-                <span className="text-sm" style={{ color: "#888780" }}>Status</span>
+              <div className="flex justify-between py-2.5">
+                <span className="text-[13px] text-muted-foreground">Status</span>
                 <div className="flex items-center gap-1.5">
                   {selectedRecord.statusConferencia === "confere" ? (
-                    <CheckCircle2 className="h-4 w-4" style={{ color: "#C0DD97" }} />
+                    <CheckCircle2 className="h-3.5 w-3.5 text-green-400" />
                   ) : (
-                    <XCircle className="h-4 w-4" style={{ color: "#E74C3C" }} />
+                    <XCircle className="h-3.5 w-3.5 text-red-400" />
                   )}
-                  <span className="text-sm font-medium capitalize" style={{ color: selectedRecord.statusConferencia === "confere" ? "#C0DD97" : "#E74C3C" }}>
+                  <span className={cn("text-[13px] font-medium capitalize", selectedRecord.statusConferencia === "confere" ? "text-green-400" : "text-red-400")}>
                     {selectedRecord.statusConferencia}
                   </span>
                 </div>

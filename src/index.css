@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,56 +6,50 @@
 
 @layer base {
   :root {
-    --background: 218 30% 8%;
-    --foreground: 210 20% 96%;
+    --background: 220 14% 8%;
+    --foreground: 0 0% 90%;
 
-    --card: 220 24% 12%;
-    --card-foreground: 210 20% 96%;
+    --card: 220 12% 11%;
+    --card-foreground: 0 0% 90%;
 
-    --popover: 220 24% 12%;
-    --popover-foreground: 210 20% 96%;
+    --popover: 220 12% 11%;
+    --popover-foreground: 0 0% 90%;
 
-    --primary: 217 82% 66%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 40 70% 50%;
+    --primary-foreground: 40 10% 6%;
 
-    --secondary: 220 18% 16%;
-    --secondary-foreground: 215 16% 78%;
+    --secondary: 220 10% 14%;
+    --secondary-foreground: 220 6% 65%;
 
-    --muted: 220 18% 15%;
-    --muted-foreground: 215 12% 62%;
+    --muted: 220 10% 13%;
+    --muted-foreground: 220 6% 50%;
 
-    --accent: 217 45% 18%;
-    --accent-foreground: 214 100% 87%;
+    --accent: 220 12% 16%;
+    --accent-foreground: 0 0% 90%;
 
-    --destructive: 0 72% 55%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 60% 50%;
+    --destructive-foreground: 0 0% 98%;
 
-    --success: 142 55% 18%;
-    --success-foreground: 142 59% 78%;
+    --success: 142 40% 40%;
+    --success-foreground: 142 50% 80%;
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 40 100% 96%;
+    --warning: 38 70% 50%;
+    --warning-foreground: 40 80% 90%;
 
-    --border: 217 22% 20%;
-    --input: 217 22% 20%;
-    --ring: 217 82% 66%;
+    --border: 220 10% 16%;
+    --input: 220 10% 16%;
+    --ring: 40 70% 50%;
 
-    --radius: 1rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 220 28% 10%;
-    --sidebar-foreground: 215 14% 72%;
-    --sidebar-primary: 217 82% 66%;
-    --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 217 45% 18%;
-    --sidebar-accent-foreground: 214 100% 87%;
-    --sidebar-border: 217 22% 18%;
-    --sidebar-ring: 217 82% 66%;
-
-    --blue-medium: 217 82% 66%;
-    --blue-light: 214 100% 87%;
-    --blue-hover: 217 82% 72%;
-    --blue-bg: 217 45% 18%;
-    --blue-border: 217 35% 28%;
+    --sidebar-background: 220 14% 7%;
+    --sidebar-foreground: 220 6% 55%;
+    --sidebar-primary: 40 70% 50%;
+    --sidebar-primary-foreground: 40 10% 6%;
+    --sidebar-accent: 220 12% 13%;
+    --sidebar-accent-foreground: 0 0% 90%;
+    --sidebar-border: 220 10% 14%;
+    --sidebar-ring: 40 70% 50%;
   }
 
   * {
@@ -63,170 +57,16 @@
   }
 
   html {
-    background: #0b1118;
+    background: hsl(220 14% 8%);
   }
 
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background:
-      radial-gradient(circle at top left, rgba(91, 141, 239, 0.08), transparent 24%),
-      linear-gradient(180deg, #0b1118 0%, #0d131b 100%);
     min-height: 100vh;
   }
 
   #root {
     min-height: 100vh;
-  }
-}
-
-@layer utilities {
-  .app-shell-bg {
-    background:
-      radial-gradient(circle at top left, rgba(91, 141, 239, 0.08), transparent 24%),
-      linear-gradient(180deg, #0b1118 0%, #0d131b 100%);
-  }
-
-  .surface-panel {
-    background: rgba(18, 24, 33, 0.88);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(49, 62, 84, 0.9);
-    border-radius: 18px;
-    box-shadow:
-      0 10px 30px rgba(0, 0, 0, 0.28),
-      inset 0 1px 0 rgba(255, 255, 255, 0.02);
-  }
-
-  .gradient-bg {
-    background:
-      radial-gradient(circle at top left, rgba(91, 141, 239, 0.08), transparent 24%),
-      linear-gradient(180deg, #0b1118 0%, #0d131b 100%);
-  }
-
-  .gradient-btn {
-    background: linear-gradient(180deg, #6b97f2 0%, #5b8def 100%);
-    color: #f8fbff;
-    border: 1px solid rgba(122, 162, 255, 0.35);
-    box-shadow: 0 8px 22px rgba(91, 141, 239, 0.22);
-    transition: all 0.2s ease;
-  }
-
-  .gradient-btn:hover {
-    background: linear-gradient(180deg, #77a0f6 0%, #6696f3 100%);
-    box-shadow: 0 12px 26px rgba(91, 141, 239, 0.28);
-    transform: translateY(-1px);
-  }
-
-  .card-elevated {
-    background: linear-gradient(180deg, rgba(20, 27, 37, 0.96) 0%, rgba(16, 22, 31, 0.96) 100%);
-    border: 1px solid rgba(44, 56, 76, 0.95);
-    border-radius: 16px;
-    transition: all 0.22s ease;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
-  }
-
-  .card-elevated:hover {
-    border-color: rgba(72, 93, 124, 0.95);
-    transform: translateY(-1px);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
-  }
-
-  .stat-number {
-    @apply text-2xl font-bold tracking-tight;
-    color: #f5f7fb;
-  }
-
-  .sidebar-shell {
-    background: linear-gradient(180deg, rgba(14, 19, 27, 0.96) 0%, rgba(12, 17, 24, 0.98) 100%);
-    border-right: 1px solid rgba(40, 52, 70, 0.9);
-    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.18);
-    backdrop-filter: blur(10px);
-  }
-
-  .sidebar-brand-badge {
-    background: linear-gradient(180deg, rgba(91, 141, 239, 0.22) 0%, rgba(91, 141, 239, 0.12) 100%);
-    border: 1px solid rgba(91, 141, 239, 0.28);
-    color: #8fb3ff;
-  }
-
-  .sidebar-label {
-    @apply text-[10px] font-semibold uppercase tracking-[0.18em] px-1 mb-2;
-    color: #667487;
-  }
-
-  .sidebar-item {
-    @apply flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all cursor-pointer;
-    color: #98a5b7;
-    border: 1px solid transparent;
-  }
-
-  .sidebar-item:hover {
-    color: #e7edf7;
-    background: rgba(24, 32, 44, 0.96);
-    border-color: rgba(49, 62, 84, 0.72);
-  }
-
-  .sidebar-item.active {
-    color: #f8fbff;
-    background: linear-gradient(180deg, rgba(31, 44, 64, 0.96) 0%, rgba(23, 34, 50, 0.96) 100%);
-    border-color: rgba(91, 141, 239, 0.32);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
-  }
-
-  .sidebar-item-icon {
-    color: #7f91a8;
-    transition: color 0.2s ease;
-  }
-
-  .sidebar-item:hover .sidebar-item-icon,
-  .sidebar-item.active .sidebar-item-icon {
-    color: #8fb3ff;
-  }
-
-  .sidebar-badge {
-    background: rgba(91, 141, 239, 0.16);
-    color: #9fc0ff;
-    border: 1px solid rgba(91, 141, 239, 0.22);
-    @apply text-[11px] font-medium px-2 py-0.5 rounded-full;
-  }
-
-  .neutral-badge {
-    background: rgba(128, 145, 168, 0.12);
-    color: #c2ccda;
-    border: 1px solid rgba(128, 145, 168, 0.15);
-    @apply text-[11px] font-medium px-2 py-0.5 rounded-full;
-  }
-
-  .status-active {
-    background: rgba(34, 197, 94, 0.14);
-    color: #8ae6aa;
-    border: 1px solid rgba(34, 197, 94, 0.16);
-    @apply text-[11px] font-medium px-2 py-0.5 rounded-full;
-  }
-
-  .status-pending {
-    background: rgba(245, 158, 11, 0.14);
-    color: #ffd38a;
-    border: 1px solid rgba(245, 158, 11, 0.16);
-    @apply text-[11px] font-medium px-2 py-0.5 rounded-full;
-  }
-
-  .status-info {
-    background: rgba(56, 189, 248, 0.14);
-    color: #8fdbff;
-    border: 1px solid rgba(56, 189, 248, 0.16);
-    @apply text-[11px] font-medium px-2 py-0.5 rounded-full;
-  }
-
-  .content-shell {
-    width: 100%;
-    min-height: 100vh;
-    padding: 24px;
-  }
-
-  @media (min-width: 1280px) {
-    .content-shell {
-      padding: 28px 32px;
-    }
   }
 }
