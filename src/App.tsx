@@ -44,7 +44,7 @@ const App = () => {
               <Route path="/esqueci-senha" element={<EsqueciSenha />} />
               <Route path="/reset-password" element={<ResetPassword />} />
 
-              {/* Rotas protegidas */}
+              {/* Layout protegido */}
               <Route
                 element={
                   <ProtectedRoute>
@@ -52,25 +52,103 @@ const App = () => {
                   </ProtectedRoute>
                 }
               >
-                <Route path="/dashboard" element={<Index />} />
-                <Route path="/historico" element={<Historico />} />
-                <Route path="/em-andamento" element={<EmAndamento />} />
-                <Route path="/clientes" element={<Clientes />} />
-                <Route path="/conciliacao" element={<Conciliacao />} />
-                <Route path="/configuracoes" element={<Configuracoes />} />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute requiredPermission="dashboard.view">
+                      <Index />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/historico"
+                  element={
+                    <ProtectedRoute requiredPermission="historico.view">
+                      <Historico />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/em-andamento"
+                  element={
+                    <ProtectedRoute requiredPermission="andamento.view">
+                      <EmAndamento />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/clientes"
+                  element={
+                    <ProtectedRoute requiredPermission="clientes.view">
+                      <Clientes />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/conciliacao"
+                  element={
+                    <ProtectedRoute requiredPermission="conciliacao.view">
+                      <Conciliacao />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/configuracoes"
+                  element={
+                    <ProtectedRoute requiredPermission="configuracoes.view">
+                      <Configuracoes />
+                    </ProtectedRoute>
+                  }
+                />
 
-                <Route path="/cliente/martin-brower" element={<MartinBrower />} />
+                <Route
+                  path="/cliente/martin-brower"
+                  element={
+                    <ProtectedRoute requiredPermission="cliente.martin-brower.view">
+                      <MartinBrower />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route
                   path="/cliente/minerva"
-                  element={<ClientePlaceholder clientName="Minerva" />}
+                  element={
+                    <ProtectedRoute requiredPermission="cliente.minerva.view">
+                      <ClientePlaceholder clientName="Minerva" />
+                    </ProtectedRoute>
+                  }
                 />
-                <Route path="/cliente/danone" element={<Danone />} />
-                <Route path="/cliente/platlog" element={<Platlog />} />
+                <Route
+                  path="/cliente/danone"
+                  element={
+                    <ProtectedRoute requiredPermission="cliente.danone.view">
+                      <Danone />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/cliente/platlog"
+                  element={
+                    <ProtectedRoute requiredPermission="cliente.platlog.view">
+                      <Platlog />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route
                   path="/cliente/jbs"
-                  element={<ClientePlaceholder clientName="JBS" />}
+                  element={
+                    <ProtectedRoute requiredPermission="cliente.jbs.view">
+                      <ClientePlaceholder clientName="JBS" />
+                    </ProtectedRoute>
+                  }
                 />
-                <Route path="/cliente/natura" element={<Natura />} />
+                <Route
+                  path="/cliente/natura"
+                  element={
+                    <ProtectedRoute requiredPermission="cliente.natura.view">
+                      <Natura />
+                    </ProtectedRoute>
+                  }
+                />
               </Route>
 
               <Route path="*" element={<NotFound />} />
