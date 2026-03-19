@@ -7,6 +7,7 @@ import {
   Loader2,
   LogOut,
   Settings,
+  Users,
 } from "lucide-react";
 import { getRecords } from "@/lib/history";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,22 +17,22 @@ const navSections = [
   {
     label: "Visão geral",
     items: [
-      { title: "Dashboard", description: "Resumo operacional", icon: LayoutDashboard, path: "/dashboard" },
-      { title: "Histórico", description: "Execuções anteriores", icon: History, path: "/historico", showBadge: true },
-      { title: "Em andamento", description: "Processos em aberto", icon: Loader2, path: "/em-andamento" },
+      { title: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+      { title: "Histórico", icon: History, path: "/historico", showBadge: true },
+      { title: "Em andamento", icon: Loader2, path: "/em-andamento" },
     ],
   },
   {
     label: "Operação",
     items: [
-      { title: "Conciliação", description: "Motor de comparação", icon: FileSearch, path: "/conciliacao" },
-      { title: "Clientes", description: "Centrais e módulos", icon: Building2, path: "/clientes" },
+      { title: "Conciliação", icon: FileSearch, path: "/conciliacao" },
+      { title: "Clientes", icon: Building2, path: "/clientes" },
     ],
   },
   {
     label: "Sistema",
     items: [
-      { title: "Configurações", description: "Preferências da conta", icon: Settings, path: "/configuracoes" },
+      { title: "Configurações", icon: Settings, path: "/configuracoes" },
     ],
   },
 ];
@@ -66,107 +67,81 @@ const DashboardSidebar = () => {
   return (
     <aside className="fixed left-0 top-0 bottom-0 z-50 flex flex-col w-[240px] bg-sidebar border-r border-sidebar-border">
       <div className="flex h-full flex-col px-3 py-4">
-
+        
         {/* Brand */}
         <button
+          type="button"
           onClick={() => navigate("/dashboard")}
-          className="flex items-center gap-3 px-3 py-3 mb-5 rounded-xl border border-border bg-card hover:bg-accent/40 transition-all"
+          className="flex items-center gap-2.5 px-3 py-3 mb-6 rounded-lg transition-colors hover:bg-accent/50"
         >
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
-            <img src={logo} alt="ReceitaFlow" className="h-5 w-5" />
-          </div>
-
-          <div className="flex-1 text-left">
-            <p className="text-sm font-semibold text-foreground">ReceitaFlow</p>
-            <p className="text-[11px] text-muted-foreground">
-              Plataforma de conciliação
-            </p>
-          </div>
+          <img src={logo} alt="ReceitaFlow" className="h-7 w-7 rounded-lg" />
+          <span className="text-sm font-semibold text-foreground">ReceitaFlow</span>
         </button>
 
         {/* Nav */}
-        <nav className="flex-1 overflow-y-auto space-y-6">
-
+        <nav className="flex-1 overflow-y-auto space-y-5">
           {navSections.map((section) => (
             <div key={section.label}>
-              <p className="px-3 mb-2 text-[11px] uppercase tracking-wider text-muted-foreground">
+              <p className="px-3 mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
                 {section.label}
               </p>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {section.items.map((item) => {
                   const active = isActive(item.path);
 
                   return (
                     <button
                       key={item.path}
+                      type="button"
                       onClick={() => navigate(item.path)}
-                      className={`group w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all ${
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[13px] font-medium transition-all duration-150 ${
                         active
-                          ? "bg-accent border border-border"
-                          : "hover:bg-accent/40"
+                          ? "bg-accent text-foreground"
+                          : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
                       }`}
                     >
-                      {/* Icon box */}
-                      <div
-                        className={`flex h-10 w-10 items-center justify-center rounded-lg transition-all ${
-                          active
-                            ? "bg-primary/15 text-primary"
-                            : "bg-muted text-muted-foreground group-hover:text-foreground"
+                      <item.icon
+                        className={`h-4 w-4 shrink-0 ${
+                          active ? "text-primary" : ""
                         }`}
-                      >
-                        <item.icon className="h-5 w-5" />
-                      </div>
+                      />
+                      <span className="flex-1 text-left">{item.title}</span>
 
-                      {/* Text */}
-                      <div className="flex-1 text-left">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-foreground">
-                            {item.title}
-                          </span>
-
-                          {item.showBadge && historyCount > 0 && (
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/20 text-primary">
-                              {historyCount}
-                            </span>
-                          )}
-                        </div>
-
-                        <p className="text-[11px] text-muted-foreground">
-                          {item.description}
-                        </p>
-                      </div>
+                      {item.showBadge && historyCount > 0 && (
+                        <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-md bg-primary/15 text-primary">
+                          {historyCount}
+                        </span>
+                      )}
                     </button>
                   );
                 })}
               </div>
             </div>
           ))}
-
         </nav>
 
         {/* Footer */}
         <div className="mt-4 pt-4 border-t border-border">
-          <div className="flex items-center gap-3 px-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-primary text-xs font-bold">
+          <div className="flex items-center gap-2.5 px-2">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-[11px] font-semibold text-primary">
               {initials}
             </div>
-
-            <div className="flex-1">
-              <p className="text-xs font-medium text-foreground truncate">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[12px] font-medium text-foreground">
                 {displayName}
               </p>
             </div>
-
             <button
+              type="button"
               onClick={handleLogout}
-              className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-accent"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground hover:bg-accent"
+              title="Sair"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-3.5 w-3.5" />
             </button>
           </div>
         </div>
-
       </div>
     </aside>
   );
