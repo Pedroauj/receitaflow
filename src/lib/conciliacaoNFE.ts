@@ -72,12 +72,38 @@ type ColumnIndexes = {
   tipoIndex: number;
 };
 
+type GovernmentColumnIndexes = ColumnIndexes & {
+  situacaoIndex: number;
+};
+
+type CancellationColumnIndexes = {
+  chaveIndex: number;
+  nfIndex: number;
+  situacaoIndex: number;
+};
+
+type CancellationLookup = {
+  accessKeys: Set<string>;
+  nfs: Set<string>;
+};
+
 const EXCLUDED_SIEG_TAGS = new Set([
   "remessa para conserto",
   "nfe entrada",
   "combustivel externo",
   "combustivel interno",
 ]);
+
+const CANCELLED_STATUS_TERMS = [
+  "cancelada",
+  "cancelado",
+  "cancelamento",
+  "nf-e cancelada",
+  "nfe cancelada",
+  "nota cancelada",
+  "evento de cancelamento",
+  "canc",
+];
 
 function normalizeHeader(value: unknown) {
   return String(value ?? "")
@@ -243,6 +269,12 @@ function isAtivoImobilizado(tagsRaw: string) {
     .some((tag) => tag === "ativo imobilizado");
 }
 
+function isCancelledStatus(value: unknown) {
+  const normalized = normalizeHeader(value);
+  if (!normalized) return false;
+  return CANCELLED_STATUS_TERMS.some((term) => normalized.includes(term));
+}
+
 function extractCNPJFromMixedField(value: unknown) {
   const digits = digitsOnly(value);
   if (digits.length >= 14) {
@@ -320,6 +352,41 @@ function detectHeaderRow(rows: unknown[][], kind: SpreadsheetKind) {
 
   if (bestIndex === -1) {
     throw new Error("Não consegui identificar o cabeçalho da planilha.");
+  }
+
+  return bestIndex;
+}
+
+function detectCancellationHeaderRow(rows: unknown[][]) {
+  const targets = [
+    "situacao",
+    "status",
+    "situacao da nfe",
+    "status da nfe",
+    "chave",
+    "chave da nfe",
+    "num nfe",
+    "numero",
+    "nota",
+  ];
+
+  let bestIndex = -1;
+  let bestScore = -1;
+
+  rows.slice(0, 20).forEach((row, index) => {
+    const normalizedCells = row.map((cell) => normalizeHeader(cell));
+    const score = targets.reduce((acc, target) => {
+      return acc + (normalizedCells.some((cell) => cell.includes(target)) ? 1 : 0);
+    }, 0);
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestIndex = index;
+    }
+  });
+
+  if (bestScore <= 0) {
+    return -1;
   }
 
   return bestIndex;
@@ -491,7 +558,7 @@ function mapSystemColumns(headers: string[], rows: MappedRow[]): ColumnIndexes {
   };
 }
 
-function mapGovernmentColumns(headers: string[]): ColumnIndexes {
+function mapGovernmentColumns(headers: string[]): GovernmentColumnIndexes {
   const chaveIndex = findColumnIndex(headers, ["Chave da NFe"]);
   const nfIndex = findColumnIndex(headers, ["Num NFe"]);
   const dataIndex = findColumnIndex(headers, ["Data Emissão", "Data Emissao"]);
@@ -503,6 +570,15 @@ function mapGovernmentColumns(headers: string[]): ColumnIndexes {
     "Nome Fant. Emit",
   ]);
   const tagsIndex = findColumnIndex(headers, ["Tags"]);
+  const situacaoIndex = findColumnIndex(headers, [
+    "Situação",
+    "Situacao",
+    "Situação da NFe",
+    "Situacao da NFe",
+    "Status",
+    "Status da NFe",
+    "Evento",
+  ]);
 
   const missing: string[] = [];
   if (chaveIndex === -1) missing.push("Chave da NFe");
@@ -528,7 +604,65 @@ function mapGovernmentColumns(headers: string[]): ColumnIndexes {
     fornecedorIndex,
     tagsIndex,
     tipoIndex: -1,
+    situacaoIndex,
   };
+}
+
+function tryMapGovernmentColumns(headers: string[]): GovernmentColumnIndexes | null {
+  try {
+    return mapGovernmentColumns(headers);
+  } catch {
+    return null;
+  }
+}
+
+function mapCancellationColumns(headers: string[]): CancellationColumnIndexes {
+  const situacaoIndex = findColumnIndex(headers, [
+    "Situação",
+    "Situacao",
+    "Status",
+    "Situação da NFe",
+    "Situacao da NFe",
+    "Status da NFe",
+    "Evento",
+    "Situação NF-e",
+    "Situacao NF-e",
+  ]);
+
+  const chaveIndex = findColumnIndex(headers, [
+    "Chave da NFe",
+    "Chave NFe",
+    "Chave de Acesso",
+    "Chave",
+  ]);
+
+  const nfIndex = findColumnIndex(headers, [
+    "Num NFe",
+    "Número NFe",
+    "Numero NFe",
+    "Número NF",
+    "Numero NF",
+    "NF",
+    "Nota",
+  ]);
+
+  if (situacaoIndex === -1 || (chaveIndex === -1 && nfIndex === -1)) {
+    throw new Error("A aba não possui colunas suficientes para identificar cancelamentos.");
+  }
+
+  return {
+    chaveIndex,
+    nfIndex,
+    situacaoIndex,
+  };
+}
+
+function tryMapCancellationColumns(headers: string[]): CancellationColumnIndexes | null {
+  try {
+    return mapCancellationColumns(headers);
+  } catch {
+    return null;
+  }
 }
 
 function buildMappedRowsFromArrayRows(rows: unknown[][], headerRowIndex: number): MappedRow[] {
@@ -548,6 +682,63 @@ function buildMappedRowsFromArrayRows(rows: unknown[][], headerRowIndex: number)
       return mapped;
     })
     .filter((row) => Object.values(row).some((value) => String(value ?? "").trim() !== ""));
+}
+
+function buildCancellationLookupFromRows(
+  rows: MappedRow[],
+  indexes: CancellationColumnIndexes,
+): CancellationLookup {
+  const accessKeys = new Set<string>();
+  const nfs = new Set<string>();
+
+  rows.forEach((row) => {
+    const values = getRowValues(row);
+    const situacao = values[indexes.situacaoIndex];
+
+    if (!isCancelledStatus(situacao)) {
+      return;
+    }
+
+    if (indexes.chaveIndex >= 0) {
+      const chave = normalizeAccessKey(values[indexes.chaveIndex]);
+      if (chave) {
+        accessKeys.add(chave);
+      }
+    }
+
+    if (indexes.nfIndex >= 0) {
+      const nf = normalizeNF(values[indexes.nfIndex]);
+      if (nf) {
+        nfs.add(nf);
+      }
+    }
+  });
+
+  return { accessKeys, nfs };
+}
+
+function mergeCancellationLookups(lookups: CancellationLookup[]): CancellationLookup {
+  const accessKeys = new Set<string>();
+  const nfs = new Set<string>();
+
+  lookups.forEach((lookup) => {
+    lookup.accessKeys.forEach((key) => accessKeys.add(key));
+    lookup.nfs.forEach((nf) => nfs.add(nf));
+  });
+
+  return { accessKeys, nfs };
+}
+
+function isCancelledGovernmentRecord(record: ParsedRecord, lookup: CancellationLookup) {
+  if (record.normalizedChave && lookup.accessKeys.has(record.normalizedChave)) {
+    return true;
+  }
+
+  if (record.normalizedNumeroNF && lookup.nfs.has(record.normalizedNumeroNF)) {
+    return true;
+  }
+
+  return false;
 }
 
 function parseSystemRecords(rows: MappedRow[], indexes: ColumnIndexes): ParsedRecord[] {
@@ -591,7 +782,10 @@ function parseSystemRecords(rows: MappedRow[], indexes: ColumnIndexes): ParsedRe
     .filter((row) => row.normalizedChave.length > 0);
 }
 
-function parseGovernmentRecords(rows: MappedRow[], indexes: ColumnIndexes): ParsedRecord[] {
+function parseGovernmentRecords(
+  rows: MappedRow[],
+  indexes: GovernmentColumnIndexes,
+): ParsedRecord[] {
   return rows
     .map((row) => {
       const values = getRowValues(row);
@@ -603,6 +797,8 @@ function parseGovernmentRecords(rows: MappedRow[], indexes: ColumnIndexes): Pars
       const originalValor = values[indexes.valorIndex];
       const originalFornecedor = values[indexes.fornecedorIndex];
       const originalTags = values[indexes.tagsIndex];
+      const originalSituacao =
+        indexes.situacaoIndex >= 0 ? values[indexes.situacaoIndex] : "";
 
       const rawTags = String(originalTags ?? "").trim();
 
@@ -627,6 +823,7 @@ function parseGovernmentRecords(rows: MappedRow[], indexes: ColumnIndexes): Pars
         normalizedDataEmissao: normalizeDate(originalData),
         normalizedCnpjEmitente: digitsOnly(originalCNPJ),
         normalizedValor: normalizeCurrency(originalValor),
+        __situacao: String(originalSituacao ?? "").trim(),
       };
     })
     .filter(
@@ -637,7 +834,66 @@ function parseGovernmentRecords(rows: MappedRow[], indexes: ColumnIndexes): Pars
         row.normalizedDataEmissao ||
         row.normalizedValor > 0,
     )
-    .filter((row) => !shouldExcludeSiegRecord(row.rawTags));
+    .filter((row) => !shouldExcludeSiegRecord(row.rawTags))
+    .filter((row) => !isCancelledStatus((row as ParsedRecord & { __situacao?: string }).__situacao))
+    .map((row) => {
+      const { __situacao: _ignored, ...cleanRow } = row as ParsedRecord & {
+        __situacao?: string;
+      };
+      return cleanRow;
+    });
+}
+
+function parseGovernmentWorkbook(workbook: XLSX.WorkBook): ParsedRecord[] {
+  let mainGovernmentRecords: ParsedRecord[] | null = null;
+  const cancellationLookups: CancellationLookup[] = [];
+
+  for (const sheetName of workbook.SheetNames) {
+    const worksheet = workbook.Sheets[sheetName];
+    if (!worksheet) continue;
+
+    const arrayRows = getRowsAsArrays(worksheet);
+    if (!arrayRows.length) continue;
+
+    const governmentHeaderRowIndex = detectHeaderRow(arrayRows, "government");
+    if (governmentHeaderRowIndex >= 0) {
+      const mappedRows = buildMappedRowsFromArrayRows(arrayRows, governmentHeaderRowIndex);
+      const headers = Object.keys(mappedRows[0] ?? {});
+      const governmentIndexes = tryMapGovernmentColumns(headers);
+
+      if (governmentIndexes && !mainGovernmentRecords) {
+        mainGovernmentRecords = parseGovernmentRecords(mappedRows, governmentIndexes);
+      }
+    }
+
+    const cancellationHeaderRowIndex = detectCancellationHeaderRow(arrayRows);
+    if (cancellationHeaderRowIndex >= 0) {
+      const cancellationMappedRows = buildMappedRowsFromArrayRows(
+        arrayRows,
+        cancellationHeaderRowIndex,
+      );
+      const cancellationHeaders = Object.keys(cancellationMappedRows[0] ?? {});
+      const cancellationIndexes = tryMapCancellationColumns(cancellationHeaders);
+
+      if (cancellationIndexes) {
+        cancellationLookups.push(
+          buildCancellationLookupFromRows(cancellationMappedRows, cancellationIndexes),
+        );
+      }
+    }
+  }
+
+  if (!mainGovernmentRecords) {
+    throw new Error(
+      "Na planilha do SIEG não encontrei uma aba válida com as colunas esperadas da conciliação.",
+    );
+  }
+
+  const mergedCancellationLookup = mergeCancellationLookups(cancellationLookups);
+
+  return mainGovernmentRecords.filter(
+    (record) => !isCancelledGovernmentRecord(record, mergedCancellationLookup),
+  );
 }
 
 export async function parseSpreadsheetFile(
@@ -646,6 +902,11 @@ export async function parseSpreadsheetFile(
 ): Promise<ParsedRecord[]> {
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { type: "array", cellDates: false });
+
+  if (kind === "government") {
+    return parseGovernmentWorkbook(workbook);
+  }
+
   const worksheet = getWorksheet(workbook);
   const arrayRows = getRowsAsArrays(worksheet);
   const headerRowIndex = detectHeaderRow(arrayRows, kind);
@@ -656,14 +917,9 @@ export async function parseSpreadsheetFile(
   }
 
   const headers = Object.keys(mappedRows[0] ?? {});
-  const indexes =
-    kind === "system"
-      ? mapSystemColumns(headers, mappedRows)
-      : mapGovernmentColumns(headers);
+  const indexes = mapSystemColumns(headers, mappedRows);
 
-  return kind === "system"
-    ? parseSystemRecords(mappedRows, indexes)
-    : parseGovernmentRecords(mappedRows, indexes);
+  return parseSystemRecords(mappedRows, indexes);
 }
 
 function resolveSupplierName(govRecord: ParsedRecord, systemRecord: ParsedRecord | null) {
@@ -716,8 +972,8 @@ export function compareReports(
     }
 
     const nfAndCnpjKey = getNFAndCNPJKey(record);
-    if (!systemByNFAndCNPJ.has(nfAndCnpjKey)) systemByNFAndCNPJ.set(nfAndCnpjKey, []);
-    systemByNFAndCNPJ.get(nfAndCnpjKey)!.push(record);
+    if (!systemByNFAndCNPJ.has(nfAndCNPJKey)) systemByNFAndCNPJ.set(nfAndCNPJKey, []);
+    systemByNFAndCNPJ.get(nfAndCNPJKey)!.push(record);
 
     const nfDateAndValueKey = getNFDateAndValueKey(record);
     if (!systemByNFDateAndValue.has(nfDateAndValueKey)) {
