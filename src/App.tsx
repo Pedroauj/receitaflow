@@ -9,7 +9,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
-import Cadastro from "./pages/Cadastro";
+
 import EsqueciSenha from "./pages/EsqueciSenha";
 import ResetPassword from "./pages/ResetPassword";
 import Index from "./pages/Index";
@@ -42,7 +42,7 @@ const App = () => {
               {/* Rotas públicas */}
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/cadastro" element={<Cadastro />} />
+              
               <Route path="/esqueci-senha" element={<EsqueciSenha />} />
               <Route path="/reset-password" element={<ResetPassword />} />
 
