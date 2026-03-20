@@ -81,6 +81,7 @@ const DashboardTopbar = () => {
           </div>
         </>
       )}
+      </div>
     </div>
   );
 };

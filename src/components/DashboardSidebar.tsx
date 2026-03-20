@@ -91,7 +91,7 @@ const DashboardSidebar = () => {
   const displayName = user?.user_metadata?.full_name || user?.email || "Usuário";
 
   return (
-    <aside className="fixed left-0 top-[48px] bottom-0 z-50 flex flex-col w-[240px] bg-sidebar border-r border-sidebar-border">
+    <aside className="fixed left-0 top-0 bottom-0 z-50 flex flex-col w-[240px] bg-sidebar border-r border-sidebar-border">
       <div className="flex h-full flex-col px-3 py-4">
 
         {/* Nav */}
