@@ -7,6 +7,7 @@ export type DivergenceType =
   | "Data divergente"
   | "NF divergente"
   | "CNPJ divergente"
+  | "CNPJ errado"
   | "Múltiplas divergências";
 
 export type ComparisonRow = {
@@ -206,6 +207,14 @@ function getNFAndCNPJKey(record: ParsedRecord) {
 function getCNPJDateAndValueKey(record: ParsedRecord) {
   return [
     record.normalizedCnpjPrestador,
+    record.normalizedDataEmissao,
+    record.normalizedValor.toFixed(2),
+  ].join("|");
+}
+
+function getNFDateAndValueKey(record: ParsedRecord) {
+  return [
+    record.normalizedNumeroNF,
     record.normalizedDataEmissao,
     record.normalizedValor.toFixed(2),
   ].join("|");
@@ -461,6 +470,7 @@ export function compareReports(
 
   const systemByNFAndCNPJ = new Map<string, ParsedRecord[]>();
   const systemByCNPJDateAndValue = new Map<string, ParsedRecord[]>();
+  const systemByNFDateAndValue = new Map<string, ParsedRecord[]>();
 
   systemRecords.forEach((record) => {
     const nfAndCnpjKey = getNFAndCNPJKey(record);
@@ -474,25 +484,66 @@ export function compareReports(
       systemByCNPJDateAndValue.set(cnpjDateAndValueKey, []);
     }
     systemByCNPJDateAndValue.get(cnpjDateAndValueKey)!.push(record);
+
+    const nfDateAndValueKey = getNFDateAndValueKey(record);
+    if (!systemByNFDateAndValue.has(nfDateAndValueKey)) {
+      systemByNFDateAndValue.set(nfDateAndValueKey, []);
+    }
+    systemByNFDateAndValue.get(nfDateAndValueKey)!.push(record);
   });
 
   governmentRecords.forEach((govRecord, index) => {
-    const key = getNFAndCNPJKey(govRecord);
-    const matches = systemByNFAndCNPJ.get(key) ?? [];
+    const nfAndCnpjKey = getNFAndCNPJKey(govRecord);
+    const matches = systemByNFAndCNPJ.get(nfAndCnpjKey) ?? [];
 
-    if (matches.length === 0) {
-      const nfDivergentKey = getCNPJDateAndValueKey(govRecord);
-      const nfDivergentMatches = systemByCNPJDateAndValue.get(nfDivergentKey) ?? [];
+    if (matches.length > 0) {
+      const exactRecord =
+        matches.find((item) => getCompositeKey(item) === getCompositeKey(govRecord)) ?? null;
 
-      if (nfDivergentMatches.length > 0) {
-        const bestNFMatch = nfDivergentMatches[0]!;
-
+      if (exactRecord) {
+        reconciled += 1;
         results.push(
           buildComparisonRow(
             govRecord,
-            bestNFMatch,
-            "NF divergente",
-            "Nota localizada no sistema pelo mesmo CNPJ, data de emissão e valor, porém com número da NF diferente.",
+            exactRecord,
+            "Lançada",
+            "Nota conciliada — registro idêntico encontrado no sistema.",
+            `${index + 1}`,
+          ),
+        );
+        return;
+      }
+
+      const sameDate = matches.some(
+        (item) => item.normalizedDataEmissao === govRecord.normalizedDataEmissao,
+      );
+
+      const sameValue = matches.some(
+        (item) => item.normalizedValor === govRecord.normalizedValor,
+      );
+
+      const bestMatch = matches[0]!;
+
+      if (!sameDate && !sameValue) {
+        results.push(
+          buildComparisonRow(
+            govRecord,
+            bestMatch,
+            "Múltiplas divergências",
+            "Nota localizada no sistema pelo mesmo número da NF e CNPJ, mas com divergência de data e valor.",
+            `${index + 1}`,
+          ),
+        );
+        return;
+      }
+
+      if (!sameDate) {
+        results.push(
+          buildComparisonRow(
+            govRecord,
+            bestMatch,
+            "Data divergente",
+            "Nota localizada no sistema pelo mesmo número da NF e CNPJ, porém com data de emissão diferente.",
             `${index + 1}`,
           ),
         );
@@ -502,67 +553,45 @@ export function compareReports(
       results.push(
         buildComparisonRow(
           govRecord,
-          null,
-          "Não lançada",
-          "Nota encontrada no governo e não localizada no sistema.",
-          `${index + 1}`,
-        ),
-      );
-      return;
-    }
-
-    const exactMatch = matches.some(
-      (item) => getCompositeKey(item) === getCompositeKey(govRecord),
-    );
-
-    if (exactMatch) {
-      reconciled += 1;
-      const exactRecord = matches.find(
-        (item) => getCompositeKey(item) === getCompositeKey(govRecord),
-      )!;
-
-      results.push(
-        buildComparisonRow(
-          govRecord,
-          exactRecord,
-          "Lançada",
-          "Nota conciliada — registro idêntico encontrado no sistema.",
-          `${index + 1}`,
-        ),
-      );
-      return;
-    }
-
-    const bestMatch = matches[0]!;
-
-    const sameDate = matches.some(
-      (item) => item.normalizedDataEmissao === govRecord.normalizedDataEmissao,
-    );
-
-    const sameValue = matches.some(
-      (item) => item.normalizedValor === govRecord.normalizedValor,
-    );
-
-    if (!sameDate && !sameValue) {
-      results.push(
-        buildComparisonRow(
-          govRecord,
           bestMatch,
-          "Múltiplas divergências",
-          "Nota localizada no sistema pelo mesmo número da NF e CNPJ, mas com divergência de data e valor.",
+          "Valor divergente",
+          "Nota localizada no sistema pelo mesmo número da NF e CNPJ, porém com valor diferente.",
           `${index + 1}`,
         ),
       );
       return;
     }
 
-    if (!sameDate) {
+    const nfDateAndValueKey = getNFDateAndValueKey(govRecord);
+    const cnpjErradoMatches = systemByNFDateAndValue.get(nfDateAndValueKey) ?? [];
+
+    if (cnpjErradoMatches.length > 0) {
+      const bestCnpjErradoMatch = cnpjErradoMatches[0]!;
+
       results.push(
         buildComparisonRow(
           govRecord,
-          bestMatch,
-          "Data divergente",
-          "Nota localizada no sistema pelo mesmo número da NF e CNPJ, porém com data de emissão diferente.",
+          bestCnpjErradoMatch,
+          "CNPJ errado",
+          "Nota localizada no sistema pelo mesmo número da NF, data de emissão e valor, porém com CNPJ diferente.",
+          `${index + 1}`,
+        ),
+      );
+      return;
+    }
+
+    const nfDivergentKey = getCNPJDateAndValueKey(govRecord);
+    const nfDivergentMatches = systemByCNPJDateAndValue.get(nfDivergentKey) ?? [];
+
+    if (nfDivergentMatches.length > 0) {
+      const bestNFMatch = nfDivergentMatches[0]!;
+
+      results.push(
+        buildComparisonRow(
+          govRecord,
+          bestNFMatch,
+          "NF divergente",
+          "Nota localizada no sistema pelo mesmo CNPJ, data de emissão e valor, porém com número da NF diferente.",
           `${index + 1}`,
         ),
       );
@@ -572,9 +601,9 @@ export function compareReports(
     results.push(
       buildComparisonRow(
         govRecord,
-        bestMatch,
-        "Valor divergente",
-        "Nota localizada no sistema pelo mesmo número da NF e CNPJ, porém com valor diferente.",
+        null,
+        "Não lançada",
+        "Nota encontrada no governo e não localizada no sistema.",
         `${index + 1}`,
       ),
     );
