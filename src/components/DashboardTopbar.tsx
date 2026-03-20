@@ -68,7 +68,7 @@ const DashboardTopbar = () => {
               <img
                 src={company.logo_url}
                 alt={company.name}
-                className="h-7 max-w-[120px] object-contain"
+                className="h-5 max-w-[90px] object-contain"
               />
             ) : (
               <span
