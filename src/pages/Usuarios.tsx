@@ -6,7 +6,7 @@ import { toast } from "@/hooks/use-toast";
 import {
   Users, Shield, ShieldOff, Search, ChevronDown, ChevronRight,
   Eye, Pencil, LayoutDashboard, History, Loader2, FileSearch, Building2, Settings, Fuel,
-  Plus, Upload, X, ImageIcon,
+  Plus, Upload, X, ImageIcon, Mail, UserPlus,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
