@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Hexagon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import logo from "@/assets/logo.png";
 
 interface Company {
   id: string;
