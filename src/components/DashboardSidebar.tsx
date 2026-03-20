@@ -97,14 +97,20 @@ const DashboardSidebar = () => {
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto space-y-5">
-          {navSections.map((section) => (
+          {navSections.map((section) => {
+            const visibleItems = section.items.filter(
+              (item) => !("masterOnly" in item && item.masterOnly) || isMaster
+            );
+            if (visibleItems.length === 0) return null;
+
+            return (
             <div key={section.label}>
               <p className="px-3 mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
                 {section.label}
               </p>
 
               <div className="space-y-1.5">
-                {section.items.map((item) => {
+                {visibleItems.map((item) => {
                   const active = isActive(item.path);
 
                   return (
