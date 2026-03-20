@@ -76,6 +76,19 @@ const Usuarios = () => {
   const [inviteCompany, setInviteCompany] = useState("");
   const [inviting, setInviting] = useState(false);
 
+  // Edit company
+  const [editingCompany, setEditingCompany] = useState<Company | null>(null);
+  const [editCompanyName, setEditCompanyName] = useState("");
+  const [editCompanyLogo, setEditCompanyLogo] = useState<File | null>(null);
+  const [editLogoPreview, setEditLogoPreview] = useState<string | null>(null);
+  const [savingCompany, setSavingCompany] = useState(false);
+  const editFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Delete company
+  const [deletingCompany, setDeletingCompany] = useState<Company | null>(null);
+  const [confirmDeleteName, setConfirmDeleteName] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
   // Tab
   const [activeTab, setActiveTab] = useState<"users" | "companies">("users");
 
