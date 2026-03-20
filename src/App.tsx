@@ -15,7 +15,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Index from "./pages/Index";
 import MartinBrower from "./pages/MartinBrower";
 import Historico from "./pages/Historico";
-import EmAndamento from "./pages/EmAndamento";
+
 import Clientes from "./pages/Clientes";
 import Configuracoes from "./pages/Configuracoes";
 import NotFound from "./pages/NotFound";
@@ -55,7 +55,7 @@ const App = () => {
               >
                 <Route path="/dashboard" element={<Index />} />
                 <Route path="/historico" element={<Historico />} />
-                <Route path="/em-andamento" element={<EmAndamento />} />
+                
                 <Route path="/clientes" element={<Clientes />} />
                 <Route path="/conciliacao" element={<Conciliacao />} />
                 <Route path="/configuracoes" element={<Configuracoes />} />
