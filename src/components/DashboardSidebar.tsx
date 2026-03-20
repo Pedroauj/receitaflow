@@ -32,6 +32,7 @@ const navSections = [
   {
     label: "Sistema",
     items: [
+      { title: "Usuários", icon: Users, path: "/usuarios" },
       { title: "Configurações", icon: Settings, path: "/configuracoes" },
     ],
   },
