@@ -55,7 +55,7 @@ const App = () => {
               >
                 <Route path="/dashboard" element={<Index />} />
                 <Route path="/historico" element={<Historico />} />
-                <Route path="/em-andamento" element={<EmAndamento />} />
+                
                 <Route path="/clientes" element={<Clientes />} />
                 <Route path="/conciliacao" element={<Conciliacao />} />
                 <Route path="/configuracoes" element={<Configuracoes />} />

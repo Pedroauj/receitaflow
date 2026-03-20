@@ -30,7 +30,6 @@ const navSections: { label: string; items: NavItem[] }[] = [
     items: [
       { title: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
       { title: "Histórico", icon: History, path: "/historico", showBadge: true },
-      { title: "Em andamento", icon: Loader2, path: "/em-andamento" },
     ],
   },
   {
