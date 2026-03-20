@@ -590,23 +590,42 @@ const Usuarios = () => {
           {/* Companies list */}
           <div className="rounded-xl border border-border overflow-hidden">
             <div className="divide-y divide-border/50">
-              {companies.map((company) => (
-                <div key={company.id} className="flex items-center gap-4 px-5 py-4 hover:bg-accent/30 transition-colors">
-                  <div className="h-10 w-10 rounded-lg border border-border bg-background flex items-center justify-center overflow-hidden shrink-0">
-                    {company.logo_url ? (
-                      <img src={company.logo_url} alt={company.name} className="h-full w-full object-contain p-1" />
-                    ) : (
-                      <ImageIcon className="h-4 w-4 text-muted-foreground" />
-                    )}
+              {companies.map((company) => {
+                const userCount = profiles.filter((p) => p.company_id === company.id).length;
+                return (
+                  <div key={company.id} className="flex items-center gap-4 px-5 py-4 hover:bg-accent/30 transition-colors group">
+                    <div className="h-10 w-10 rounded-lg border border-border bg-background flex items-center justify-center overflow-hidden shrink-0">
+                      {company.logo_url ? (
+                        <img src={company.logo_url} alt={company.name} className="h-full w-full object-contain p-1" />
+                      ) : (
+                        <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{company.name}</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        {userCount} usuário{userCount !== 1 ? "s" : ""}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => startEditCompany(company)}
+                        className="p-2 rounded-lg hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-colors"
+                        title="Editar empresa"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={() => setDeletingCompany(company)}
+                        className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                        title="Excluir empresa"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{company.name}</p>
-                    <p className="text-[11px] text-muted-foreground">
-                      {profiles.filter((p) => p.company_id === company.id).length} usuário(s)
-                    </p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
               {companies.length === 0 && (
                 <div className="px-5 py-12 text-center text-sm text-muted-foreground">
                   Nenhuma empresa cadastrada.
@@ -614,6 +633,142 @@ const Usuarios = () => {
               )}
             </div>
           </div>
+
+          {/* Edit company modal */}
+          <AnimatePresence>
+            {editingCompany && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
+                onClick={() => setEditingCompany(null)}
+              >
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                  transition={{ duration: 0.2 }}
+                  className="w-full max-w-md rounded-xl border border-border bg-card p-6 space-y-4 shadow-xl"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-semibold text-foreground">Editar empresa</h3>
+                    <button onClick={() => setEditingCompany(null)} className="text-muted-foreground hover:text-foreground">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-[11px] text-muted-foreground">Nome</Label>
+                    <Input
+                      value={editCompanyName}
+                      onChange={(e) => setEditCompanyName(e.target.value)}
+                      className="h-9 border-border bg-background text-sm"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-[11px] text-muted-foreground">Logo</Label>
+                    <input
+                      ref={editFileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleEditLogoSelect}
+                      className="hidden"
+                    />
+                    {editLogoPreview ? (
+                      <div className="flex items-center gap-3">
+                        <div className="h-12 w-24 rounded-lg border border-border bg-background flex items-center justify-center overflow-hidden">
+                          <img src={editLogoPreview} alt="Preview" className="h-full object-contain" />
+                        </div>
+                        <button
+                          onClick={() => { setEditCompanyLogo(null); setEditLogoPreview(null); }}
+                          className="text-xs text-muted-foreground hover:text-foreground"
+                        >
+                          Remover
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => editFileInputRef.current?.click()}
+                        className="flex items-center gap-2 h-12 w-full rounded-lg border border-dashed border-border bg-background hover:bg-accent/30 transition-colors px-4 text-sm text-muted-foreground"
+                      >
+                        <Upload className="h-4 w-4" />
+                        Fazer upload do logo
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-2">
+                    <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => setEditingCompany(null)}>
+                      Cancelar
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="gradient-btn border-0 h-8 text-xs"
+                      onClick={saveCompany}
+                      disabled={savingCompany || !editCompanyName.trim()}
+                    >
+                      {savingCompany ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> Salvando...</> : "Salvar"}
+                    </Button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Delete company confirmation modal */}
+          <AnimatePresence>
+            {deletingCompany && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
+                onClick={() => { setDeletingCompany(null); setConfirmDeleteName(""); }}
+              >
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                  transition={{ duration: 0.2 }}
+                  className="w-full max-w-sm rounded-xl border border-border bg-card p-6 space-y-4 shadow-xl"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <h3 className="text-sm font-semibold text-foreground">Excluir empresa</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Esta ação é irreversível. Todos os usuários vinculados a <span className="font-semibold text-foreground">{deletingCompany.name}</span> serão desvinculados.
+                  </p>
+                  <div className="space-y-2">
+                    <Label className="text-[11px] text-muted-foreground">
+                      Digite <span className="font-semibold text-foreground">{deletingCompany.name}</span> para confirmar
+                    </Label>
+                    <Input
+                      value={confirmDeleteName}
+                      onChange={(e) => setConfirmDeleteName(e.target.value)}
+                      placeholder={deletingCompany.name}
+                      className="h-9 border-border bg-background text-sm"
+                    />
+                  </div>
+                  <div className="flex justify-end gap-2 pt-2">
+                    <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => { setDeletingCompany(null); setConfirmDeleteName(""); }}>
+                      Cancelar
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="h-8 text-xs"
+                      onClick={deleteCompany}
+                      disabled={deleting || confirmDeleteName !== deletingCompany.name}
+                    >
+                      {deleting ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> Excluindo...</> : "Excluir empresa"}
+                    </Button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       )}
 
