@@ -141,7 +141,8 @@ const DashboardSidebar = () => {
                 })}
               </div>
             </div>
-          ))}
+            );
+          })}
         </nav>
 
         {/* Footer */}
