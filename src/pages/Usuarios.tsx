@@ -3,8 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
-import { Users, Shield, ShieldOff, Search } from "lucide-react";
-import { motion } from "framer-motion";
+import {
+  Users, Shield, ShieldOff, Search, ChevronDown, ChevronRight,
+  Eye, Pencil, LayoutDashboard, History, Loader2, FileSearch, Building2, Settings,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Profile {
   id: string;
@@ -17,6 +20,23 @@ interface Profile {
   created_at: string;
 }
 
+interface ModulePermission {
+  id: string;
+  user_id: string;
+  module_key: string;
+  can_view: boolean;
+  can_edit: boolean;
+}
+
+const MODULES = [
+  { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { key: "historico", label: "Histórico", icon: History },
+  { key: "em-andamento", label: "Em andamento", icon: Loader2 },
+  { key: "conciliacao", label: "Conciliação", icon: FileSearch },
+  { key: "clientes", label: "Clientes", icon: Building2 },
+  { key: "configuracoes", label: "Configurações", icon: Settings },
+];
+
 const Usuarios = () => {
   const { user } = useAuth();
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -24,6 +44,9 @@ const Usuarios = () => {
   const [isMaster, setIsMaster] = useState<boolean | null>(null);
   const [search, setSearch] = useState("");
   const [updating, setUpdating] = useState<string | null>(null);
+  const [expandedUser, setExpandedUser] = useState<string | null>(null);
+  const [permissions, setPermissions] = useState<Record<string, ModulePermission[]>>({});
+  const [permLoading, setPermLoading] = useState<string | null>(null);
 
   useEffect(() => {
     checkMasterAndLoad();
@@ -31,7 +54,6 @@ const Usuarios = () => {
 
   const checkMasterAndLoad = async () => {
     if (!user) return;
-
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
@@ -43,7 +65,6 @@ const Usuarios = () => {
       setLoading(false);
       return;
     }
-
     setIsMaster(true);
     await loadProfiles();
   };
@@ -61,6 +82,84 @@ const Usuarios = () => {
       setProfiles(data || []);
     }
     setLoading(false);
+  };
+
+  const loadPermissions = async (userId: string) => {
+    if (permissions[userId]) return;
+    setPermLoading(userId);
+    const { data, error } = await supabase
+      .from("user_module_permissions")
+      .select("*")
+      .eq("user_id", userId);
+
+    if (!error) {
+      setPermissions((prev) => ({ ...prev, [userId]: data || [] }));
+    }
+    setPermLoading(null);
+  };
+
+  const toggleExpand = async (profile: Profile) => {
+    if (expandedUser === profile.user_id) {
+      setExpandedUser(null);
+    } else {
+      setExpandedUser(profile.user_id);
+      await loadPermissions(profile.user_id);
+    }
+  };
+
+  const togglePermission = async (
+    userId: string,
+    moduleKey: string,
+    field: "can_view" | "can_edit",
+  ) => {
+    const userPerms = permissions[userId] || [];
+    const existing = userPerms.find((p) => p.module_key === moduleKey);
+
+    if (existing) {
+      const newVal = !existing[field];
+      // If turning off view, also turn off edit
+      const updates: Partial<ModulePermission> =
+        field === "can_view" && !newVal
+          ? { can_view: false, can_edit: false }
+          : { [field]: newVal };
+
+      const { error } = await supabase
+        .from("user_module_permissions")
+        .update(updates)
+        .eq("id", existing.id);
+
+      if (error) {
+        toast({ title: "Erro", description: error.message, variant: "destructive" });
+        return;
+      }
+      setPermissions((prev) => ({
+        ...prev,
+        [userId]: prev[userId].map((p) =>
+          p.id === existing.id ? { ...p, ...updates } : p
+        ),
+      }));
+    } else {
+      const newPerm = {
+        user_id: userId,
+        module_key: moduleKey,
+        can_view: field === "can_view",
+        can_edit: field === "can_edit",
+      };
+      const { data, error } = await supabase
+        .from("user_module_permissions")
+        .insert(newPerm)
+        .select()
+        .single();
+
+      if (error) {
+        toast({ title: "Erro", description: error.message, variant: "destructive" });
+        return;
+      }
+      setPermissions((prev) => ({
+        ...prev,
+        [userId]: [...(prev[userId] || []), data],
+      }));
+    }
   };
 
   const toggleRole = async (profile: Profile) => {
@@ -109,9 +208,12 @@ const Usuarios = () => {
       (p.display_name?.toLowerCase() || "").includes(search.toLowerCase())
   );
 
+  const getPermission = (userId: string, moduleKey: string) => {
+    return (permissions[userId] || []).find((p) => p.module_key === moduleKey);
+  };
+
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <h1 className="text-xl font-semibold text-foreground">Gestão de Usuários</h1>
         <p className="text-sm text-muted-foreground mt-1">
@@ -119,7 +221,6 @@ const Usuarios = () => {
         </p>
       </div>
 
-      {/* Search + count */}
       <div className="flex items-center justify-between gap-4">
         <div className="relative max-w-xs flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -136,7 +237,6 @@ const Usuarios = () => {
         </span>
       </div>
 
-      {/* Table */}
       {loading ? (
         <div className="flex items-center justify-center py-20">
           <div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -152,6 +252,7 @@ const Usuarios = () => {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border bg-muted/30">
+                  <th className="w-8 px-2 py-3" />
                   <th className="text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground px-4 py-3">
                     Usuário
                   </th>
@@ -172,6 +273,7 @@ const Usuarios = () => {
               <tbody>
                 {filtered.map((profile) => {
                   const isSelf = profile.email === "pedraljoao5@gmail.com";
+                  const isExpanded = expandedUser === profile.user_id;
                   const initials = (profile.full_name || profile.display_name || profile.email || "U")
                     .split(" ")
                     .map((n) => n[0])
@@ -180,95 +282,196 @@ const Usuarios = () => {
                     .toUpperCase();
 
                   return (
-                    <tr
-                      key={profile.id}
-                      className="border-b border-border/50 last:border-0 hover:bg-accent/30 transition-colors duration-150"
-                    >
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-[11px] font-semibold text-primary">
-                            {initials}
+                    <>
+                      <tr
+                        key={profile.id}
+                        className="border-b border-border/50 last:border-0 hover:bg-accent/30 transition-colors duration-150"
+                      >
+                        <td className="px-2 py-3">
+                          <button
+                            type="button"
+                            onClick={() => toggleExpand(profile)}
+                            className="flex items-center justify-center h-6 w-6 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                          >
+                            {isExpanded ? (
+                              <ChevronDown className="h-3.5 w-3.5" />
+                            ) : (
+                              <ChevronRight className="h-3.5 w-3.5" />
+                            )}
+                          </button>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-[11px] font-semibold text-primary">
+                              {initials}
+                            </div>
+                            <span className="text-sm font-medium text-foreground">
+                              {profile.full_name || profile.display_name || "—"}
+                            </span>
                           </div>
-                          <span className="text-sm font-medium text-foreground">
-                            {profile.full_name || profile.display_name || "—"}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-muted-foreground">
+                          {profile.email || "—"}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium ${
+                              profile.role === "master"
+                                ? "bg-primary/15 text-primary"
+                                : "bg-muted text-muted-foreground"
+                            }`}
+                          >
+                            {profile.role === "master" ? (
+                              <Shield className="h-3 w-3" />
+                            ) : (
+                              <Users className="h-3 w-3" />
+                            )}
+                            {profile.role === "master" ? "Admin" : "Usuário"}
                           </span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-muted-foreground">
-                        {profile.email || "—"}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium ${
-                            profile.role === "master"
-                              ? "bg-primary/15 text-primary"
-                              : "bg-muted text-muted-foreground"
-                          }`}
-                        >
-                          {profile.role === "master" ? (
-                            <Shield className="h-3 w-3" />
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <span
+                            className={`inline-flex px-2.5 py-1 rounded-md text-[11px] font-medium ${
+                              profile.active
+                                ? "bg-emerald-500/15 text-emerald-400"
+                                : "bg-red-500/15 text-red-400"
+                            }`}
+                          >
+                            {profile.active ? "Ativo" : "Inativo"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          {isSelf ? (
+                            <span className="text-[11px] text-muted-foreground/50 flex justify-center">
+                              Protegido
+                            </span>
                           ) : (
-                            <Users className="h-3 w-3" />
+                            <div className="flex items-center justify-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => toggleRole(profile)}
+                                disabled={updating === profile.id}
+                                className="h-7 px-2.5 rounded-md text-[11px] font-medium border border-border text-muted-foreground hover:text-foreground hover:bg-accent transition-colors disabled:opacity-50"
+                                title={
+                                  profile.role === "master"
+                                    ? "Rebaixar para Usuário"
+                                    : "Promover a Admin"
+                                }
+                              >
+                                {profile.role === "master" ? (
+                                  <ShieldOff className="h-3.5 w-3.5" />
+                                ) : (
+                                  <Shield className="h-3.5 w-3.5" />
+                                )}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => toggleActive(profile)}
+                                disabled={updating === profile.id}
+                                className={`h-7 px-2.5 rounded-md text-[11px] font-medium border transition-colors disabled:opacity-50 ${
+                                  profile.active
+                                    ? "border-red-500/30 text-red-400 hover:bg-red-500/10"
+                                    : "border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+                                }`}
+                              >
+                                {profile.active ? "Desativar" : "Ativar"}
+                              </button>
+                            </div>
                           )}
-                          {profile.role === "master" ? "Admin" : "Usuário"}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <span
-                          className={`inline-flex px-2.5 py-1 rounded-md text-[11px] font-medium ${
-                            profile.active
-                              ? "bg-emerald-500/15 text-emerald-400"
-                              : "bg-red-500/15 text-red-400"
-                          }`}
-                        >
-                          {profile.active ? "Ativo" : "Inativo"}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        {isSelf ? (
-                          <span className="text-[11px] text-muted-foreground/50 flex justify-center">
-                            Protegido
-                          </span>
-                        ) : (
-                          <div className="flex items-center justify-center gap-2">
-                            <button
-                              type="button"
-                              onClick={() => toggleRole(profile)}
-                              disabled={updating === profile.id}
-                              className="h-7 px-2.5 rounded-md text-[11px] font-medium border border-border text-muted-foreground hover:text-foreground hover:bg-accent transition-colors disabled:opacity-50"
-                              title={
-                                profile.role === "master"
-                                  ? "Rebaixar para Usuário"
-                                  : "Promover a Admin"
-                              }
-                            >
-                              {profile.role === "master" ? (
-                                <ShieldOff className="h-3.5 w-3.5" />
-                              ) : (
-                                <Shield className="h-3.5 w-3.5" />
-                              )}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => toggleActive(profile)}
-                              disabled={updating === profile.id}
-                              className={`h-7 px-2.5 rounded-md text-[11px] font-medium border transition-colors disabled:opacity-50 ${
-                                profile.active
-                                  ? "border-red-500/30 text-red-400 hover:bg-red-500/10"
-                                  : "border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
-                              }`}
-                            >
-                              {profile.active ? "Desativar" : "Ativar"}
-                            </button>
-                          </div>
+                        </td>
+                      </tr>
+
+                      {/* Permissions panel */}
+                      <AnimatePresence>
+                        {isExpanded && (
+                          <tr key={`perm-${profile.id}`}>
+                            <td colSpan={6} className="p-0">
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.2 }}
+                                className="overflow-hidden"
+                              >
+                                <div className="px-6 py-4 bg-muted/20 border-b border-border/50">
+                                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground mb-3">
+                                    Permissões por módulo
+                                  </p>
+
+                                  {permLoading === profile.user_id ? (
+                                    <div className="flex items-center gap-2 py-3 text-sm text-muted-foreground">
+                                      <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                                      Carregando...
+                                    </div>
+                                  ) : (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                                      {MODULES.map((mod) => {
+                                        const perm = getPermission(profile.user_id, mod.key);
+                                        const canView = perm?.can_view ?? false;
+                                        const canEdit = perm?.can_edit ?? false;
+
+                                        return (
+                                          <div
+                                            key={mod.key}
+                                            className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg border border-border/50 bg-card"
+                                          >
+                                            <div className="flex items-center gap-2.5 min-w-0">
+                                              <mod.icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                                              <span className="text-[12px] font-medium text-foreground truncate">
+                                                {mod.label}
+                                              </span>
+                                            </div>
+
+                                            <div className="flex items-center gap-1.5 shrink-0">
+                                              <button
+                                                type="button"
+                                                onClick={() =>
+                                                  togglePermission(profile.user_id, mod.key, "can_view")
+                                                }
+                                                className={`flex items-center gap-1 h-6 px-2 rounded text-[10px] font-medium transition-colors ${
+                                                  canView
+                                                    ? "bg-primary/15 text-primary"
+                                                    : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                                                }`}
+                                                title="Visualizar"
+                                              >
+                                                <Eye className="h-3 w-3" />
+                                                Ver
+                                              </button>
+                                              <button
+                                                type="button"
+                                                onClick={() =>
+                                                  togglePermission(profile.user_id, mod.key, "can_edit")
+                                                }
+                                                disabled={!canView}
+                                                className={`flex items-center gap-1 h-6 px-2 rounded text-[10px] font-medium transition-colors disabled:opacity-30 ${
+                                                  canEdit
+                                                    ? "bg-emerald-500/15 text-emerald-400"
+                                                    : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                                                }`}
+                                                title="Editar"
+                                              >
+                                                <Pencil className="h-3 w-3" />
+                                                Editar
+                                              </button>
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
+                                </div>
+                              </motion.div>
+                            </td>
+                          </tr>
                         )}
-                      </td>
-                    </tr>
+                      </AnimatePresence>
+                    </>
                   );
                 })}
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-4 py-12 text-center text-sm text-muted-foreground">
+                    <td colSpan={6} className="px-4 py-12 text-center text-sm text-muted-foreground">
                       Nenhum usuário encontrado.
                     </td>
                   </tr>
