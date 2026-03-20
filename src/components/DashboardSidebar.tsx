@@ -6,16 +6,15 @@ import {
   FileSearch,
   History,
   LayoutDashboard,
-  Loader2,
   LogOut,
   Settings,
   Users,
   Shield,
+  X,
 } from "lucide-react";
 import { getRecords } from "@/lib/history";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import logo from "@/assets/logo.png";
 
 interface NavItem {
   title: string;
@@ -50,7 +49,12 @@ const navSections: { label: string; items: NavItem[] }[] = [
   },
 ];
 
-const DashboardSidebar = () => {
+interface DashboardSidebarProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut } = useAuth();
@@ -69,6 +73,11 @@ const DashboardSidebar = () => {
       });
   }, [user]);
 
+  // Close sidebar on route change (mobile)
+  useEffect(() => {
+    onClose();
+  }, [location.pathname]);
+
   const isActive = (path: string) => {
     if (path === "/dashboard") return location.pathname === "/dashboard";
     return location.pathname.startsWith(path);
@@ -77,6 +86,10 @@ const DashboardSidebar = () => {
   const handleLogout = async () => {
     await signOut();
     navigate("/login", { replace: true });
+  };
+
+  const handleNavigate = (path: string) => {
+    navigate(path);
   };
 
   const initials = user?.user_metadata?.full_name
@@ -90,19 +103,27 @@ const DashboardSidebar = () => {
 
   const displayName = user?.user_metadata?.full_name || user?.email || "Usuário";
 
-  return (
-    <aside className="fixed left-0 top-0 bottom-0 z-50 flex flex-col w-[240px] bg-sidebar border-r border-sidebar-border">
-      <div className="flex h-full flex-col px-3 py-4">
+  const sidebarContent = (
+    <div className="flex h-full flex-col px-3 py-4">
+      {/* Close button - mobile only */}
+      <div className="flex items-center justify-end mb-2 md:hidden">
+        <button
+          onClick={onClose}
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
 
-        {/* Nav */}
-        <nav className="flex-1 overflow-y-auto space-y-5">
-          {navSections.map((section) => {
-            const visibleItems = section.items.filter(
-              (item) => !("masterOnly" in item && item.masterOnly) || isMaster
-            );
-            if (visibleItems.length === 0) return null;
+      {/* Nav */}
+      <nav className="flex-1 overflow-y-auto space-y-5">
+        {navSections.map((section) => {
+          const visibleItems = section.items.filter(
+            (item) => !("masterOnly" in item && item.masterOnly) || isMaster
+          );
+          if (visibleItems.length === 0) return null;
 
-            return (
+          return (
             <div key={section.label}>
               <p className="px-3 mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
                 {section.label}
@@ -116,7 +137,7 @@ const DashboardSidebar = () => {
                     <button
                       key={item.path}
                       type="button"
-                      onClick={() => navigate(item.path)}
+                      onClick={() => handleNavigate(item.path)}
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[13px] font-medium transition-all duration-150 ${
                         active
                           ? "bg-accent text-foreground"
@@ -140,33 +161,54 @@ const DashboardSidebar = () => {
                 })}
               </div>
             </div>
-            );
-          })}
-        </nav>
+          );
+        })}
+      </nav>
 
-        {/* Footer */}
-        <div className="mt-4 pt-4 border-t border-border">
-          <div className="flex items-center gap-2.5 px-2">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-[11px] font-semibold text-primary">
-              {initials}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[12px] font-medium text-foreground">
-                {displayName}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground hover:bg-accent"
-              title="Sair"
-            >
-              <LogOut className="h-3.5 w-3.5" />
-            </button>
+      {/* Footer */}
+      <div className="mt-4 pt-4 border-t border-border">
+        <div className="flex items-center gap-2.5 px-2">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-[11px] font-semibold text-primary">
+            {initials}
           </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[12px] font-medium text-foreground">
+              {displayName}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground hover:bg-accent"
+            title="Sair"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+          </button>
         </div>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <aside className="hidden md:flex fixed left-0 top-0 bottom-0 z-50 flex-col w-[240px] bg-sidebar border-r border-sidebar-border">
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile overlay */}
+      {open && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={onClose}
+          />
+          <aside className="absolute left-0 top-0 bottom-0 w-[280px] bg-sidebar border-r border-sidebar-border animate-in slide-in-from-left duration-200">
+            {sidebarContent}
+          </aside>
+        </div>
+      )}
+    </>
   );
 };
 
