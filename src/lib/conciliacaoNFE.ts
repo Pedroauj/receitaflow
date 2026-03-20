@@ -508,6 +508,9 @@ function mapGovernmentColumns(headers: string[]): ColumnIndexes {
     "Nome Fant. Emit",
   ]);
   const tagsIndex = findColumnIndex(headers, ["Tags"]);
+  const statusIndex = findColumnIndex(headers, [
+    "Situação", "Situacao", "Status", "Situação da NF", "Situacao da NF", "Sit",
+  ]);
 
   const missing: string[] = [];
   if (chaveIndex === -1) missing.push("Chave da NFe");
@@ -533,6 +536,7 @@ function mapGovernmentColumns(headers: string[]): ColumnIndexes {
     fornecedorIndex,
     tagsIndex,
     tipoIndex: -1,
+    statusIndex,
   };
 }
 
