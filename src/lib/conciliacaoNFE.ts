@@ -480,6 +480,7 @@ function mapSystemColumns(headers: string[], rows: MappedRow[]): ColumnIndexes {
     cnpjIndex,
     fornecedorIndex,
     tipoIndex,
+    statusIndex: -1,
   });
 
   return {
@@ -491,6 +492,7 @@ function mapSystemColumns(headers: string[], rows: MappedRow[]): ColumnIndexes {
     fornecedorIndex,
     tagsIndex: -1,
     tipoIndex,
+    statusIndex: -1,
   };
 }
 
