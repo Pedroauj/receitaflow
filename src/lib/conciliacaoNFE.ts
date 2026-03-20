@@ -600,8 +600,18 @@ function parseSystemRecords(rows: MappedRow[], indexes: ColumnIndexes): ParsedRe
     .filter((row) => row.normalizedChave.length > 0);
 }
 
+function isCanceledRecord(values: unknown[], statusIndex: number): boolean {
+  if (statusIndex < 0) return false;
+  const status = String(values[statusIndex] ?? "").trim().toLowerCase();
+  return status.includes("cancel");
+}
+
 function parseGovernmentRecords(rows: MappedRow[], indexes: ColumnIndexes): ParsedRecord[] {
   return rows
+    .filter((row) => {
+      if (!IGNORE_CANCELED_NOTES) return true;
+      return !isCanceledRecord(getRowValues(row), indexes.statusIndex);
+    })
     .map((row) => {
       const values = getRowValues(row);
 
