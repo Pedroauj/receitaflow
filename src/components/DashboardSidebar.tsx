@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Building2,
@@ -11,9 +12,18 @@ import {
 } from "lucide-react";
 import { getRecords } from "@/lib/history";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 
-const navSections = [
+interface NavItem {
+  title: string;
+  icon: typeof LayoutDashboard;
+  path: string;
+  showBadge?: boolean;
+  masterOnly?: boolean;
+}
+
+const navSections: { label: string; items: NavItem[] }[] = [
   {
     label: "Visão geral",
     items: [
@@ -32,7 +42,7 @@ const navSections = [
   {
     label: "Sistema",
     items: [
-      { title: "Usuários", icon: Users, path: "/usuarios" },
+      { title: "Usuários", icon: Users, path: "/usuarios", masterOnly: true },
       { title: "Configurações", icon: Settings, path: "/configuracoes" },
     ],
   },
@@ -43,6 +53,15 @@ const DashboardSidebar = () => {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const historyCount = getRecords().length;
+  const [isMaster, setIsMaster] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      supabase.rpc("is_master", { _user_id: user.id }).then(({ data }) => {
+        setIsMaster(!!data);
+      });
+    }
+  }, [user]);
 
   const isActive = (path: string) => {
     if (path === "/dashboard") return location.pathname === "/dashboard";
