@@ -73,6 +73,8 @@ type ColumnIndexes = {
   statusIndex: number;
 };
 
+const IGNORE_CANCELED_NOTES = true;
+
 const EXCLUDED_SIEG_TAGS = new Set([
   "remessa para conserto",
   "nfe entrada",
