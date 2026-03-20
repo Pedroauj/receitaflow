@@ -18,6 +18,7 @@ import Historico from "./pages/Historico";
 import EmAndamento from "./pages/EmAndamento";
 import Clientes from "./pages/Clientes";
 import Configuracoes from "./pages/Configuracoes";
+import Usuarios from "./pages/Usuarios";
 import NotFound from "./pages/NotFound";
 import ClientePlaceholder from "./pages/ClientePlaceholder";
 import Natura from "./pages/Natura";
