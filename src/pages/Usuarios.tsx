@@ -307,6 +307,33 @@ const Usuarios = () => {
     setCreatingCompany(false);
   };
 
+  const inviteUser = async () => {
+    if (!inviteEmail.trim() || !inviteEmail.includes("@")) {
+      toast({ title: "Email inválido", variant: "destructive" });
+      return;
+    }
+    setInviting(true);
+    const { data, error } = await supabase.functions.invoke("invite-user", {
+      body: { email: inviteEmail.trim(), company_id: inviteCompany || null },
+    });
+
+    if (error || data?.error) {
+      toast({
+        title: "Erro ao convidar",
+        description: data?.error || error?.message || "Erro desconhecido",
+        variant: "destructive",
+      });
+    } else {
+      toast({ title: "Convite enviado!", description: `Email enviado para ${inviteEmail.trim()}` });
+      setInviteEmail("");
+      setInviteCompany("");
+      setShowInvite(false);
+      // Reload profiles after a brief delay for the trigger
+      setTimeout(() => loadProfiles(), 2000);
+    }
+    setInviting(false);
+  };
+
   if (isMaster === false) return <Navigate to="/dashboard" replace />;
 
   const filtered = profiles.filter(
