@@ -39,10 +39,15 @@ const DashboardTopbar = () => {
   }, [user]);
 
   return (
-    <div
-      className="h-12 border-b border-border flex items-center px-6 shrink-0"
-      style={{ background: "#1E1E20" }}
-    >
+    <div className="sticky top-0 z-50 px-4 pt-3 pb-0 ml-[240px]">
+      <div
+        className="h-11 rounded-2xl border border-white/[0.06] flex items-center px-5 shadow-lg shadow-black/20"
+        style={{
+          background: "rgba(30, 30, 32, 0.7)",
+          backdropFilter: "blur(16px) saturate(1.4)",
+          WebkitBackdropFilter: "blur(16px) saturate(1.4)",
+        }}
+      >
       {/* ReceitaFlow branding */}
       <div className="flex items-center gap-2">
         <img src={logo} alt="ReceitaFlow" className="h-7 w-7 rounded-md" />
