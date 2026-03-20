@@ -69,6 +69,7 @@ const DashboardTopbar = () => {
                 src={company.logo_url}
                 alt={company.name}
                 className="h-7 max-w-[120px] object-contain"
+                style={{ mixBlendMode: "lighten" }}
               />
             ) : (
               <span
