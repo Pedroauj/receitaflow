@@ -25,6 +25,7 @@ import Natura from "./pages/Natura";
 import Danone from "@/pages/Danone";
 import Platlog from "@/pages/Platlog";
 import Conciliacao from "./pages/Conciliacao";
+import Abastecimento from "./pages/Abastecimento";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +59,7 @@ const App = () => {
                 
                 <Route path="/clientes" element={<Clientes />} />
                 <Route path="/conciliacao" element={<Conciliacao />} />
+                <Route path="/abastecimento" element={<Abastecimento />} />
                 <Route path="/configuracoes" element={<Configuracoes />} />
                 <Route path="/usuarios" element={<Usuarios />} />
 

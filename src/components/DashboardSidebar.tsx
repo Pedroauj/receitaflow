@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
   Building2,
+  Fuel,
   FileSearch,
   History,
   LayoutDashboard,
@@ -36,6 +37,7 @@ const navSections: { label: string; items: NavItem[] }[] = [
     label: "Operação",
     items: [
       { title: "Conciliação", icon: FileSearch, path: "/conciliacao" },
+      { title: "Abastecimento", icon: Fuel, path: "/abastecimento" },
       { title: "Clientes", icon: Building2, path: "/clientes" },
     ],
   },
