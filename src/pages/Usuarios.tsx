@@ -70,6 +70,12 @@ const Usuarios = () => {
   const [creatingCompany, setCreatingCompany] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Invite
+  const [showInvite, setShowInvite] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteCompany, setInviteCompany] = useState("");
+  const [inviting, setInviting] = useState(false);
+
   // Tab
   const [activeTab, setActiveTab] = useState<"users" | "companies">("users");
 
