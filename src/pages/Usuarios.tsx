@@ -320,6 +320,93 @@ const Usuarios = () => {
     setCreatingCompany(false);
   };
 
+  const startEditCompany = (company: Company) => {
+    setEditingCompany(company);
+    setEditCompanyName(company.name);
+    setEditLogoPreview(company.logo_url);
+    setEditCompanyLogo(null);
+  };
+
+  const handleEditLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setEditCompanyLogo(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setEditLogoPreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const saveCompany = async () => {
+    if (!editingCompany || !editCompanyName.trim()) return;
+    setSavingCompany(true);
+
+    let logoUrl = editingCompany.logo_url;
+
+    if (editCompanyLogo) {
+      const ext = editCompanyLogo.name.split(".").pop();
+      const path = `${crypto.randomUUID()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("company-logos")
+        .upload(path, editCompanyLogo);
+
+      if (uploadError) {
+        toast({ title: "Erro ao enviar logo", description: uploadError.message, variant: "destructive" });
+        setSavingCompany(false);
+        return;
+      }
+      const { data: urlData } = supabase.storage.from("company-logos").getPublicUrl(path);
+      logoUrl = urlData.publicUrl;
+    } else if (editLogoPreview === null) {
+      logoUrl = null;
+    }
+
+    const { error } = await supabase
+      .from("companies")
+      .update({ name: editCompanyName.trim(), logo_url: logoUrl })
+      .eq("id", editingCompany.id);
+
+    if (error) {
+      toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Empresa atualizada!" });
+      setEditingCompany(null);
+      await loadCompanies();
+    }
+    setSavingCompany(false);
+  };
+
+  const deleteCompany = async () => {
+    if (!deletingCompany) return;
+    setDeleting(true);
+
+    // Unlink users from this company first
+    const { error: unlinkError } = await supabase
+      .from("profiles")
+      .update({ company_id: null } as any)
+      .eq("company_id", deletingCompany.id);
+
+    if (unlinkError) {
+      toast({ title: "Erro ao desvincular usuários", description: unlinkError.message, variant: "destructive" });
+      setDeleting(false);
+      return;
+    }
+
+    const { error } = await supabase
+      .from("companies")
+      .delete()
+      .eq("id", deletingCompany.id);
+
+    if (error) {
+      toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Empresa excluída!" });
+      setDeletingCompany(null);
+      setConfirmDeleteName("");
+      await Promise.all([loadCompanies(), loadProfiles()]);
+    }
+    setDeleting(false);
+  };
+
   const inviteUser = async () => {
     if (!inviteEmail.trim() || !inviteEmail.includes("@")) {
       toast({ title: "Email inválido", variant: "destructive" });
