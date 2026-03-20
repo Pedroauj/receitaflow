@@ -1,4 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import {
   Building2,
   FileSearch,
@@ -8,12 +9,22 @@ import {
   LogOut,
   Settings,
   Users,
+  Shield,
 } from "lucide-react";
 import { getRecords } from "@/lib/history";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 
-const navSections = [
+interface NavItem {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  path: string;
+  showBadge?: boolean;
+  masterOnly?: boolean;
+}
+
+const navSections: { label: string; items: NavItem[] }[] = [
   {
     label: "Visão geral",
     items: [
@@ -32,6 +43,7 @@ const navSections = [
   {
     label: "Sistema",
     items: [
+      { title: "Usuários", icon: Shield, path: "/usuarios", masterOnly: true },
       { title: "Configurações", icon: Settings, path: "/configuracoes" },
     ],
   },
@@ -42,6 +54,19 @@ const DashboardSidebar = () => {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const historyCount = getRecords().length;
+  const [isMaster, setIsMaster] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("role")
+      .eq("user_id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data?.role === "master") setIsMaster(true);
+      });
+  }, [user]);
 
   const isActive = (path: string) => {
     if (path === "/dashboard") return location.pathname === "/dashboard";
@@ -80,14 +105,20 @@ const DashboardSidebar = () => {
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto space-y-5">
-          {navSections.map((section) => (
+          {navSections.map((section) => {
+            const visibleItems = section.items.filter(
+              (item) => !("masterOnly" in item && item.masterOnly) || isMaster
+            );
+            if (visibleItems.length === 0) return null;
+
+            return (
             <div key={section.label}>
               <p className="px-3 mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
                 {section.label}
               </p>
 
               <div className="space-y-1.5">
-                {section.items.map((item) => {
+                {visibleItems.map((item) => {
                   const active = isActive(item.path);
 
                   return (
@@ -118,7 +149,8 @@ const DashboardSidebar = () => {
                 })}
               </div>
             </div>
-          ))}
+            );
+          })}
         </nav>
 
         {/* Footer */}

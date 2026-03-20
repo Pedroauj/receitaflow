@@ -19,6 +19,7 @@ import EmAndamento from "./pages/EmAndamento";
 import Clientes from "./pages/Clientes";
 import Configuracoes from "./pages/Configuracoes";
 import NotFound from "./pages/NotFound";
+import Usuarios from "./pages/Usuarios";
 import ClientePlaceholder from "./pages/ClientePlaceholder";
 import Natura from "./pages/Natura";
 import Danone from "@/pages/Danone";
@@ -58,6 +59,7 @@ const App = () => {
                 <Route path="/clientes" element={<Clientes />} />
                 <Route path="/conciliacao" element={<Conciliacao />} />
                 <Route path="/configuracoes" element={<Configuracoes />} />
+                <Route path="/usuarios" element={<Usuarios />} />
 
                 <Route path="/cliente/martin-brower" element={<MartinBrower />} />
                 <Route
