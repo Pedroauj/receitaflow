@@ -61,8 +61,8 @@ const Login = () => {
         transition={{ duration: 0.4 }}
         className="w-full max-w-sm"
       >
-        {/* Logo */}
-        <div className="flex items-center justify-center gap-3 mb-8">
+        {/* Logo - link to landing */}
+        <div className="flex items-center justify-center gap-3 mb-8 cursor-pointer" onClick={() => navigate("/")}>
           <div className="h-10 w-10 rounded-lg flex items-center justify-center" style={{ background: "#412402" }}>
             <Hexagon className="h-6 w-6" style={{ color: "#BA7517" }} />
           </div>
