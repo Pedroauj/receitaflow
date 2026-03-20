@@ -461,6 +461,7 @@ export function compareReports(
 
   const systemByNFAndCNPJ = new Map<string, ParsedRecord[]>();
   const systemByCNPJDateAndValue = new Map<string, ParsedRecord[]>();
+  const systemByNFOnly = new Map<string, ParsedRecord[]>();
 
   systemRecords.forEach((record) => {
     const nfAndCnpjKey = getNFAndCNPJKey(record);
@@ -474,6 +475,14 @@ export function compareReports(
       systemByCNPJDateAndValue.set(cnpjDateAndValueKey, []);
     }
     systemByCNPJDateAndValue.get(cnpjDateAndValueKey)!.push(record);
+
+    const nfKey = record.normalizedNumeroNF;
+    if (nfKey) {
+      if (!systemByNFOnly.has(nfKey)) {
+        systemByNFOnly.set(nfKey, []);
+      }
+      systemByNFOnly.get(nfKey)!.push(record);
+    }
   });
 
   governmentRecords.forEach((govRecord, index) => {
