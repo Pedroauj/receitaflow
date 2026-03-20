@@ -211,6 +211,14 @@ function getCNPJDateAndValueKey(record: ParsedRecord) {
   ].join("|");
 }
 
+function getNFDateAndValueKey(record: ParsedRecord) {
+  return [
+    record.normalizedNumeroNF,
+    record.normalizedDataEmissao,
+    record.normalizedValor.toFixed(2),
+  ].join("|");
+}
+
 function getWorksheet(workbook: XLSX.WorkBook) {
   const firstSheetName = workbook.SheetNames[0];
 
