@@ -31,8 +31,8 @@ interface ModulePermission {
 const MODULES = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { key: "historico", label: "Histórico", icon: History },
-  
-  { key: "conciliacao", label: "Conciliação", icon: FileSearch },
+  { key: "conciliacao", label: "NF-e / NFS-e", icon: FileSearch },
+  { key: "abastecimento", label: "Abastecimento", icon: Fuel },
   { key: "clientes", label: "Clientes", icon: Building2 },
   { key: "configuracoes", label: "Configurações", icon: Settings },
 ];
