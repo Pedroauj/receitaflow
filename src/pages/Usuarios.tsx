@@ -5,7 +5,7 @@ import { Navigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import {
   Users, Shield, ShieldOff, Search, ChevronDown, ChevronRight,
-  Eye, Pencil, LayoutDashboard, History, Loader2, FileSearch, Building2, Settings,
+  Eye, Pencil, LayoutDashboard, History, Loader2, FileSearch, Building2, Settings, Fuel,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -31,8 +31,8 @@ interface ModulePermission {
 const MODULES = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { key: "historico", label: "Histórico", icon: History },
-  
-  { key: "conciliacao", label: "Conciliação", icon: FileSearch },
+  { key: "conciliacao", label: "NF-e / NFS-e", icon: FileSearch },
+  { key: "abastecimento", label: "Abastecimento", icon: Fuel },
   { key: "clientes", label: "Clientes", icon: Building2 },
   { key: "configuracoes", label: "Configurações", icon: Settings },
 ];
