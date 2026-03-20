@@ -972,8 +972,8 @@ export function compareReports(
     }
 
     const nfAndCnpjKey = getNFAndCNPJKey(record);
-    if (!systemByNFAndCNPJ.has(nfAndCNPJKey)) systemByNFAndCNPJ.set(nfAndCNPJKey, []);
-    systemByNFAndCNPJ.get(nfAndCNPJKey)!.push(record);
+    if (!systemByNFAndCNPJ.has(nfAndCnpjKey)) systemByNFAndCNPJ.set(nfAndCnpjKey, []);
+    systemByNFAndCNPJ.get(nfAndCnpjKey)!.push(record);
 
     const nfDateAndValueKey = getNFDateAndValueKey(record);
     if (!systemByNFDateAndValue.has(nfDateAndValueKey)) {
