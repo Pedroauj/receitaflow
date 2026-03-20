@@ -34,16 +34,16 @@ const navSections: { label: string; items: NavItem[] }[] = [
     ],
   },
   {
-    label: "Operação",
+    label: "Conciliação de notas",
     items: [
       { title: "NF-e / NFS-e", icon: FileSearch, path: "/conciliacao" },
       { title: "Abastecimento", icon: Fuel, path: "/abastecimento" },
-      { title: "Clientes", icon: Building2, path: "/clientes" },
     ],
   },
   {
     label: "Sistema",
     items: [
+      { title: "Clientes", icon: Building2, path: "/clientes" },
       { title: "Usuários", icon: Shield, path: "/usuarios", masterOnly: true },
       { title: "Configurações", icon: Settings, path: "/configuracoes" },
     ],
