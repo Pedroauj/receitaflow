@@ -16,7 +16,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 
-const navSections = [
+interface NavItem {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  path: string;
+  showBadge?: boolean;
+  masterOnly?: boolean;
+}
+
+const navSections: { label: string; items: NavItem[] }[] = [
   {
     label: "Visão geral",
     items: [
@@ -39,7 +47,7 @@ const navSections = [
       { title: "Configurações", icon: Settings, path: "/configuracoes" },
     ],
   },
-] as const;
+];
 
 const DashboardSidebar = () => {
   const navigate = useNavigate();
