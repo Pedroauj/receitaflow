@@ -1,13 +1,7 @@
-import { createContext, useContext, useEffect, useMemo, useState, ReactNode } from "react";
-import { User, Session } from "@supabase/supabase-js";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import type { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  AppPermission,
-  AppRole,
-  isAppRole,
-  normalizePermissions,
-  resolveRolePermissions,
-} from "@/lib/permissions";
+import { type AppPermission, type AppRole, resolveRolePermissions } from "@/lib/permissions";
 
 interface AuthContextType {
   user: User | null;
@@ -33,60 +27,131 @@ const AuthContext = createContext<AuthContextType>({
 
 export const useAuth = () => useContext(AuthContext);
 
-const getRoleFromUser = (user: User | null): AppRole => {
-  if (!user) return "user";
+type ProfileRow = {
+  id: string;
+  email: string | null;
+  full_name: string | null;
+  role: string | null;
+  active: boolean | null;
+};
 
-  const metaRole = user.user_metadata?.role ?? user.app_metadata?.role;
+type PermissionRow = {
+  user_id: string;
+  module_key: string;
+  can_view: boolean | null;
+  can_edit: boolean | null;
+};
 
-  if (isAppRole(metaRole)) return metaRole;
+const parseRole = (value: string | null | undefined): AppRole => {
+  if (value === "master" || value === "admin" || value === "user") {
+    return value;
+  }
 
   return "user";
 };
 
-const getPermissionsFromUser = (user: User | null, role: AppRole): AppPermission[] => {
-  if (!user) return [];
+const buildPermissions = (rows: PermissionRow[]): AppPermission[] => {
+  const result = new Set<string>();
 
-  const userMetaPermissions = normalizePermissions(user.user_metadata?.permissions);
-  const appMetaPermissions = normalizePermissions(user.app_metadata?.permissions);
+  for (const row of rows) {
+    const moduleKey = row.module_key?.trim();
 
-  const mergedPermissions = [...new Set([...userMetaPermissions, ...appMetaPermissions])];
+    if (!moduleKey) continue;
 
-  if (role === "master") {
-    return resolveRolePermissions("master");
+    if (row.can_view) {
+      result.add(`${moduleKey}.view`);
+    }
+
+    if (row.can_edit) {
+      result.add(`${moduleKey}.edit`);
+    }
   }
 
-  if (mergedPermissions.length > 0) {
-    return mergedPermissions;
-  }
-
-  return resolveRolePermissions(role);
+  return Array.from(result) as AppPermission[];
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState<AppRole>("user");
+  const [permissions, setPermissions] = useState<AppPermission[]>([]);
+
+  const loadAuthorizationData = async (currentUser: User | null) => {
+    if (!currentUser) {
+      setRole("user");
+      setPermissions([]);
+      return;
+    }
+
+    const profileResult = await supabase
+      .from("profiles")
+      .select("id, email, full_name, role, active")
+      .eq("id", currentUser.id)
+      .maybeSingle();
+
+    if (profileResult.error) {
+      console.error("Erro ao buscar perfil do usuário:", profileResult.error);
+      setRole("user");
+      setPermissions([]);
+      return;
+    }
+
+    const permissionsResult = await supabase
+      .from("user_module_permissions")
+      .select("user_id, module_key, can_view, can_edit")
+      .eq("user_id", currentUser.id);
+
+    if (permissionsResult.error) {
+      console.error("Erro ao buscar permissões do usuário:", permissionsResult.error);
+    }
+
+    const profile = (profileResult.data ?? null) as ProfileRow | null;
+    const permissionRows = (permissionsResult.data ?? []) as PermissionRow[];
+
+    const nextRole = parseRole(profile?.role);
+
+    setRole(nextRole);
+
+    if (nextRole === "master") {
+      setPermissions(resolveRolePermissions("master"));
+      return;
+    }
+
+    setPermissions(buildPermissions(permissionRows));
+  };
 
   useEffect(() => {
+    let mounted = true;
+
+    const syncSession = async (nextSession: Session | null) => {
+      if (!mounted) return;
+
+      setLoading(true);
+      setSession(nextSession);
+      setUser(nextSession?.user ?? null);
+
+      await loadAuthorizationData(nextSession?.user ?? null);
+
+      if (!mounted) return;
+      setLoading(false);
+    };
+
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
+    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      void syncSession(nextSession);
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
+    void supabase.auth.getSession().then(({ data }) => {
+      void syncSession(data.session);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
-
-  const role = useMemo(() => getRoleFromUser(user), [user]);
-  const permissions = useMemo(() => getPermissionsFromUser(user, role), [user, role]);
 
   const hasPermission = (permission: AppPermission) => {
     if (!user) return false;
@@ -102,6 +167,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    setUser(null);
+    setSession(null);
+    setRole("user");
+    setPermissions([]);
   };
 
   return (
