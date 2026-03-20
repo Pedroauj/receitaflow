@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      companies: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          logo_url: string | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -105,6 +132,7 @@ export type Database = {
         Row: {
           active: boolean
           avatar_url: string | null
+          company_id: string | null
           created_at: string
           display_name: string | null
           email: string | null
@@ -117,6 +145,7 @@ export type Database = {
         Insert: {
           active?: boolean
           avatar_url?: string | null
+          company_id?: string | null
           created_at?: string
           display_name?: string | null
           email?: string | null
@@ -129,6 +158,7 @@ export type Database = {
         Update: {
           active?: boolean
           avatar_url?: string | null
+          company_id?: string | null
           created_at?: string
           display_name?: string | null
           email?: string | null
@@ -138,7 +168,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       suppressed_emails: {
         Row: {
