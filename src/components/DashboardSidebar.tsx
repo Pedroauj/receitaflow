@@ -48,13 +48,6 @@ const navSections: { label: string; items: NavItem[] }[] = [
       { title: "Configurações", icon: Settings, path: "/configuracoes" },
     ],
   },
-  {
-    label: "Sistema",
-    items: [
-      { title: "Usuários", icon: Shield, path: "/usuarios", masterOnly: true },
-      { title: "Configurações", icon: Settings, path: "/configuracoes" },
-    ],
-  },
 ];
 
 const DashboardSidebar = () => {
