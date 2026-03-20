@@ -45,6 +45,7 @@ const typeBadge: Record<DivergenceType, { variant: BadgeVariant; label: string }
   "NF divergente": { variant: "blue", label: "NF divergente" },
   "CNPJ divergente": { variant: "cyan", label: "CNPJ divergente" },
   "Múltiplas divergências": { variant: "purple", label: "Múltiplas diverg." },
+  "CNPJ errado": { variant: "red", label: "CNPJ errado" },
 };
 
 const badgeStyles: Record<BadgeVariant, React.CSSProperties> = {

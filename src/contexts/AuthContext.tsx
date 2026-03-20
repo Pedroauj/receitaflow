@@ -46,7 +46,6 @@ const parseRole = (value: string | null | undefined): AppRole => {
   if (value === "master" || value === "admin" || value === "user") {
     return value;
   }
-
   return "user";
 };
 
@@ -55,16 +54,9 @@ const buildPermissions = (rows: PermissionRow[]): AppPermission[] => {
 
   for (const row of rows) {
     const moduleKey = row.module_key?.trim();
-
     if (!moduleKey) continue;
-
-    if (row.can_view) {
-      result.add(`${moduleKey}.view`);
-    }
-
-    if (row.can_edit) {
-      result.add(`${moduleKey}.edit`);
-    }
+    if (row.can_view) result.add(`${moduleKey}.view`);
+    if (row.can_edit) result.add(`${moduleKey}.edit`);
   }
 
   return Array.from(result) as AppPermission[];
@@ -84,10 +76,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    const profileResult = await supabase
+    // Use .from() with type assertion since these columns were added via migration
+    // and types.ts may not yet reflect them
+    const profileResult = await (supabase as any)
       .from("profiles")
       .select("id, email, full_name, role, active")
-      .eq("id", currentUser.id)
+      .eq("user_id", currentUser.id)
       .maybeSingle();
 
     if (profileResult.error) {
@@ -97,7 +91,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    const permissionsResult = await supabase
+    const permissionsResult = await (supabase as any)
       .from("user_module_permissions")
       .select("user_id, module_key, can_view, can_edit")
       .eq("user_id", currentUser.id);
@@ -110,7 +104,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const permissionRows = (permissionsResult.data ?? []) as PermissionRow[];
 
     const nextRole = parseRole(profile?.role);
-
     setRole(nextRole);
 
     if (nextRole === "master") {
@@ -162,7 +155,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const hasAnyPermission = (requiredPermissions: AppPermission[]) => {
     if (!user) return false;
     if (role === "master") return true;
-    return requiredPermissions.some((permission) => permissions.includes(permission));
+    return requiredPermissions.some((p) => permissions.includes(p));
   };
 
   const signOut = async () => {
