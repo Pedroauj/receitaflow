@@ -7,71 +7,32 @@ import {
   Loader2,
   LogOut,
   Settings,
+  Users,
 } from "lucide-react";
 import { getRecords } from "@/lib/history";
 import { useAuth } from "@/contexts/AuthContext";
-import type { AppPermission } from "@/lib/permissions";
 import logo from "@/assets/logo.png";
 
-type SidebarItem = {
-  title: string;
-  icon: React.ComponentType<{ className?: string }>;
-  path: string;
-  showBadge?: boolean;
-  permission: AppPermission;
-};
-
-const navSections: { label: string; items: SidebarItem[] }[] = [
+const navSections = [
   {
     label: "Visão geral",
     items: [
-      {
-        title: "Dashboard",
-        icon: LayoutDashboard,
-        path: "/dashboard",
-        permission: "dashboard.view",
-      },
-      {
-        title: "Histórico",
-        icon: History,
-        path: "/historico",
-        showBadge: true,
-        permission: "historico.view",
-      },
-      {
-        title: "Em andamento",
-        icon: Loader2,
-        path: "/em-andamento",
-        permission: "andamento.view",
-      },
+      { title: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+      { title: "Histórico", icon: History, path: "/historico", showBadge: true },
+      { title: "Em andamento", icon: Loader2, path: "/em-andamento" },
     ],
   },
   {
     label: "Operação",
     items: [
-      {
-        title: "Conciliação",
-        icon: FileSearch,
-        path: "/conciliacao",
-        permission: "conciliacao.view",
-      },
-      {
-        title: "Clientes",
-        icon: Building2,
-        path: "/clientes",
-        permission: "clientes.view",
-      },
+      { title: "Conciliação", icon: FileSearch, path: "/conciliacao" },
+      { title: "Clientes", icon: Building2, path: "/clientes" },
     ],
   },
   {
     label: "Sistema",
     items: [
-      {
-        title: "Configurações",
-        icon: Settings,
-        path: "/configuracoes",
-        permission: "configuracoes.view",
-      },
+      { title: "Configurações", icon: Settings, path: "/configuracoes" },
     ],
   },
 ];
@@ -79,7 +40,7 @@ const navSections: { label: string; items: SidebarItem[] }[] = [
 const DashboardSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, signOut, hasPermission, role } = useAuth();
+  const { user, signOut } = useAuth();
   const historyCount = getRecords().length;
 
   const isActive = (path: string) => {
@@ -103,16 +64,10 @@ const DashboardSidebar = () => {
 
   const displayName = user?.user_metadata?.full_name || user?.email || "Usuário";
 
-  const visibleSections = navSections
-    .map((section) => ({
-      ...section,
-      items: section.items.filter((item) => hasPermission(item.permission)),
-    }))
-    .filter((section) => section.items.length > 0);
-
   return (
     <aside className="fixed left-0 top-0 bottom-0 z-50 flex flex-col w-[240px] bg-sidebar border-r border-sidebar-border">
       <div className="flex h-full flex-col px-3 py-4">
+        
         {/* Brand */}
         <button
           type="button"
@@ -125,7 +80,7 @@ const DashboardSidebar = () => {
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto space-y-5">
-          {visibleSections.map((section) => (
+          {navSections.map((section) => (
             <div key={section.label}>
               <p className="px-3 mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
                 {section.label}
@@ -147,7 +102,9 @@ const DashboardSidebar = () => {
                       }`}
                     >
                       <item.icon
-                        className={`h-4 w-4 shrink-0 ${active ? "text-primary" : ""}`}
+                        className={`h-4 w-4 shrink-0 ${
+                          active ? "text-primary" : ""
+                        }`}
                       />
                       <span className="flex-1 text-left">{item.title}</span>
 
@@ -173,9 +130,6 @@ const DashboardSidebar = () => {
             <div className="min-w-0 flex-1">
               <p className="truncate text-[12px] font-medium text-foreground">
                 {displayName}
-              </p>
-              <p className="truncate text-[10px] uppercase tracking-wider text-muted-foreground/70">
-                {role}
               </p>
             </div>
             <button
