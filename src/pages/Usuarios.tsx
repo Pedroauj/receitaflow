@@ -6,7 +6,7 @@ import { toast } from "@/hooks/use-toast";
 import {
   Users, Shield, ShieldOff, Search, ChevronDown, ChevronRight,
   Eye, Pencil, LayoutDashboard, History, Loader2, FileSearch, Building2, Settings, Fuel,
-  Plus, Upload, X, ImageIcon,
+  Plus, Upload, X, ImageIcon, Mail, UserPlus,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -69,6 +69,12 @@ const Usuarios = () => {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [creatingCompany, setCreatingCompany] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Invite
+  const [showInvite, setShowInvite] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteCompany, setInviteCompany] = useState("");
+  const [inviting, setInviting] = useState(false);
 
   // Tab
   const [activeTab, setActiveTab] = useState<"users" | "companies">("users");
@@ -301,6 +307,33 @@ const Usuarios = () => {
     setCreatingCompany(false);
   };
 
+  const inviteUser = async () => {
+    if (!inviteEmail.trim() || !inviteEmail.includes("@")) {
+      toast({ title: "Email inválido", variant: "destructive" });
+      return;
+    }
+    setInviting(true);
+    const { data, error } = await supabase.functions.invoke("invite-user", {
+      body: { email: inviteEmail.trim(), company_id: inviteCompany || null },
+    });
+
+    if (error || data?.error) {
+      toast({
+        title: "Erro ao convidar",
+        description: data?.error || error?.message || "Erro desconhecido",
+        variant: "destructive",
+      });
+    } else {
+      toast({ title: "Convite enviado!", description: `Email enviado para ${inviteEmail.trim()}` });
+      setInviteEmail("");
+      setInviteCompany("");
+      setShowInvite(false);
+      // Reload profiles after a brief delay for the trigger
+      setTimeout(() => loadProfiles(), 2000);
+    }
+    setInviting(false);
+  };
+
   if (isMaster === false) return <Navigate to="/dashboard" replace />;
 
   const filtered = profiles.filter(
@@ -497,10 +530,89 @@ const Usuarios = () => {
                 className="w-full h-9 pl-9 pr-3 rounded-lg border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
               />
             </div>
-            <span className="text-xs text-muted-foreground">
-              {filtered.length} usuário{filtered.length !== 1 ? "s" : ""}
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-muted-foreground">
+                {filtered.length} usuário{filtered.length !== 1 ? "s" : ""}
+              </span>
+              <Button
+                size="sm"
+                className="gradient-btn border-0 h-8 text-xs"
+                onClick={() => setShowInvite(true)}
+              >
+                <UserPlus className="h-3.5 w-3.5 mr-1.5" />
+                Convidar
+              </Button>
+            </div>
           </div>
+
+          {/* Invite form */}
+          <AnimatePresence>
+            {showInvite && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-primary" />
+                      Convidar usuário
+                    </h3>
+                    <button onClick={() => setShowInvite(false)} className="text-muted-foreground hover:text-foreground">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-[11px] text-muted-foreground">Email do convidado</Label>
+                      <Input
+                        type="email"
+                        value={inviteEmail}
+                        onChange={(e) => setInviteEmail(e.target.value)}
+                        placeholder="email@empresa.com"
+                        className="h-9 border-border bg-background text-sm"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[11px] text-muted-foreground">Empresa (opcional)</Label>
+                      <select
+                        value={inviteCompany}
+                        onChange={(e) => setInviteCompany(e.target.value)}
+                        className="w-full h-9 px-3 rounded-lg border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+                      >
+                        <option value="">Sem empresa</option>
+                        {companies.map((c) => (
+                          <option key={c.id} value={c.id}>{c.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <p className="text-[11px] text-muted-foreground">
+                      O convite será enviado via <span className="text-foreground font-medium">notify.receitaflow.com</span>
+                    </p>
+                    <Button
+                      size="sm"
+                      className="gradient-btn border-0 h-8 text-xs"
+                      onClick={inviteUser}
+                      disabled={inviting}
+                    >
+                      {inviting ? (
+                        <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> Enviando...</>
+                      ) : (
+                        <><Mail className="h-3.5 w-3.5 mr-1.5" /> Enviar convite</>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {loading ? (
             <div className="flex items-center justify-center py-20">
