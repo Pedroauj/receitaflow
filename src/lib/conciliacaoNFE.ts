@@ -70,7 +70,10 @@ type ColumnIndexes = {
   fornecedorIndex: number;
   tagsIndex: number;
   tipoIndex: number;
+  statusIndex: number;
 };
+
+const IGNORE_CANCELED_NOTES = true;
 
 const EXCLUDED_SIEG_TAGS = new Set([
   "remessa para conserto",
@@ -477,6 +480,7 @@ function mapSystemColumns(headers: string[], rows: MappedRow[]): ColumnIndexes {
     cnpjIndex,
     fornecedorIndex,
     tipoIndex,
+    statusIndex: -1,
   });
 
   return {
@@ -488,6 +492,7 @@ function mapSystemColumns(headers: string[], rows: MappedRow[]): ColumnIndexes {
     fornecedorIndex,
     tagsIndex: -1,
     tipoIndex,
+    statusIndex: -1,
   };
 }
 
@@ -503,6 +508,9 @@ function mapGovernmentColumns(headers: string[]): ColumnIndexes {
     "Nome Fant. Emit",
   ]);
   const tagsIndex = findColumnIndex(headers, ["Tags"]);
+  const statusIndex = findColumnIndex(headers, [
+    "Situação", "Situacao", "Status", "Situação da NF", "Situacao da NF", "Sit",
+  ]);
 
   const missing: string[] = [];
   if (chaveIndex === -1) missing.push("Chave da NFe");
@@ -528,6 +536,7 @@ function mapGovernmentColumns(headers: string[]): ColumnIndexes {
     fornecedorIndex,
     tagsIndex,
     tipoIndex: -1,
+    statusIndex,
   };
 }
 
@@ -591,8 +600,18 @@ function parseSystemRecords(rows: MappedRow[], indexes: ColumnIndexes): ParsedRe
     .filter((row) => row.normalizedChave.length > 0);
 }
 
+function isCanceledRecord(values: unknown[], statusIndex: number): boolean {
+  if (statusIndex < 0) return false;
+  const status = String(values[statusIndex] ?? "").trim().toLowerCase();
+  return status.includes("cancel");
+}
+
 function parseGovernmentRecords(rows: MappedRow[], indexes: ColumnIndexes): ParsedRecord[] {
   return rows
+    .filter((row) => {
+      if (!IGNORE_CANCELED_NOTES) return true;
+      return !isCanceledRecord(getRowValues(row), indexes.statusIndex);
+    })
     .map((row) => {
       const values = getRowValues(row);
 
