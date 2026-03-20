@@ -43,7 +43,7 @@ const DashboardTopbar = () => {
       <div
         className="h-11 rounded-2xl border border-white/[0.06] flex items-center px-5 shadow-lg shadow-black/20"
         style={{
-          background: "rgba(30, 30, 32, 0.7)",
+          background: "rgba(30, 30, 32, 0.45)",
           backdropFilter: "blur(16px) saturate(1.4)",
           WebkitBackdropFilter: "blur(16px) saturate(1.4)",
         }}
