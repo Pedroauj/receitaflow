@@ -25,22 +25,12 @@ const Landing = () => {
             Receita<span style={{ color: "#FAC775" }}>Flow</span>
           </h1>
         </div>
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            className="text-sm h-9 px-4"
-            style={{ color: "#B4B2A9" }}
-            onClick={() => navigate("/login")}
-          >
-            Entrar
-          </Button>
-          <Button
-            className="gradient-btn border-0 text-sm h-9 px-5"
-            onClick={() => navigate("/cadastro")}
-          >
-            Criar conta
-          </Button>
-        </div>
+        <Button
+          className="gradient-btn border-0 text-sm h-9 px-5"
+          onClick={() => navigate("/login")}
+        >
+          Entrar
+        </Button>
       </header>
 
       {/* Hero */}
