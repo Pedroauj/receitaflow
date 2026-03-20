@@ -35,10 +35,11 @@ const navSections = [
   {
     label: "Sistema",
     items: [
+      { title: "Usuários", icon: Shield, path: "/usuarios", masterOnly: true },
       { title: "Configurações", icon: Settings, path: "/configuracoes" },
     ],
   },
-];
+] as const;
 
 const DashboardSidebar = () => {
   const navigate = useNavigate();
