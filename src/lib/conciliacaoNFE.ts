@@ -70,6 +70,7 @@ type ColumnIndexes = {
   fornecedorIndex: number;
   tagsIndex: number;
   tipoIndex: number;
+  statusIndex: number;
 };
 
 const EXCLUDED_SIEG_TAGS = new Set([
