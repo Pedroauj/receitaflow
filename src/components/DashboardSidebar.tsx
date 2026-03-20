@@ -100,44 +100,52 @@ const DashboardSidebar = () => {
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto space-y-5">
-          {navSections.map((section) => (
-            <div key={section.label}>
-              <p className="px-3 mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                {section.label}
-              </p>
+          {navSections.map((section) => {
+            const visibleItems = section.items.filter(
+              (item) => !item.masterOnly || isMaster
+            );
+            if (visibleItems.length === 0) return null;
 
-              <div className="space-y-1.5">
-                {section.items.map((item) => {
-                  const active = isActive(item.path);
+            return (
+              <div key={section.label}>
+                <p className="px-3 mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+                  {section.label}
+                </p>
 
-                  return (
-                    <button
-                      key={item.path}
-                      type="button"
-                      onClick={() => navigate(item.path)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[13px] font-medium transition-all duration-150 ${
-                        active
-                          ? "bg-accent text-foreground"
-                          : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-                      }`}
-                    >
-                      <item.icon
-                        className={`h-4 w-4 shrink-0 ${
-                          active ? "text-primary" : ""
+                <div className="space-y-1.5">
+                  {visibleItems.map((item) => {
+                    const active = isActive(item.path);
+
+                    return (
+                      <button
+                        key={item.path}
+                        type="button"
+                        onClick={() => navigate(item.path)}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[13px] font-medium transition-all duration-150 ${
+                          active
+                            ? "bg-accent text-foreground"
+                            : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
                         }`}
-                      />
-                      <span className="flex-1 text-left">{item.title}</span>
+                      >
+                        <item.icon
+                          className={`h-4 w-4 shrink-0 ${
+                            active ? "text-primary" : ""
+                          }`}
+                        />
+                        <span className="flex-1 text-left">{item.title}</span>
 
-                      {item.showBadge && historyCount > 0 && (
-                        <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-md bg-primary/15 text-primary">
-                          {historyCount}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
+                        {item.showBadge && historyCount > 0 && (
+                          <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-md bg-primary/15 text-primary">
+                            {historyCount}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            );
+          })}
           ))}
         </nav>
 
