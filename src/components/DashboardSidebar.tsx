@@ -91,18 +91,8 @@ const DashboardSidebar = () => {
   const displayName = user?.user_metadata?.full_name || user?.email || "Usuário";
 
   return (
-    <aside className="fixed left-0 top-0 bottom-0 z-50 flex flex-col w-[240px] bg-sidebar border-r border-sidebar-border">
+    <aside className="fixed left-0 top-[48px] bottom-0 z-50 flex flex-col w-[240px] bg-sidebar border-r border-sidebar-border">
       <div className="flex h-full flex-col px-3 py-4">
-        
-        {/* Brand */}
-        <button
-          type="button"
-          onClick={() => navigate("/dashboard")}
-          className="flex items-center gap-2.5 px-3 py-3 mb-6 rounded-lg transition-colors hover:bg-accent/50"
-        >
-          <img src={logo} alt="ReceitaFlow" className="h-7 w-7 rounded-lg" />
-          <span className="text-sm font-semibold text-foreground">ReceitaFlow</span>
-        </button>
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto space-y-5">

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Hexagon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import logo from "@/assets/logo.png";
 
 interface Company {
   id: string;
@@ -45,12 +45,7 @@ const DashboardTopbar = () => {
     >
       {/* ReceitaFlow branding */}
       <div className="flex items-center gap-2">
-        <div
-          className="h-7 w-7 rounded-md flex items-center justify-center"
-          style={{ background: "#412402" }}
-        >
-          <Hexagon className="h-4 w-4" style={{ color: "#BA7517" }} />
-        </div>
+        <img src={logo} alt="ReceitaFlow" className="h-7 w-7 rounded-md" />
         <span className="text-sm font-semibold" style={{ color: "#F5F5F0" }}>
           Receita<span style={{ color: "#FAC775" }}>Flow</span>
         </span>
