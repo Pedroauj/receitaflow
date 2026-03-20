@@ -46,6 +46,19 @@ const DashboardSidebar = () => {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const historyCount = getRecords().length;
+  const [isMaster, setIsMaster] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("role")
+      .eq("user_id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data?.role === "master") setIsMaster(true);
+      });
+  }, [user]);
 
   const isActive = (path: string) => {
     if (path === "/dashboard") return location.pathname === "/dashboard";
