@@ -16,66 +16,27 @@ export type Database = {
     Tables: {
       profiles: {
         Row: {
-          active: boolean
           avatar_url: string | null
           created_at: string
           display_name: string | null
-          email: string | null
-          full_name: string | null
           id: string
-          role: string
           updated_at: string
           user_id: string
         }
         Insert: {
-          active?: boolean
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
-          email?: string | null
-          full_name?: string | null
           id?: string
-          role?: string
           updated_at?: string
           user_id: string
         }
         Update: {
-          active?: boolean
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
-          email?: string | null
-          full_name?: string | null
           id?: string
-          role?: string
           updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      user_module_permissions: {
-        Row: {
-          can_edit: boolean
-          can_view: boolean
-          created_at: string
-          id: string
-          module_key: string
-          user_id: string
-        }
-        Insert: {
-          can_edit?: boolean
-          can_view?: boolean
-          created_at?: string
-          id?: string
-          module_key: string
-          user_id: string
-        }
-        Update: {
-          can_edit?: boolean
-          can_view?: boolean
-          created_at?: string
-          id?: string
-          module_key?: string
           user_id?: string
         }
         Relationships: []
@@ -85,7 +46,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      is_master: { Args: { _user_id: string }; Returns: boolean }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never

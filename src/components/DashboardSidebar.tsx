@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Building2,
@@ -12,18 +11,9 @@ import {
 } from "lucide-react";
 import { getRecords } from "@/lib/history";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 
-interface NavItem {
-  title: string;
-  icon: typeof LayoutDashboard;
-  path: string;
-  showBadge?: boolean;
-  masterOnly?: boolean;
-}
-
-const navSections: { label: string; items: NavItem[] }[] = [
+const navSections = [
   {
     label: "Visão geral",
     items: [
@@ -42,7 +32,6 @@ const navSections: { label: string; items: NavItem[] }[] = [
   {
     label: "Sistema",
     items: [
-      { title: "Usuários", icon: Users, path: "/usuarios", masterOnly: true },
       { title: "Configurações", icon: Settings, path: "/configuracoes" },
     ],
   },
@@ -53,15 +42,6 @@ const DashboardSidebar = () => {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const historyCount = getRecords().length;
-  const [isMaster, setIsMaster] = useState(false);
-
-  useEffect(() => {
-    if (user) {
-      supabase.rpc("is_master", { _user_id: user.id }).then(({ data }) => {
-        setIsMaster(!!data);
-      });
-    }
-  }, [user]);
 
   const isActive = (path: string) => {
     if (path === "/dashboard") return location.pathname === "/dashboard";
@@ -100,53 +80,45 @@ const DashboardSidebar = () => {
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto space-y-5">
-          {navSections.map((section) => {
-            const visibleItems = section.items.filter(
-              (item) => !item.masterOnly || isMaster
-            );
-            if (visibleItems.length === 0) return null;
+          {navSections.map((section) => (
+            <div key={section.label}>
+              <p className="px-3 mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+                {section.label}
+              </p>
 
-            return (
-              <div key={section.label}>
-                <p className="px-3 mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                  {section.label}
-                </p>
+              <div className="space-y-1.5">
+                {section.items.map((item) => {
+                  const active = isActive(item.path);
 
-                <div className="space-y-1.5">
-                  {visibleItems.map((item) => {
-                    const active = isActive(item.path);
-
-                    return (
-                      <button
-                        key={item.path}
-                        type="button"
-                        onClick={() => navigate(item.path)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[13px] font-medium transition-all duration-150 ${
-                          active
-                            ? "bg-accent text-foreground"
-                            : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                  return (
+                    <button
+                      key={item.path}
+                      type="button"
+                      onClick={() => navigate(item.path)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[13px] font-medium transition-all duration-150 ${
+                        active
+                          ? "bg-accent text-foreground"
+                          : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                      }`}
+                    >
+                      <item.icon
+                        className={`h-4 w-4 shrink-0 ${
+                          active ? "text-primary" : ""
                         }`}
-                      >
-                        <item.icon
-                          className={`h-4 w-4 shrink-0 ${
-                            active ? "text-primary" : ""
-                          }`}
-                        />
-                        <span className="flex-1 text-left">{item.title}</span>
+                      />
+                      <span className="flex-1 text-left">{item.title}</span>
 
-                        {item.showBadge && historyCount > 0 && (
-                          <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-md bg-primary/15 text-primary">
-                            {historyCount}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
+                      {item.showBadge && historyCount > 0 && (
+                        <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-md bg-primary/15 text-primary">
+                          {historyCount}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
-            );
-          })}
-          
+            </div>
+          ))}
         </nav>
 
         {/* Footer */}
