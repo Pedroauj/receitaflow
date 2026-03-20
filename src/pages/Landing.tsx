@@ -58,18 +58,10 @@ const Landing = () => {
             <div className="flex items-center justify-center gap-3">
               <Button
                 className="gradient-btn border-0 h-11 px-7 text-sm font-medium"
-                onClick={() => navigate("/cadastro")}
-              >
-                Começar agora
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-              <Button
-                variant="outline"
-                className="h-11 px-7 text-sm border-[#444441] bg-[#1E1E20] hover:bg-[#2C2C2A]"
-                style={{ color: "#B4B2A9" }}
                 onClick={() => navigate("/login")}
               >
-                Já tenho conta
+                Acessar plataforma
+                <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </div>
           </motion.div>

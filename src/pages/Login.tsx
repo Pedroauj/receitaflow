@@ -147,10 +147,7 @@ const Login = () => {
         </div>
 
         <p className="text-center text-xs mt-5" style={{ color: "#888780" }}>
-          Não tem conta?{" "}
-          <Link to="/cadastro" className="font-medium hover:underline" style={{ color: "#FAC775" }}>
-            Criar conta
-          </Link>
+          Acesso somente por convite
         </p>
       </motion.div>
     </div>
