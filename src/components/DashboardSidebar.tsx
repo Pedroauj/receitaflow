@@ -146,7 +146,7 @@ const DashboardSidebar = () => {
               </div>
             );
           })}
-          ))}
+          
         </nav>
 
         {/* Footer */}
