@@ -29,7 +29,14 @@ const Login = () => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
-      toast({ title: "Erro ao entrar", description: error.message, variant: "destructive" });
+      const isTimeout = error.message?.toLowerCase().includes("timeout") || error.status === 504;
+      toast({
+        title: isTimeout ? "Servidor temporariamente indisponível" : "Erro ao entrar",
+        description: isTimeout
+          ? "O servidor está demorando para responder. Aguarde alguns segundos e tente novamente."
+          : error.message,
+        variant: "destructive",
+      });
     } else {
       navigate("/dashboard", { replace: true });
     }
