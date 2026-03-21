@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Menu } from "lucide-react";
-import logo from "@/assets/logo.png";
 
 interface Company {
   id: string;
