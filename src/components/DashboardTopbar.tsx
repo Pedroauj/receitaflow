@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Menu } from "lucide-react";
-import logo from "@/assets/logo.png";
 
 interface Company {
   id: string;
@@ -61,8 +60,8 @@ const DashboardTopbar = ({ onMenuToggle }: DashboardTopbarProps) => {
         </button>
 
         {/* ReceitaFlow branding */}
-        <div className="flex items-center gap-2">
-          <img src={logo} alt="ReceitaFlow" className="h-7 w-7 rounded-md" />
+        <div className="flex items-center gap-1.5">
+          <span className="text-base" style={{ color: "#FAC775" }}>⬡</span>
           <span className="text-sm font-semibold" style={{ color: "#F5F5F0" }}>
             Receita<span style={{ color: "#FAC775" }}>Flow</span>
           </span>
