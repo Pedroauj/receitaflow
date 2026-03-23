@@ -53,7 +53,10 @@ const formatCurrency = (value: number) =>
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [showClientPicker, setShowClientPicker] = useState(false);
+  
+  const firstName = user?.user_metadata?.full_name?.split(" ")[0] || user?.email?.split("@")[0] || "Usuário";
 
   const stats = getStats();
   const records = getRecords();
