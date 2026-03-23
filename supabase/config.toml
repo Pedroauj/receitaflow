@@ -1,5 +1,9 @@
 project_id = "yzoesydyvgolnufaianw"
 
+[auth]
+site_url = "https://receitaflow.lovable.app"
+additional_redirect_urls = ["https://receitaflow.lovable.app/reset-password", "https://receitaflow.lovable.app/login", "https://receitaflow.lovable.app/dashboard"]
+
 [functions]
   [functions.auth-email-hook]
     verify_jwt = false
