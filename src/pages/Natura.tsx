@@ -248,27 +248,29 @@ const Natura = () => {
             </div>
           )}
 
-          {/* Table */}
+          {/* Blocos por fatura */}
           <div className="rounded-lg p-4 mb-5" style={{ background: "#18181A", border: "0.5px solid #2C2C2A" }}>
-            <p className="text-sm font-medium mb-3" style={{ color: "#F5F5F0" }}>Detalhamento</p>
+            <p className="text-sm font-medium mb-3" style={{ color: "#F5F5F0" }}>Detalhamento por Fatura</p>
             <div className="max-h-96 overflow-auto rounded-lg">
               <table className="w-full">
                 <thead>
                   <tr style={{ borderBottom: "0.5px solid #2C2C2A" }}>
-                    {["Nº Documento", "Origem BOR", "Valor", "Status"].map((h) => (
+                    {["Fatura (BOR)", "Documentos encontrados", "Valor total", "Status"].map((h) => (
                       <th key={h} className="px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-left" style={{ color: "#5F5E5A" }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {result.registros.map((r, i) => (
+                  {result.blocos.map((b, i) => (
                     <tr key={i} style={{ borderBottom: "0.5px solid #2C2C2A" }}>
-                      <td className="px-4 py-2 font-mono text-sm" style={{ color: "#B4B2A9" }}>{r.numeroDocumento}</td>
-                      <td className="px-4 py-2 font-mono text-sm" style={{ color: "#5F5E5A" }}>{r.origem}</td>
-                      <td className="px-4 py-2 tabular-nums text-sm" style={{ color: r.status === "encontrado" ? "#B4B2A9" : "#5F5E5A" }}>
-                        {r.status === "encontrado" ? formatBRL(r.valor) : "—"}
+                      <td className="px-4 py-2 font-mono text-sm" style={{ color: "#B4B2A9" }}>{b.fatura}</td>
+                      <td className="px-4 py-2 text-sm" style={{ color: "#B4B2A9" }}>
+                        {b.documentos.length > 0 ? b.documentos.join(", ") : "—"}
                       </td>
-                      <td className="px-4 py-2">{statusBadge(r.status)}</td>
+                      <td className="px-4 py-2 tabular-nums text-sm" style={{ color: b.status === "encontrado" ? "#B4B2A9" : "#5F5E5A" }}>
+                        {b.status === "encontrado" ? formatBRL(b.valor) : "—"}
+                      </td>
+                      <td className="px-4 py-2">{statusBadge(b.status)}</td>
                     </tr>
                   ))}
                 </tbody>
