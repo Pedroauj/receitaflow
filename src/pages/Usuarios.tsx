@@ -5,7 +5,7 @@ import { Navigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import {
   Users, Shield, ShieldOff, Search, ChevronDown, ChevronRight,
-  Eye, Pencil, LayoutDashboard, History, Loader2, FileSearch, Building2, Settings, Fuel,
+  Eye, Pencil, LayoutDashboard, History, Loader2, FileSearch, Building2, Settings, Fuel, BarChart3,
   Plus, Upload, X, ImageIcon, Mail, UserPlus, Trash2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
