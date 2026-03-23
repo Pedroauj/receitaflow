@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   FileSpreadsheet,
   FileText,
@@ -52,12 +53,19 @@ const formatCurrency = (value: number) =>
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [showClientPicker, setShowClientPicker] = useState(false);
+  
+  const firstName = user?.user_metadata?.full_name?.split(" ")[0] || user?.email?.split("@")[0] || "Usuário";
 
   const stats = getStats();
   const records = getRecords();
 
-  const today = new Date().toLocaleDateString("pt-BR", {
+  const now = new Date();
+  const hour = now.getHours();
+  const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
+  
+  const today = now.toLocaleDateString("pt-BR", {
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -107,7 +115,9 @@ const Index = () => {
               <div className="h-8 w-8 rounded-lg bg-primary/15 flex items-center justify-center">
                 <Zap className="h-4 w-4 text-primary" />
               </div>
-              <h1 className="text-2xl font-semibold text-foreground tracking-tight">Visão geral</h1>
+              <h1 className="text-2xl font-semibold text-foreground tracking-tight">
+                {greeting}, <span className="text-primary">{firstName}</span>
+              </h1>
             </div>
             <p className="text-sm text-muted-foreground capitalize pl-11">{today}</p>
           </div>
