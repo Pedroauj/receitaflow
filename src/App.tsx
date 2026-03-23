@@ -26,6 +26,7 @@ import Danone from "@/pages/Danone";
 import Platlog from "@/pages/Platlog";
 import Conciliacao from "./pages/Conciliacao";
 import Abastecimento from "./pages/Abastecimento";
+import MediasAbastecimento from "./pages/MediasAbastecimento";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +61,7 @@ const App = () => {
                 <Route path="/clientes" element={<Clientes />} />
                 <Route path="/conciliacao" element={<Conciliacao />} />
                 <Route path="/abastecimento" element={<Abastecimento />} />
+                <Route path="/medias-abastecimento" element={<MediasAbastecimento />} />
                 <Route path="/configuracoes" element={<Configuracoes />} />
                 <Route path="/usuarios" element={<Usuarios />} />
 

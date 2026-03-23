@@ -11,6 +11,7 @@ import {
   Users,
   Shield,
   X,
+  BarChart3,
 } from "lucide-react";
 import { getRecords } from "@/lib/history";
 import { useAuth } from "@/contexts/AuthContext";
@@ -37,6 +38,7 @@ const navSections: { label: string; items: NavItem[] }[] = [
     items: [
       { title: "NF-e / NFS-e", icon: FileSearch, path: "/conciliacao" },
       { title: "Abastecimento", icon: Fuel, path: "/abastecimento" },
+      { title: "Médias de Abastecimento", icon: BarChart3, path: "/medias-abastecimento" },
     ],
   },
   {
