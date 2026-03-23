@@ -27,8 +27,17 @@ const ResetPassword = () => {
     setStep("sending-code");
     const { error } = await supabase.auth.reauthenticate();
     if (error) {
-      hasTriggeredVerificationRef.current = false;
       console.error("Reauthenticate error:", error);
+      // If rate limited, the code was already sent — proceed to verify step
+      if (error.message?.includes("429") || error.message?.toLowerCase().includes("rate") || error.status === 429) {
+        setStep("verify-code");
+        toast({
+          title: "Código já enviado",
+          description: "Verifique seu email para o código de verificação.",
+        });
+        return;
+      }
+      hasTriggeredVerificationRef.current = false;
       toast({
         title: "Erro ao enviar código",
         description: error.message,
