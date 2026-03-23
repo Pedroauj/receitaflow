@@ -412,7 +412,28 @@ const Usuarios = () => {
     setDeleting(false);
   };
 
-  const inviteUser = async () => {
+  const deleteUser = async () => {
+    if (!deletingUser) return;
+    setDeletingUserLoading(true);
+    const { data, error } = await supabase.functions.invoke("delete-user", {
+      body: { user_id: deletingUser.user_id },
+    });
+
+    if (error || data?.error) {
+      toast({
+        title: "Erro ao excluir usuário",
+        description: data?.error || error?.message || "Erro desconhecido",
+        variant: "destructive",
+      });
+    } else {
+      toast({ title: "Usuário excluído com sucesso!" });
+      setProfiles((prev) => prev.filter((p) => p.id !== deletingUser.id));
+      setDeletingUser(null);
+    }
+    setDeletingUserLoading(false);
+  };
+
+
     if (!inviteEmail.trim() || !inviteEmail.includes("@")) {
       toast({ title: "Email inválido", variant: "destructive" });
       return;
