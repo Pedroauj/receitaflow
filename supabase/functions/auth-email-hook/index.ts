@@ -37,9 +37,8 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 
 // Configuration
 const SITE_NAME = "ReceitaFlow"
-const SENDER_DOMAIN = "receitaflow.com"
-const ROOT_DOMAIN = "receitaflow.com"
-const FROM_DOMAIN = "receitaflow.com"
+const APP_DOMAIN = "receitaflow.com"
+const EMAIL_DOMAIN = "notify.receitaflow.com"
 
 // Sample data for preview mode ONLY (not used in actual email sending).
 // URLs are baked in at scaffold time from the project's real data.
@@ -220,7 +219,7 @@ async function handleWebhook(req: Request): Promise<Response> {
   // Build template props from payload.data (HookData structure)
   const templateProps = {
     siteName: SITE_NAME,
-    siteUrl: `https://${ROOT_DOMAIN}`,
+    siteUrl: `https://${APP_DOMAIN}`,
     recipient: payload.data.email,
     confirmationUrl: payload.data.url,
     token: payload.data.token,
@@ -256,8 +255,8 @@ async function handleWebhook(req: Request): Promise<Response> {
       run_id,
       message_id: messageId,
       to: payload.data.email,
-      from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
-      sender_domain: SENDER_DOMAIN,
+      from: `${SITE_NAME} <noreply@${EMAIL_DOMAIN}>`,
+      sender_domain: EMAIL_DOMAIN,
       subject: EMAIL_SUBJECTS[emailType] || 'Notification',
       html,
       text,
