@@ -34,9 +34,14 @@ const navSections: { label: string; items: NavItem[] }[] = [
     ],
   },
   {
-    label: "Conciliação de notas",
+    label: "Fiscal",
     items: [
       { title: "NF-e / NFS-e", icon: FileSearch, path: "/conciliacao" },
+    ],
+  },
+  {
+    label: "Frota",
+    items: [
       { title: "Abastecimento", icon: Fuel, path: "/abastecimento" },
       { title: "Médias de Abastecimento", icon: BarChart3, path: "/medias-abastecimento" },
     ],
