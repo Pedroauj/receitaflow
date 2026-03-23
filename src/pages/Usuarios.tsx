@@ -90,6 +90,10 @@ const Usuarios = () => {
   const [confirmDeleteName, setConfirmDeleteName] = useState("");
   const [deleting, setDeleting] = useState(false);
 
+  // Delete user
+  const [deletingUser, setDeletingUser] = useState<Profile | null>(null);
+  const [deletingUserLoading, setDeletingUserLoading] = useState(false);
+
   // Tab
   const [activeTab, setActiveTab] = useState<"users" | "companies">("users");
 
@@ -408,7 +412,28 @@ const Usuarios = () => {
     setDeleting(false);
   };
 
-  const inviteUser = async () => {
+  const deleteUser = async () => {
+    if (!deletingUser) return;
+    setDeletingUserLoading(true);
+    const { data, error } = await supabase.functions.invoke("delete-user", {
+      body: { user_id: deletingUser.user_id },
+    });
+
+    if (error || data?.error) {
+      toast({
+        title: "Erro ao excluir usuário",
+        description: data?.error || error?.message || "Erro desconhecido",
+        variant: "destructive",
+      });
+    } else {
+      toast({ title: "Usuário excluído com sucesso!" });
+      setProfiles((prev) => prev.filter((p) => p.id !== deletingUser.id));
+      setDeletingUser(null);
+    }
+    setDeletingUserLoading(false);
+  };
+
+
     if (!inviteEmail.trim() || !inviteEmail.includes("@")) {
       toast({ title: "Email inválido", variant: "destructive" });
       return;
@@ -1028,6 +1053,15 @@ const Usuarios = () => {
                                   >
                                     {profile.active ? "Desativar" : "Ativar"}
                                   </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setDeletingUser(profile)}
+                                    disabled={updating === profile.id}
+                                    className="h-7 px-2.5 rounded-md text-[11px] font-medium border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+                                    title="Excluir usuário"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </button>
                                 </div>
                               )}
                             </td>
@@ -1135,6 +1169,47 @@ const Usuarios = () => {
           )}
         </>
       )}
+
+      {/* Delete user confirmation modal */}
+      <AnimatePresence>
+        {deletingUser && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
+            onClick={() => setDeletingUser(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.2 }}
+              className="w-full max-w-sm rounded-xl border border-border bg-card p-6 space-y-4 shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-sm font-semibold text-foreground">Excluir usuário</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Tem certeza que deseja excluir o usuário <span className="font-semibold text-foreground">{deletingUser.full_name || deletingUser.display_name || deletingUser.email}</span>? Esta ação é irreversível e removerá todas as permissões e dados de acesso.
+              </p>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => setDeletingUser(null)}>
+                  Cancelar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  className="h-8 text-xs"
+                  onClick={deleteUser}
+                  disabled={deletingUserLoading}
+                >
+                  {deletingUserLoading ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> Excluindo...</> : "Excluir usuário"}
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
