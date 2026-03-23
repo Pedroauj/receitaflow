@@ -26,6 +26,7 @@ import Danone from "@/pages/Danone";
 import Platlog from "@/pages/Platlog";
 import Conciliacao from "./pages/Conciliacao";
 import Abastecimento from "./pages/Abastecimento";
+import MediasAbastecimento from "./pages/MediasAbastecimento";
 
 const queryClient = new QueryClient();
 
