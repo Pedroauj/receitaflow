@@ -5,7 +5,7 @@ import { Navigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import {
   Users, Shield, ShieldOff, Search, ChevronDown, ChevronRight,
-  Eye, Pencil, LayoutDashboard, History, Loader2, FileSearch, Building2, Settings, Fuel,
+  Eye, Pencil, LayoutDashboard, History, Loader2, FileSearch, Building2, Settings, Fuel, BarChart3,
   Plus, Upload, X, ImageIcon, Mail, UserPlus, Trash2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -46,6 +46,7 @@ const MODULES = [
   { key: "historico", label: "Histórico", icon: History },
   { key: "conciliacao", label: "NF-e / NFS-e", icon: FileSearch },
   { key: "abastecimento", label: "Abastecimento", icon: Fuel },
+  { key: "medias-abastecimento", label: "Médias de Abastecimento", icon: BarChart3 },
   { key: "clientes", label: "Clientes", icon: Building2 },
   { key: "configuracoes", label: "Configurações", icon: Settings },
 ];
