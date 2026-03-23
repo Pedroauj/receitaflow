@@ -1,8 +1,8 @@
 project_id = "yzoesydyvgolnufaianw"
 
 [auth]
-site_url = "https://receitaflow.lovable.app"
-additional_redirect_urls = ["https://receitaflow.lovable.app/reset-password", "https://receitaflow.lovable.app/login", "https://receitaflow.lovable.app/dashboard"]
+site_url = "https://receitaflow.com"
+additional_redirect_urls = ["https://receitaflow.com/reset-password", "https://receitaflow.com/login", "https://receitaflow.com/dashboard", "https://receitaflow.lovable.app/reset-password", "https://receitaflow.lovable.app/login", "https://receitaflow.lovable.app/dashboard"]
 
 [functions]
   [functions.auth-email-hook]

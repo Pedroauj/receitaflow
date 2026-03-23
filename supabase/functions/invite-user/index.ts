@@ -58,26 +58,68 @@ Deno.serve(async (req) => {
       })
     }
 
+    const normalizedEmail = email.trim().toLowerCase()
+    const siteUrl = 'https://receitaflow.com'
+
     // Use service role client for admin operations
     const adminClient = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Check if user already exists
+    // If a pending invited user already exists, clean it up and resend the invite.
     const { data: existingProfile } = await adminClient
       .from('profiles')
-      .select('id')
-      .eq('email', email.trim().toLowerCase())
+      .select('id, user_id, email')
+      .eq('email', normalizedEmail)
       .maybeSingle()
 
-    if (existingProfile) {
-      return new Response(JSON.stringify({ error: 'Este email já está cadastrado no sistema' }), {
-        status: 409,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
+    let resentInvite = false
+
+    if (existingProfile?.user_id) {
+      const { data: existingAuthUser, error: existingAuthUserError } = await adminClient.auth.admin.getUserById(existingProfile.user_id)
+
+      if (existingAuthUserError) {
+        console.error('Failed to fetch existing invited user:', existingAuthUserError)
+        return new Response(JSON.stringify({ error: 'Não foi possível validar o convite existente' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      const authUser = existingAuthUser.user
+      const isPendingInvite = authUser && !authUser.email_confirmed_at && !authUser.last_sign_in_at
+
+      if (isPendingInvite) {
+        resentInvite = true
+
+        const { error: deleteAuthUserError } = await adminClient.auth.admin.deleteUser(authUser.id)
+        if (deleteAuthUserError) {
+          console.error('Failed to delete pending invited user:', deleteAuthUserError)
+          return new Response(JSON.stringify({ error: 'Não foi possível reenviar o convite existente' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          })
+        }
+
+        const { error: deleteProfileError } = await adminClient
+          .from('profiles')
+          .delete()
+          .eq('id', existingProfile.id)
+
+        if (deleteProfileError) {
+          console.error('Failed to delete pending invite profile:', deleteProfileError)
+          return new Response(JSON.stringify({ error: 'Não foi possível atualizar o convite existente' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          })
+        }
+      } else {
+        return new Response(JSON.stringify({ error: 'Este email já está cadastrado no sistema' }), {
+          status: 409,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
     }
 
-    // Send invite via Supabase Auth admin API
-    const siteUrl = 'https://receitaflow.lovable.app'
-    const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email.trim(), {
+    const { data, error } = await adminClient.auth.admin.inviteUserByEmail(normalizedEmail, {
       redirectTo: `${siteUrl}/reset-password`,
       data: {
         company_id: company_id || null,
@@ -92,18 +134,16 @@ Deno.serve(async (req) => {
       })
     }
 
-    // If company_id provided, update the profile once created
     if (company_id && data?.user?.id) {
-      // Wait briefly for the trigger to create the profile
       await new Promise((resolve) => setTimeout(resolve, 1000))
-      
+
       await adminClient
         .from('profiles')
         .update({ company_id })
         .eq('user_id', data.user.id)
     }
 
-    return new Response(JSON.stringify({ success: true, user_id: data?.user?.id }), {
+    return new Response(JSON.stringify({ success: true, resent: resentInvite, user_id: data?.user?.id }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
