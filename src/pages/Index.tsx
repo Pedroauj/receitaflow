@@ -115,7 +115,9 @@ const Index = () => {
               <div className="h-8 w-8 rounded-lg bg-primary/15 flex items-center justify-center">
                 <Zap className="h-4 w-4 text-primary" />
               </div>
-              <h1 className="text-2xl font-semibold text-foreground tracking-tight">Visão geral</h1>
+              <h1 className="text-2xl font-semibold text-foreground tracking-tight">
+                {greeting}, <span className="text-primary">{firstName}</span>
+              </h1>
             </div>
             <p className="text-sm text-muted-foreground capitalize pl-11">{today}</p>
           </div>
