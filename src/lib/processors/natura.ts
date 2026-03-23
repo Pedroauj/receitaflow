@@ -1,36 +1,56 @@
 import * as XLSX from "xlsx";
 import * as pdfjsLib from "pdfjs-dist";
 
-// Configure PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
 
-export interface NaturaDocument {
-  filial: string;
-  serie: string;
+// ── Types ──
+
+export interface NaturaDocumentoBOR {
   numeroDocumento: string;
-  tipoDocumento: string;
+}
+
+export interface NaturaRegistroEncontrado {
+  numeroDocumento: string;
   valor: number;
+  status: "encontrado" | "não encontrado" | "sem valor";
+  origem: string; // documento BOR de origem
 }
 
 export interface NaturaProcessingResult {
-  documents: NaturaDocument[];
+  documentosBOR: NaturaDocumentoBOR[];
+  registros: NaturaRegistroEncontrado[];
   totalDocumentos: number;
   totalValor: number;
+  totalEncontrados: number;
+  totalNaoEncontrados: number;
+  totalSemValor: number;
 }
 
-function parseValor(raw: string): number | null {
-  if (!raw || typeof raw !== "string") return null;
+// ── Configuração de colunas (ajustável) ──
 
-  const cleaned = raw
-    .replace(/R\$\s*/gi, "")
-    .replace(/\./g, "")
-    .replace(",", ".")
-    .trim();
+export const NATURA_CONFIG = {
+  /** Nome da coluna na planilha do sistema que contém o nº do documento / fatura */
+  colunaDocumento: "NUM_TITULO",
+  /** Nome da coluna na planilha do sistema que contém o valor */
+  colunaValor: "VLR_TITULO",
+  /** Colunas da planilha de exportação */
+  exportColunas: {
+    filial: "FILIAL",
+    serie: "SERIE",
+    documento: "Nº DOCUMENTO",
+    tipo: "TIPO",
+    valor: "VALOR",
+  },
+  /** Valores fixos para exportação */
+  exportDefaults: {
+    filial: "1",
+    serie: "1",
+    tipo: "CTRC",
+  },
+};
 
-  const num = Number.parseFloat(cleaned);
-  return Number.isNaN(num) ? null : num;
-}
+// ── PDF helpers ──
 
 function normalizeText(text: string): string {
   return text
@@ -42,7 +62,7 @@ function normalizeText(text: string): string {
     .trim();
 }
 
-function extractPageTextWithLines(content: any): string {
+function extractPageText(content: any): string {
   const items = (content?.items ?? []) as any[];
 
   const rows = items
@@ -50,12 +70,7 @@ function extractPageTextWithLines(content: any): string {
       const str = typeof item?.str === "string" ? item.str : "";
       const x = Array.isArray(item?.transform) ? Number(item.transform[4] ?? 0) : 0;
       const y = Array.isArray(item?.transform) ? Number(item.transform[5] ?? 0) : 0;
-
-      return {
-        str: str.trim(),
-        x,
-        y,
-      };
+      return { str: str.trim(), x, y };
     })
     .filter((item) => item.str.length > 0);
 
@@ -71,134 +86,160 @@ function extractPageTextWithLines(content: any): string {
 
   for (const row of rows) {
     const existing = grouped.find((group) => Math.abs(group.y - row.y) <= 2.5);
-
     if (existing) {
       existing.items.push({ str: row.str, x: row.x });
     } else {
-      grouped.push({
-        y: row.y,
-        items: [{ str: row.str, x: row.x }],
-      });
+      grouped.push({ y: row.y, items: [{ str: row.str, x: row.x }] });
     }
   }
 
   grouped.sort((a, b) => b.y - a.y);
 
-  const lines = grouped.map((group) => {
-    const sortedItems = group.items.sort((a, b) => a.x - b.x);
-    return sortedItems.map((item) => item.str).join(" ").trim();
-  });
-
-  return lines.join("\n");
+  return grouped
+    .map((g) => g.items.sort((a, b) => a.x - b.x).map((i) => i.str).join(" ").trim())
+    .join("\n");
 }
 
-function collectMatches(regex: RegExp, text: string): Array<{ value: string; index: number }> {
-  const matches: Array<{ value: string; index: number }> = [];
-  let match: RegExpExecArray | null;
+// ── Extração de documentos do PDF BOR ──
 
-  while ((match = regex.exec(text)) !== null) {
-    const value = match[1]?.trim();
-    const index = match.index ?? 0;
-
-    if (value) {
-      matches.push({ value, index });
-    }
-  }
-
-  return matches;
-}
-
-export async function processarNatura(fileBuffer: ArrayBuffer): Promise<NaturaProcessingResult> {
+export async function extrairDocumentosBOR(fileBuffer: ArrayBuffer): Promise<NaturaDocumentoBOR[]> {
   const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(fileBuffer) }).promise;
 
   let fullText = "";
-
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
     const content = await page.getTextContent();
-    const pageText = extractPageTextWithLines(content);
-    fullText += `${pageText}\n`;
+    fullText += `${extractPageText(content)}\n`;
   }
 
-  const normalizedText = normalizeText(fullText);
+  const normalized = normalizeText(fullText);
 
-  const documentoRegex =
-    /N[º°o]?\s*DO\s*DOCUMENTO\s*:?\s*([0-9.\-\/]+)/gi;
+  // Localizar seção COMPROMISSOS
+  const compromissosIdx = normalized.toUpperCase().indexOf("COMPROMISSOS");
+  if (compromissosIdx === -1) return [];
 
-  const valorRegex =
-    /VALOR\s*DA\s*OPERACAO\s*:?\s*(?:R\$\s*)?([0-9.]+,[0-9]{2})/gi;
+  const textAfter = normalized.substring(compromissosIdx);
 
-  const documentoMatches = collectMatches(documentoRegex, normalizedText);
-  const valorMatches = collectMatches(valorRegex, normalizedText);
+  // Extrair todos os "Nº do Documento: XXXXX"
+  const regex = /N[º°o]?\s*(?:DO|do)?\s*DOCUMENTO\s*:?\s*([0-9.\-\/]+)/gi;
+  const docs: NaturaDocumentoBOR[] = [];
+  const seen = new Set<string>();
 
-  const documents: NaturaDocument[] = [];
-  let valorCursor = 0;
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(textAfter)) !== null) {
+    const num = match[1]?.trim().replace(/^0+/, "");
+    if (num && !seen.has(num)) {
+      seen.add(num);
+      docs.push({ numeroDocumento: num });
+    }
+  }
 
-  for (let i = 0; i < documentoMatches.length; i++) {
-    const documento = documentoMatches[i];
-    const nextDocumentoIndex = documentoMatches[i + 1]?.index ?? Number.POSITIVE_INFINITY;
+  return docs;
+}
 
-    let matchedValor: { value: string; index: number } | null = null;
+// ── Leitura da planilha do sistema ──
 
-    while (valorCursor < valorMatches.length) {
-      const valorAtual = valorMatches[valorCursor];
+export function lerPlanilhaSistema(fileBuffer: ArrayBuffer): Record<string, any>[] {
+  const wb = XLSX.read(fileBuffer, { type: "array" });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  return XLSX.utils.sheet_to_json(ws, { defval: "" });
+}
 
-      if (valorAtual.index > documento.index && valorAtual.index < nextDocumentoIndex) {
-        matchedValor = valorAtual;
-        valorCursor++;
-        break;
-      }
+// ── Cruzamento ──
 
-      if (valorAtual.index <= documento.index) {
-        valorCursor++;
-        continue;
-      }
+function parseValor(raw: any): number | null {
+  if (typeof raw === "number") return raw;
+  if (!raw || typeof raw !== "string") return null;
+  const cleaned = raw.replace(/R\$\s*/gi, "").replace(/\./g, "").replace(",", ".").trim();
+  const num = Number.parseFloat(cleaned);
+  return Number.isNaN(num) ? null : num;
+}
 
-      if (valorAtual.index >= nextDocumentoIndex) {
-        break;
-      }
+function normalizeDocNumber(doc: string): string {
+  return String(doc).replace(/^0+/, "").replace(/[.\-\/\s]/g, "").trim();
+}
+
+export function cruzarDados(
+  documentosBOR: NaturaDocumentoBOR[],
+  dadosSistema: Record<string, any>[],
+  config = NATURA_CONFIG
+): NaturaRegistroEncontrado[] {
+  const registros: NaturaRegistroEncontrado[] = [];
+
+  for (const docBOR of documentosBOR) {
+    const numBOR = normalizeDocNumber(docBOR.numeroDocumento);
+
+    // Encontrar todas as linhas na planilha que correspondem
+    const linhasCorrespondentes = dadosSistema.filter((row) => {
+      const numSistema = normalizeDocNumber(String(row[config.colunaDocumento] ?? ""));
+      return numSistema === numBOR;
+    });
+
+    if (linhasCorrespondentes.length === 0) {
+      registros.push({
+        numeroDocumento: docBOR.numeroDocumento,
+        valor: 0,
+        status: "não encontrado",
+        origem: docBOR.numeroDocumento,
+      });
+      continue;
     }
 
-    if (!matchedValor) continue;
+    for (const linha of linhasCorrespondentes) {
+      const valor = parseValor(linha[config.colunaValor]);
 
-    const valor = parseValor(matchedValor.value);
-    if (valor === null) continue;
-
-    documents.push({
-      filial: "1",
-      serie: "1",
-      numeroDocumento: documento.value,
-      tipoDocumento: "CTRC",
-      valor,
-    });
+      registros.push({
+        numeroDocumento: String(linha[config.colunaDocumento] ?? docBOR.numeroDocumento),
+        valor: valor ?? 0,
+        status: valor !== null ? "encontrado" : "sem valor",
+        origem: docBOR.numeroDocumento,
+      });
+    }
   }
 
-  const uniqueDocuments = documents.filter((doc, index, arr) => {
-    const firstIndex = arr.findIndex(
-      (item) =>
-        item.numeroDocumento === doc.numeroDocumento &&
-        item.valor === doc.valor
-    );
+  return registros;
+}
 
-    return firstIndex === index;
-  });
+// ── Processamento completo ──
 
-  const totalValor = uniqueDocuments.reduce((sum, doc) => sum + doc.valor, 0);
+export async function processarNatura(
+  pdfBuffer: ArrayBuffer,
+  planilhaBuffer: ArrayBuffer,
+  config = NATURA_CONFIG
+): Promise<NaturaProcessingResult> {
+  const documentosBOR = await extrairDocumentosBOR(pdfBuffer);
+  const dadosSistema = lerPlanilhaSistema(planilhaBuffer);
+  const registros = cruzarDados(documentosBOR, dadosSistema, config);
+
+  const encontrados = registros.filter((r) => r.status === "encontrado");
+  const naoEncontrados = registros.filter((r) => r.status === "não encontrado");
+  const semValor = registros.filter((r) => r.status === "sem valor");
 
   return {
-    documents: uniqueDocuments,
-    totalDocumentos: uniqueDocuments.length,
-    totalValor,
+    documentosBOR,
+    registros,
+    totalDocumentos: registros.length,
+    totalValor: encontrados.reduce((sum, r) => sum + r.valor, 0),
+    totalEncontrados: encontrados.length,
+    totalNaoEncontrados: naoEncontrados.length,
+    totalSemValor: semValor.length,
   };
 }
 
-export function gerarPlanilhaNatura(documents: NaturaDocument[]): ArrayBuffer {
-  const data = documents.map((doc) => ({
-    FILIAL: doc.filial,
-    SERIE: doc.serie,
-    "Nº DOCUMENTO": doc.numeroDocumento,
-    TIPO: doc.tipoDocumento,
-    VALOR: doc.valor,
+// ── Geração da planilha de exportação ──
+
+export function gerarPlanilhaNatura(
+  registros: NaturaRegistroEncontrado[],
+  config = NATURA_CONFIG
+): ArrayBuffer {
+  const encontrados = registros.filter((r) => r.status === "encontrado");
+
+  const data = encontrados.map((r) => ({
+    [config.exportColunas.filial]: config.exportDefaults.filial,
+    [config.exportColunas.serie]: config.exportDefaults.serie,
+    [config.exportColunas.documento]: r.numeroDocumento,
+    [config.exportColunas.tipo]: config.exportDefaults.tipo,
+    [config.exportColunas.valor]: r.valor,
   }));
 
   const wb = XLSX.utils.book_new();
