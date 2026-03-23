@@ -11,6 +11,7 @@ import {
   Users,
   Shield,
   X,
+  BarChart3,
 } from "lucide-react";
 import { getRecords } from "@/lib/history";
 import { useAuth } from "@/contexts/AuthContext";
