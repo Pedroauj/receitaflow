@@ -10,9 +10,9 @@ const DashboardLayout = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && location.pathname !== "/dashboard") {
+      if (e.key === "Escape" && location.pathname !== "/inicio") {
         e.preventDefault();
-        navigate("/dashboard");
+        navigate("/inicio");
       }
     };
     window.addEventListener("keydown", handleKeyDown);

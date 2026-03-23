@@ -27,6 +27,7 @@ import Platlog from "@/pages/Platlog";
 import Conciliacao from "./pages/Conciliacao";
 import Abastecimento from "./pages/Abastecimento";
 import MediasAbastecimento from "./pages/MediasAbastecimento";
+import Inicio from "./pages/Inicio";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +61,7 @@ const App = () => {
                   </ProtectedRoute>
                 }
               >
+                <Route path="/inicio" element={<Inicio />} />
                 <Route path="/dashboard" element={withModule("dashboard", <Index />)} />
                 <Route path="/historico" element={withModule("historico", <Historico />)} />
                 
