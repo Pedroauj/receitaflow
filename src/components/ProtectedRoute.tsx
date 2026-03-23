@@ -24,7 +24,7 @@ const ProtectedRoute = ({ children, moduleKey }: ProtectedRouteProps) => {
   }
 
   if (moduleKey && !canView(moduleKey)) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/inicio" replace />;
   }
 
   return <>{children}</>;
