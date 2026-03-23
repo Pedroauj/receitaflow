@@ -30,6 +30,11 @@ import MediasAbastecimento from "./pages/MediasAbastecimento";
 
 const queryClient = new QueryClient();
 
+// Helper to wrap a page with module permission check
+const withModule = (moduleKey: string, element: React.ReactNode) => (
+  <ProtectedRoute moduleKey={moduleKey}>{element}</ProtectedRoute>
+);
+
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
@@ -55,14 +60,14 @@ const App = () => {
                   </ProtectedRoute>
                 }
               >
-                <Route path="/dashboard" element={<Index />} />
-                <Route path="/historico" element={<Historico />} />
+                <Route path="/dashboard" element={withModule("dashboard", <Index />)} />
+                <Route path="/historico" element={withModule("historico", <Historico />)} />
                 
-                <Route path="/clientes" element={<Clientes />} />
-                <Route path="/conciliacao" element={<Conciliacao />} />
-                <Route path="/abastecimento" element={<Abastecimento />} />
-                <Route path="/medias-abastecimento" element={<MediasAbastecimento />} />
-                <Route path="/configuracoes" element={<Configuracoes />} />
+                <Route path="/clientes" element={withModule("clientes", <Clientes />)} />
+                <Route path="/conciliacao" element={withModule("conciliacao", <Conciliacao />)} />
+                <Route path="/abastecimento" element={withModule("abastecimento", <Abastecimento />)} />
+                <Route path="/medias-abastecimento" element={withModule("medias-abastecimento", <MediasAbastecimento />)} />
+                <Route path="/configuracoes" element={withModule("configuracoes", <Configuracoes />)} />
                 <Route path="/usuarios" element={<Usuarios />} />
 
                 <Route path="/cliente/martin-brower" element={<MartinBrower />} />
