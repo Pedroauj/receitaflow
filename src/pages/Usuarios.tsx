@@ -433,7 +433,7 @@ const Usuarios = () => {
     setDeletingUserLoading(false);
   };
 
-
+  const inviteUser = async () => {
     if (!inviteEmail.trim() || !inviteEmail.includes("@")) {
       toast({ title: "Email inválido", variant: "destructive" });
       return;
