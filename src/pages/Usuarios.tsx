@@ -1053,6 +1053,15 @@ const Usuarios = () => {
                                   >
                                     {profile.active ? "Desativar" : "Ativar"}
                                   </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setDeletingUser(profile)}
+                                    disabled={updating === profile.id}
+                                    className="h-7 px-2.5 rounded-md text-[11px] font-medium border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+                                    title="Excluir usuário"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </button>
                                 </div>
                               )}
                             </td>
