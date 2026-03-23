@@ -90,6 +90,10 @@ const Usuarios = () => {
   const [confirmDeleteName, setConfirmDeleteName] = useState("");
   const [deleting, setDeleting] = useState(false);
 
+  // Delete user
+  const [deletingUser, setDeletingUser] = useState<Profile | null>(null);
+  const [deletingUserLoading, setDeletingUserLoading] = useState(false);
+
   // Tab
   const [activeTab, setActiveTab] = useState<"users" | "companies">("users");
 
