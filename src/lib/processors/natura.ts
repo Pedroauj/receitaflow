@@ -10,15 +10,24 @@ export interface NaturaDocumentoBOR {
   numeroDocumento: string;
 }
 
+export interface NaturaFaturaBloco {
+  fatura: string;
+  documentos: string[];
+  valor: number;
+  status: "encontrado" | "não encontrado" | "sem valor";
+}
+
 export interface NaturaRegistroEncontrado {
   numeroDocumento: string;
   valor: number;
   status: "encontrado" | "não encontrado" | "sem valor";
-  origem: string; // documento BOR de origem
+  origem: string;
+  fatura: string;
 }
 
 export interface NaturaProcessingResult {
   documentosBOR: NaturaDocumentoBOR[];
+  blocos: NaturaFaturaBloco[];
   registros: NaturaRegistroEncontrado[];
   totalDocumentos: number;
   totalValor: number;
@@ -27,14 +36,11 @@ export interface NaturaProcessingResult {
   totalSemValor: number;
 }
 
-// ── Configuração de colunas (ajustável) ──
+// ── Configuração (ajustável) ──
 
 export const NATURA_CONFIG = {
-  /** Nome da coluna na planilha do sistema que contém o nº do documento / fatura */
-  colunaDocumento: "NUM_TITULO",
-  /** Nome da coluna na planilha do sistema que contém o valor */
-  colunaValor: "VLR_TITULO",
-  /** Colunas da planilha de exportação */
+  colunaFatura: "NºFATURA",
+  colunaValor: "VLR A RECEBER",
   exportColunas: {
     filial: "FILIAL",
     serie: "SERIE",
@@ -42,7 +48,6 @@ export const NATURA_CONFIG = {
     tipo: "TIPO",
     valor: "VALOR",
   },
-  /** Valores fixos para exportação */
   exportDefaults: {
     filial: "1",
     serie: "1",
@@ -64,7 +69,6 @@ function normalizeText(text: string): string {
 
 function extractPageText(content: any): string {
   const items = (content?.items ?? []) as any[];
-
   const rows = items
     .map((item) => {
       const str = typeof item?.str === "string" ? item.str : "";
@@ -83,7 +87,6 @@ function extractPageText(content: any): string {
   });
 
   const grouped: Array<{ y: number; items: Array<{ str: string; x: number }> }> = [];
-
   for (const row of rows) {
     const existing = grouped.find((group) => Math.abs(group.y - row.y) <= 2.5);
     if (existing) {
@@ -114,13 +117,11 @@ export async function extrairDocumentosBOR(fileBuffer: ArrayBuffer): Promise<Nat
 
   const normalized = normalizeText(fullText);
 
-  // Localizar seção COMPROMISSOS
   const compromissosIdx = normalized.toUpperCase().indexOf("COMPROMISSOS");
   if (compromissosIdx === -1) return [];
 
   const textAfter = normalized.substring(compromissosIdx);
 
-  // Extrair todos os "Nº do Documento: XXXXX"
   const regex = /N[º°o]?\s*(?:DO|do)?\s*DOCUMENTO\s*:?\s*([0-9.\-\/]+)/gi;
   const docs: NaturaDocumentoBOR[] = [];
   const seen = new Set<string>();
@@ -137,15 +138,22 @@ export async function extrairDocumentosBOR(fileBuffer: ArrayBuffer): Promise<Nat
   return docs;
 }
 
-// ── Leitura da planilha do sistema ──
+// ── Leitura da planilha em formato raw (array de arrays) ──
 
-export function lerPlanilhaSistema(fileBuffer: ArrayBuffer): Record<string, any>[] {
+export function lerPlanilhaRaw(fileBuffer: ArrayBuffer): { headers: string[]; rows: any[][] } {
   const wb = XLSX.read(fileBuffer, { type: "array" });
   const ws = wb.Sheets[wb.SheetNames[0]];
-  return XLSX.utils.sheet_to_json(ws, { defval: "" });
+  const raw: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
+
+  if (raw.length === 0) return { headers: [], rows: [] };
+
+  const headers = raw[0].map((h: any) => String(h).trim());
+  const rows = raw.slice(1);
+
+  return { headers, rows };
 }
 
-// ── Cruzamento ──
+// ── Cruzamento em blocos ──
 
 function parseValor(raw: any): number | null {
   if (typeof raw === "number") return raw;
@@ -159,45 +167,156 @@ function normalizeDocNumber(doc: string): string {
   return String(doc).replace(/^0+/, "").replace(/[.\-\/\s]/g, "").trim();
 }
 
-export function cruzarDados(
+function extrairDocumentosDaLinha(texto: string): string[] {
+  const cleaned = texto
+    .replace(/CTRC\s*/gi, "")
+    .replace(/CTE\s*/gi, "")
+    .replace(/NF\s*/gi, "")
+    .trim();
+
+  if (!cleaned) return [];
+
+  return cleaned
+    .split(/[,;]/)
+    .map((d) => d.replace(/\./g, "").trim())
+    .filter((d) => d.length > 0 && /^\d+$/.test(d));
+}
+
+export function cruzarDadosBlocos(
   documentosBOR: NaturaDocumentoBOR[],
-  dadosSistema: Record<string, any>[],
+  headers: string[],
+  rows: any[][],
   config = NATURA_CONFIG
-): NaturaRegistroEncontrado[] {
+): { blocos: NaturaFaturaBloco[]; registros: NaturaRegistroEncontrado[] } {
+  const faturaColIdx = headers.findIndex(
+    (h) => h.toUpperCase().replace(/\s/g, "") === config.colunaFatura.toUpperCase().replace(/\s/g, "")
+  );
+  const valorColIdx = headers.findIndex(
+    (h) => h.toUpperCase().replace(/\s/g, "") === config.colunaValor.toUpperCase().replace(/\s/g, "")
+  );
+
+  const blocos: NaturaFaturaBloco[] = [];
   const registros: NaturaRegistroEncontrado[] = [];
 
   for (const docBOR of documentosBOR) {
     const numBOR = normalizeDocNumber(docBOR.numeroDocumento);
 
-    // Encontrar todas as linhas na planilha que correspondem
-    const linhasCorrespondentes = dadosSistema.filter((row) => {
-      const numSistema = normalizeDocNumber(String(row[config.colunaDocumento] ?? ""));
-      return numSistema === numBOR;
-    });
+    // Procurar a linha da fatura
+    let faturaRowIdx = -1;
 
-    if (linhasCorrespondentes.length === 0) {
+    if (faturaColIdx !== -1) {
+      faturaRowIdx = rows.findIndex((row) => {
+        const cellVal = normalizeDocNumber(String(row[faturaColIdx] ?? ""));
+        return cellVal === numBOR;
+      });
+    }
+
+    // Fallback: buscar em qualquer coluna
+    if (faturaRowIdx === -1) {
+      faturaRowIdx = rows.findIndex((row) =>
+        row.some((cell: any) => normalizeDocNumber(String(cell ?? "")) === numBOR)
+      );
+    }
+
+    if (faturaRowIdx === -1) {
+      blocos.push({
+        fatura: docBOR.numeroDocumento,
+        documentos: [],
+        valor: 0,
+        status: "não encontrado",
+      });
       registros.push({
         numeroDocumento: docBOR.numeroDocumento,
         valor: 0,
         status: "não encontrado",
         origem: docBOR.numeroDocumento,
+        fatura: docBOR.numeroDocumento,
       });
       continue;
     }
 
-    for (const linha of linhasCorrespondentes) {
-      const valor = parseValor(linha[config.colunaValor]);
+    // Ler bloco: linhas seguintes até encontrar outra fatura ou fim
+    let documentos: string[] = [];
+    let valorFatura: number | null = null;
 
+    // Vasculhar as próximas linhas (até 10) buscando documentos e valor
+    const maxLookAhead = Math.min(faturaRowIdx + 10, rows.length);
+    for (let i = faturaRowIdx + 1; i < maxLookAhead; i++) {
+      const row = rows[i];
+
+      // Se encontrou outra fatura, parar
+      if (faturaColIdx !== -1) {
+        const nextFatura = String(row[faturaColIdx] ?? "").trim();
+        if (nextFatura && /^\d+$/.test(nextFatura.replace(/[.\-\/]/g, ""))) {
+          break;
+        }
+      }
+
+      // Procurar documentos (CTRC ...)
+      for (const cell of row) {
+        const cellStr = String(cell ?? "").trim();
+        if (/CTRC|CTE/i.test(cellStr) && documentos.length === 0) {
+          documentos = extrairDocumentosDaLinha(cellStr);
+        }
+      }
+
+      // Procurar valor na coluna VLR A RECEBER
+      if (valorColIdx !== -1 && valorFatura === null) {
+        const rawValor = row[valorColIdx];
+        const parsed = parseValor(rawValor);
+        if (parsed !== null && parsed > 0) {
+          valorFatura = parsed;
+        }
+      }
+
+      // Fallback: procurar valor em qualquer célula que pareça monetário
+      if (valorFatura === null) {
+        for (const cell of row) {
+          const cellStr = String(cell ?? "").trim();
+          if (/VLR\s*A?\s*RECEBER/i.test(cellStr)) continue;
+          const parsed = parseValor(cell);
+          if (parsed !== null && parsed > 100) {
+            valorFatura = parsed;
+          }
+        }
+      }
+
+      // Se já encontrou documentos e valor, parar
+      if (documentos.length > 0 && valorFatura !== null) break;
+    }
+
+    // Se não encontrou documentos separados, usar o próprio número da fatura
+    if (documentos.length === 0) {
+      documentos = [docBOR.numeroDocumento];
+    }
+
+    const status: NaturaFaturaBloco["status"] =
+      valorFatura !== null ? "encontrado" : "sem valor";
+
+    blocos.push({
+      fatura: docBOR.numeroDocumento,
+      documentos,
+      valor: valorFatura ?? 0,
+      status,
+    });
+
+    // Gerar um registro por documento encontrado
+    const valorPorDoc = valorFatura !== null && documentos.length > 0
+      ? valorFatura / documentos.length
+      : 0;
+
+    for (const doc of documentos) {
       registros.push({
-        numeroDocumento: String(linha[config.colunaDocumento] ?? docBOR.numeroDocumento),
-        valor: valor ?? 0,
-        status: valor !== null ? "encontrado" : "sem valor",
+        numeroDocumento: doc,
+        valor: valorPorDoc,
+        status,
         origem: docBOR.numeroDocumento,
+        fatura: docBOR.numeroDocumento,
       });
     }
   }
 
-  return registros;
+  return { blocos, registros };
 }
 
 // ── Processamento completo ──
@@ -208,18 +327,23 @@ export async function processarNatura(
   config = NATURA_CONFIG
 ): Promise<NaturaProcessingResult> {
   const documentosBOR = await extrairDocumentosBOR(pdfBuffer);
-  const dadosSistema = lerPlanilhaSistema(planilhaBuffer);
-  const registros = cruzarDados(documentosBOR, dadosSistema, config);
+  const { headers, rows } = lerPlanilhaRaw(planilhaBuffer);
+  const { blocos, registros } = cruzarDadosBlocos(documentosBOR, headers, rows, config);
 
   const encontrados = registros.filter((r) => r.status === "encontrado");
   const naoEncontrados = registros.filter((r) => r.status === "não encontrado");
   const semValor = registros.filter((r) => r.status === "sem valor");
 
+  const totalValor = blocos
+    .filter((b) => b.status === "encontrado")
+    .reduce((sum, b) => sum + b.valor, 0);
+
   return {
     documentosBOR,
+    blocos,
     registros,
     totalDocumentos: registros.length,
-    totalValor: encontrados.reduce((sum, r) => sum + r.valor, 0),
+    totalValor,
     totalEncontrados: encontrados.length,
     totalNaoEncontrados: naoEncontrados.length,
     totalSemValor: semValor.length,
