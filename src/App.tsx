@@ -60,6 +60,7 @@ const App = () => {
                   </ProtectedRoute>
                 }
               >
+                <Route path="/inicio" element={<Inicio />} />
                 <Route path="/dashboard" element={withModule("dashboard", <Index />)} />
                 <Route path="/historico" element={withModule("historico", <Historico />)} />
                 
