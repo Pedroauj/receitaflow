@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -19,11 +19,15 @@ const ResetPassword = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const hasTriggeredVerificationRef = useRef(false);
 
   const sendVerificationCode = useCallback(async () => {
+    if (hasTriggeredVerificationRef.current) return;
+    hasTriggeredVerificationRef.current = true;
     setStep("sending-code");
     const { error } = await supabase.auth.reauthenticate();
     if (error) {
+      hasTriggeredVerificationRef.current = false;
       console.error("Reauthenticate error:", error);
       toast({
         title: "Erro ao enviar código",
@@ -44,11 +48,13 @@ const ResetPassword = () => {
       async (event, session) => {
         if (session?.user) {
           setEmail(session.user.email || "");
-          // Only send code on initial recovery/invite events
-          if (step === "loading") {
+          if (
+            !hasTriggeredVerificationRef.current &&
+            (event === "SIGNED_IN" || event === "PASSWORD_RECOVERY" || event === "INITIAL_SESSION")
+          ) {
             await sendVerificationCode();
           }
-        } else if (step === "loading") {
+        } else if (!hasTriggeredVerificationRef.current) {
           // No session — invalid or expired link
           toast({
             title: "Link inválido ou expirado",
@@ -64,14 +70,21 @@ const ResetPassword = () => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
         setEmail(session.user.email || "");
-        if (step === "loading") {
+        if (!hasTriggeredVerificationRef.current) {
           await sendVerificationCode();
         }
+      } else if (!hasTriggeredVerificationRef.current) {
+        toast({
+          title: "Link inválido ou expirado",
+          description: "Solicite um novo convite ou link de recuperação.",
+          variant: "destructive",
+        });
+        navigate("/login", { replace: true });
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate, sendVerificationCode]);
 
   const handleVerifyCode = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,6 +126,7 @@ const ResetPassword = () => {
   };
 
   const handleResendCode = async () => {
+    hasTriggeredVerificationRef.current = false;
     setOtpCode("");
     await sendVerificationCode();
   };
