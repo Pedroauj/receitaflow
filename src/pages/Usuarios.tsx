@@ -425,7 +425,10 @@ const Usuarios = () => {
         variant: "destructive",
       });
     } else {
-      toast({ title: "Convite enviado!", description: `Email enviado para ${inviteEmail.trim()}` });
+      toast({
+        title: data?.resent ? "Convite reenviado!" : "Convite enviado!",
+        description: `Email enviado para ${inviteEmail.trim()}`,
+      });
       setInviteEmail("");
       setInviteCompany("");
       setShowInvite(false);

@@ -8,6 +8,8 @@ import { toast } from "@/hooks/use-toast";
 import { Hexagon, Mail, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 
+const APP_URL = "https://receitaflow.com";
+
 const EsqueciSenha = () => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -17,7 +19,7 @@ const EsqueciSenha = () => {
     e.preventDefault();
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${APP_URL}/reset-password`,
     });
     setLoading(false);
     if (error) {
