@@ -76,8 +76,9 @@ Deno.serve(async (req) => {
     }
 
     // Send invite via Supabase Auth admin API
+    const siteUrl = 'https://receitaflow.lovable.app'
     const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email.trim(), {
-      redirectTo: `${req.headers.get('origin') || 'https://receitaflow.com'}/reset-password`,
+      redirectTo: `${siteUrl}/reset-password`,
       data: {
         company_id: company_id || null,
       },
