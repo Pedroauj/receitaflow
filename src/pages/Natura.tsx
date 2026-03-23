@@ -68,7 +68,7 @@ const Natura = () => {
           quantidadeDocumentos: res.totalDocumentos,
           valorTotal: res.totalValor,
           valorInformadoBanco: 0,
-          statusConferencia: res.totalNaoEncontrados > 0 ? "divergente" : "confere",
+          statusConferencia: res.totalNaoEncontrados > 0 ? "diverge" : "confere",
           quantidadeErros: res.totalNaoEncontrados + res.totalSemValor,
         });
       }
