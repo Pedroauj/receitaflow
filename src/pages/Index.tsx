@@ -61,7 +61,11 @@ const Index = () => {
   const stats = getStats();
   const records = getRecords();
 
-  const today = new Date().toLocaleDateString("pt-BR", {
+  const now = new Date();
+  const hour = now.getHours();
+  const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
+  
+  const today = now.toLocaleDateString("pt-BR", {
     weekday: "long",
     day: "numeric",
     month: "long",
