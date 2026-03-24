@@ -398,7 +398,7 @@ const MediasAbastecimento = () => {
           <GainLossBlock records={filteredRecords} pm={pm} />
 
           {/* Rankings */}
-          <div className={`grid grid-cols-1 lg:grid-cols-3 ${pm ? "gap-6 max-w-[1600px] mx-auto" : "gap-4"}`}>
+          <div className={`grid grid-cols-1 lg:grid-cols-3 ${pm ? "gap-6" : "gap-4"}`}>
             <RankingChart title="Maior Consumo (L)" items={topConsumption} unit="L" pm={pm} />
             <RankingChart title="Melhores Médias (KM/L)" items={bestEfficiency} unit="km/l" pm={pm} />
             <RankingChart title="Piores Médias (KM/L)" items={worstEfficiency} unit="km/l" invertColors pm={pm} />
