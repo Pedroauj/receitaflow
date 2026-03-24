@@ -387,7 +387,7 @@ const MediasAbastecimento = () => {
           )}
 
           {/* Main charts row */}
-          <div className={`grid grid-cols-1 lg:grid-cols-3 ${pm ? "gap-6 max-w-[1600px] mx-auto" : "gap-4"}`}>
+          <div className={`grid grid-cols-1 lg:grid-cols-3 ${pm ? "gap-6" : "gap-4"}`}>
             <div className={`lg:col-span-2 ${pm ? "min-h-[420px]" : ""}`}>
               <TimeSeriesChart data={mockTimeSeries} pm={pm} />
             </div>
