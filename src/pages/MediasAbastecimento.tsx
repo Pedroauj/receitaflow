@@ -314,8 +314,8 @@ const MediasAbastecimento = () => {
           <div
             className={`grid gap-4 ${
               pm
-                ? "grid-cols-2 lg:grid-cols-3 max-w-[1400px] mx-auto"
-                : "grid-cols-2 md:grid-cols-3"
+                ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-3 max-w-[1600px] mx-auto"
+                : "grid-cols-1 md:grid-cols-2 xl:grid-cols-3"
             }`}
           >
             {highlights.worstEfficiency && (
