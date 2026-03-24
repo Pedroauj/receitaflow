@@ -129,7 +129,7 @@ const MediasAbastecimento = () => {
 
   return (
     <motion.div
-      className={`space-y-6 ${pm ? "max-w-[1720px] mx-auto" : ""}`}
+      className={`space-y-6 w-full mx-auto ${pm ? "max-w-[1600px]" : "max-w-[1600px]"}`}
       initial={false}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
