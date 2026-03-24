@@ -129,7 +129,7 @@ const MediasAbastecimento = () => {
 
   return (
     <motion.div
-      className={`space-y-6 ${pm ? "max-w-[1720px] mx-auto" : ""}`}
+      className={`space-y-6 w-full mx-auto ${pm ? "max-w-[1600px]" : "max-w-[1600px]"}`}
       initial={false}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
@@ -298,7 +298,7 @@ const MediasAbastecimento = () => {
           <div
             className={`grid gap-4 transition-all duration-500 ${
               pm
-                ? "grid-cols-2 md:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8 max-w-[1600px] mx-auto"
+                ? "grid-cols-2 md:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8"
                 : "grid-cols-2 md:grid-cols-4 lg:grid-cols-8"
             }`}
           >
@@ -312,11 +312,7 @@ const MediasAbastecimento = () => {
 
           {/* Destaques executivos */}
           <div
-            className={`grid gap-4 ${
-              pm
-                ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-3 max-w-[1600px] mx-auto"
-                : "grid-cols-1 md:grid-cols-2 xl:grid-cols-3"
-            }`}
+            className={`grid ${pm ? "gap-6" : "gap-4"} grid-cols-1 md:grid-cols-2 xl:grid-cols-3`}
           >
             {highlights.worstEfficiency && (
               <KpiCard
@@ -391,7 +387,7 @@ const MediasAbastecimento = () => {
           )}
 
           {/* Main charts row */}
-          <div className={`grid grid-cols-1 lg:grid-cols-3 ${pm ? "gap-6 max-w-[1600px] mx-auto" : "gap-4"}`}>
+          <div className={`grid grid-cols-1 lg:grid-cols-3 ${pm ? "gap-6" : "gap-4"}`}>
             <div className={`lg:col-span-2 ${pm ? "min-h-[420px]" : ""}`}>
               <TimeSeriesChart data={mockTimeSeries} pm={pm} />
             </div>
@@ -399,21 +395,17 @@ const MediasAbastecimento = () => {
           </div>
 
           {/* Gain/Loss */}
-          <div className={pm ? "max-w-[1600px] mx-auto" : ""}>
-            <GainLossBlock records={filteredRecords} pm={pm} />
-          </div>
+          <GainLossBlock records={filteredRecords} pm={pm} />
 
           {/* Rankings */}
-          <div className={`grid grid-cols-1 lg:grid-cols-3 ${pm ? "gap-6 max-w-[1600px] mx-auto" : "gap-4"}`}>
+          <div className={`grid grid-cols-1 lg:grid-cols-3 ${pm ? "gap-6" : "gap-4"}`}>
             <RankingChart title="Maior Consumo (L)" items={topConsumption} unit="L" pm={pm} />
             <RankingChart title="Melhores Médias (KM/L)" items={bestEfficiency} unit="km/l" pm={pm} />
             <RankingChart title="Piores Médias (KM/L)" items={worstEfficiency} unit="km/l" invertColors pm={pm} />
           </div>
 
           {/* Detailed Table */}
-          <div className={pm ? "max-w-[1600px] mx-auto" : ""}>
-            <DetailedTable records={filteredRecords} pm={pm} />
-          </div>
+          <DetailedTable records={filteredRecords} pm={pm} />
 
           {/* Export (hidden in presentation) */}
           <AnimatePresence>
