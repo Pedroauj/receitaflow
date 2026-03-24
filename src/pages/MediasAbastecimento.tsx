@@ -312,11 +312,7 @@ const MediasAbastecimento = () => {
 
           {/* Destaques executivos */}
           <div
-            className={`grid gap-4 ${
-              pm
-                ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-3 max-w-[1600px] mx-auto"
-                : "grid-cols-1 md:grid-cols-2 xl:grid-cols-3"
-            }`}
+            className={`grid ${pm ? "gap-6" : "gap-4"} grid-cols-1 md:grid-cols-2 xl:grid-cols-3`}
           >
             {highlights.worstEfficiency && (
               <KpiCard
