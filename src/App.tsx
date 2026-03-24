@@ -29,6 +29,7 @@ import Conciliacao from "./pages/Conciliacao";
 import Abastecimento from "./pages/Abastecimento";
 import MediasAbastecimento from "./pages/MediasAbastecimento";
 import Inicio from "./pages/Inicio";
+import Minerva from "./pages/Minerva";
 
 const queryClient = new QueryClient();
 
@@ -73,12 +74,8 @@ const App = () => {
                 <Route path="/medias-abastecimento" element={withModule("medias-abastecimento", <MediasAbastecimento />)} />
                 <Route path="/configuracoes" element={withModule("configuracoes", <Configuracoes />)} />
                 <Route path="/usuarios" element={<Usuarios />} />
-
+                <Route path="/cliente/minerva" element={<Minerva />} />
                 <Route path="/cliente/martin-brower" element={<MartinBrower />} />
-                <Route
-                  path="/cliente/minerva"
-                  element={<ClientePlaceholder clientName="Minerva" />}
-                />
                 <Route path="/cliente/danone" element={<Danone />} />
                 <Route path="/cliente/platlog" element={<Platlog />} />
                 <Route
