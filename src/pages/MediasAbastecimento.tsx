@@ -395,9 +395,7 @@ const MediasAbastecimento = () => {
           </div>
 
           {/* Gain/Loss */}
-          <div className={pm ? "max-w-[1600px] mx-auto" : ""}>
-            <GainLossBlock records={filteredRecords} pm={pm} />
-          </div>
+          <GainLossBlock records={filteredRecords} pm={pm} />
 
           {/* Rankings */}
           <div className={`grid grid-cols-1 lg:grid-cols-3 ${pm ? "gap-6 max-w-[1600px] mx-auto" : "gap-4"}`}>
