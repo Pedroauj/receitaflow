@@ -12,7 +12,7 @@ const DashboardLayout = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (isPresentationMode) return; // Let PresentationModeContext handle ESC
+      if (isPresentationMode) return;
       if (e.key === "Escape" && location.pathname !== "/inicio") {
         e.preventDefault();
         navigate("/inicio");
@@ -31,14 +31,15 @@ const DashboardLayout = () => {
         </>
       )}
       <main
-        className="transition-all duration-500 ease-out"
-        style={{ marginLeft: isPresentationMode ? 0 : undefined }}
+        className={`transition-all duration-500 ease-out ${
+          isPresentationMode ? "" : "md:ml-[240px]"
+        }`}
       >
         <div
           className={`mx-auto transition-all duration-500 ease-out ${
             isPresentationMode
               ? "p-6 lg:p-10 max-w-[1920px]"
-              : "p-4 md:p-6 lg:p-8 max-w-[1440px] md:ml-[240px]"
+              : "p-4 md:p-6 lg:p-8 max-w-[1440px]"
           }`}
         >
           <Outlet />
