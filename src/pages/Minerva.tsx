@@ -43,7 +43,7 @@ const formatDateBR = (isoDate: string) => {
 };
 
 const normalizeDateValue = (value: unknown): string | null => {
-  if (!value) return null;
+  if (!value && value !== 0) return null;
 
   if (value instanceof Date && !Number.isNaN(value.getTime())) {
     const year = value.getFullYear();
@@ -73,6 +73,12 @@ const normalizeDateValue = (value: unknown): string | null => {
     return `${year}-${month}-${day}`;
   }
 
+  match = clean.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (match) {
+    const [, day, month, year] = match;
+    return `${year}-${month}-${day}`;
+  }
+
   match = clean.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (match) {
     const [, year, month, day] = match;
@@ -88,8 +94,14 @@ const normalizeDateValue = (value: unknown): string | null => {
   return null;
 };
 
+const safeFormatDateBR = (value: unknown) => {
+  const normalized = normalizeDateValue(value);
+  return normalized ? formatDateBR(normalized) : "";
+};
+
 const toNumber = (value: unknown) => {
   if (typeof value === "number") return value;
+
   const normalized = String(value ?? "")
     .replace(/\./g, "")
     .replace(",", ".")
@@ -153,17 +165,17 @@ const autoSize = (sheet: XLSX.WorkSheet, widths: number[]) => {
 };
 
 const buildImportWorkbook = (
-  rows: Array<[number, number, string, string, number]>,
+  rows: Array<[number, number, string, string, number, string]>,
   missingDocs: string[]
 ) => {
   const workbook = XLSX.utils.book_new();
 
   const importSheet = XLSX.utils.aoa_to_sheet([
-    ["FILIAL", "SERIE", "Nº DOCUMENTO", "TIPO DOCUMENTO", "VALOR PAGO"],
+    ["FILIAL", "SERIE", "Nº DOCUMENTO", "TIPO DOCUMENTO", "VALOR PAGO", "DATA EMISSÃO"],
     ...rows,
   ]);
 
-  autoSize(importSheet, [10, 10, 18, 18, 16]);
+  autoSize(importSheet, [10, 10, 18, 18, 16, 16]);
   XLSX.utils.book_append_sheet(workbook, importSheet, "Importacao");
 
   if (missingDocs.length > 0) {
@@ -234,6 +246,13 @@ const Minerva = () => {
 
       const numeroCol = findColumn(planilhaZeroSheet, ["numero", "número"]);
       const valorReceberCol = findColumn(planilhaZeroSheet, ["valor a receber"]);
+      const dataEmissaoCol = findColumn(planilhaZeroSheet, [
+        "data de emissao",
+        "data emissão",
+        "data emissao",
+        "emissao",
+        "emissão",
+      ]);
 
       if (reportDateCol < 0 || reportConhecimentoCol < 0) {
         throw new Error(
@@ -243,6 +262,10 @@ const Minerva = () => {
 
       if (numeroCol < 0 || valorReceberCol < 0) {
         throw new Error("Não consegui localizar as colunas Número / Valor a Receber na Planilha 0.");
+      }
+
+      if (dataEmissaoCol < 0) {
+        throw new Error("Não consegui localizar a coluna Data de Emissão na Planilha 0.");
       }
 
       const reportRange = XLSX.utils.decode_range(reportSheet["!ref"] || "A1:A1");
@@ -266,7 +289,7 @@ const Minerva = () => {
       }
 
       const matchedDocs = new Set<string>();
-      const importRows: Array<[number, number, string, string, number]> = [];
+      const importRows: Array<[number, number, string, string, number, string]> = [];
       const markerColumn = 11; // L
       const markerHeader = "Data Antecipação";
       const markerDate = formatDateBR(selectedDate);
@@ -281,7 +304,9 @@ const Minerva = () => {
         setCellValue(planilhaZeroSheet, markerColumn, r, markerDate);
 
         const valorReceber = toNumber(getCellValue(planilhaZeroSheet, valorReceberCol, r));
-        importRows.push([1, 26, numero, "CTRC", valorReceber]);
+        const dataEmissao = safeFormatDateBR(getCellValue(planilhaZeroSheet, dataEmissaoCol, r));
+
+        importRows.push([1, 26, numero, "CTRC", valorReceber, dataEmissao]);
       }
 
       const missingDocs = Array.from(docsSet)
@@ -392,7 +417,7 @@ const Minerva = () => {
           </div>
 
           <p className="text-xs text-muted-foreground">
-            Arquivo da direita. Dela saem Número e Valor a Receber.
+            Arquivo da direita. Dela saem Número, Valor a Receber e Data de Emissão.
           </p>
 
           <div className="mt-4 flex items-center gap-2 rounded-lg bg-muted px-3 py-2 min-h-[44px]">
@@ -421,7 +446,8 @@ const Minerva = () => {
           <div>
             <p className="text-sm font-medium text-foreground">Processamento</p>
             <p className="text-xs text-muted-foreground mt-1">
-              Gera a planilha de importação com: FILIAL = 1, SERIE = 26, TIPO DOCUMENTO = CTRC.
+              Gera a planilha de importação com: FILIAL = 1, SERIE = 26, TIPO DOCUMENTO = CTRC e
+              DATA EMISSÃO da Planilha 0.
             </p>
           </div>
 
@@ -454,21 +480,29 @@ const Minerva = () => {
         >
           <div className="rounded-xl border border-border bg-card p-4">
             <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Data</p>
-            <p className="mt-2 text-lg font-semibold text-foreground">{formatDateBR(summary.selectedDate)}</p>
+            <p className="mt-2 text-lg font-semibold text-foreground">
+              {formatDateBR(summary.selectedDate)}
+            </p>
           </div>
 
           <div className="rounded-xl border border-border bg-card p-4">
-            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Linhas no relatório</p>
+            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+              Linhas no relatório
+            </p>
             <p className="mt-2 text-lg font-semibold text-foreground">{summary.reportRows}</p>
           </div>
 
           <div className="rounded-xl border border-border bg-card p-4">
-            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Conhecimentos únicos</p>
+            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+              Conhecimentos únicos
+            </p>
             <p className="mt-2 text-lg font-semibold text-foreground">{summary.uniqueDocs}</p>
           </div>
 
           <div className="rounded-xl border border-border bg-card p-4">
-            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Linhas importadas</p>
+            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+              Linhas importadas
+            </p>
             <p className="mt-2 text-lg font-semibold text-foreground">{summary.matchedRows}</p>
           </div>
 
