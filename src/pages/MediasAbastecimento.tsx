@@ -405,9 +405,7 @@ const MediasAbastecimento = () => {
           </div>
 
           {/* Detailed Table */}
-          <div className={pm ? "max-w-[1600px] mx-auto" : ""}>
-            <DetailedTable records={filteredRecords} pm={pm} />
-          </div>
+          <DetailedTable records={filteredRecords} pm={pm} />
 
           {/* Export (hidden in presentation) */}
           <AnimatePresence>
