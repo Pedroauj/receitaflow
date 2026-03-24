@@ -2,88 +2,41 @@ import { useState, useMemo } from "react";
 import type { ChangeEvent, DragEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  UploadCloud,
-  FileSpreadsheet,
-  X,
-  TrendingUp,
-  Users,
-  Truck,
-  Droplets,
-  Leaf,
-  DollarSign,
-  Download,
-  FileText,
-  Presentation,
-  Maximize2,
-  Minimize2,
+  UploadCloud, FileSpreadsheet, X, TrendingUp, Users, Truck,
+  Droplets, Leaf, DollarSign, Download, FileText, Presentation,
+  Maximize2, Minimize2, Gauge, Percent, Fuel,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import {
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-} from "recharts";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { usePresentationMode } from "@/contexts/PresentationModeContext";
 
-/* ── Mock Data ────────────────────────────────────── */
+// Data layer (desacoplada — pronta para futura integração)
+import {
+  mockVehicleRecords, mockTimeSeries, DIESEL_PRICE_REF,
+  computeGlobalKpis, computeFleetSummaries, filterByFleetType,
+  rankByConsumption, rankByEfficiency, computeEfficiencyDistribution,
+  generateInsights, FLEET_TYPES,
+} from "@/lib/abastecimento";
 
-const mockMotoristas = [
-  { motorista: "Carlos Silva", placa: "ABC-1234", tipo: "Truck", media: 2.85, meta: 2.70, litrosEconomizados: 320, bonus: 480 },
-  { motorista: "João Pereira", placa: "DEF-5678", tipo: "Carreta", media: 2.62, meta: 2.50, litrosEconomizados: 180, bonus: 270 },
-  { motorista: "Pedro Santos", placa: "GHI-9012", tipo: "Rodotrem", media: 1.95, meta: 2.10, litrosEconomizados: -85, bonus: 0 },
-  { motorista: "André Costa", placa: "JKL-3456", tipo: "Truck", media: 3.10, meta: 2.70, litrosEconomizados: 540, bonus: 810 },
-  { motorista: "Lucas Oliveira", placa: "MNO-7890", tipo: "Carreta", media: 2.48, meta: 2.50, litrosEconomizados: -30, bonus: 0 },
-  { motorista: "Rafael Lima", placa: "PQR-1122", tipo: "Truck", media: 2.92, meta: 2.70, litrosEconomizados: 295, bonus: 442 },
-  { motorista: "Marcos Souza", placa: "STU-3344", tipo: "Rodotrem", media: 2.15, meta: 2.10, litrosEconomizados: 60, bonus: 90 },
-  { motorista: "Thiago Alves", placa: "VWX-5566", tipo: "Carreta", media: 2.70, meta: 2.50, litrosEconomizados: 290, bonus: 435 },
-];
+// Componentes modulares
+import KpiCard from "@/components/abastecimento/KpiCard";
+import FleetComparison from "@/components/abastecimento/FleetComparison";
+import TimeSeriesChart from "@/components/abastecimento/TimeSeriesChart";
+import RankingChart from "@/components/abastecimento/RankingChart";
+import InsightsPanel from "@/components/abastecimento/InsightsPanel";
+import EfficiencyDonut from "@/components/abastecimento/EfficiencyDonut";
+import GainLossBlock from "@/components/abastecimento/GainLossBlock";
+import DetailedTable from "@/components/abastecimento/DetailedTable";
 
-const mockBarMotorista = mockMotoristas.map((m) => ({ name: m.motorista.split(" ")[0], media: m.media, meta: m.meta }));
-
-const mockBarTipo = [
-  { name: "Truck", media: 2.96 },
-  { name: "Carreta", media: 2.60 },
-  { name: "Rodotrem", media: 2.05 },
-];
-
-const mockEvolucao = [
-  { mes: "Jan", media: 2.45 },
-  { mes: "Fev", media: 2.52 },
-  { mes: "Mar", media: 2.58 },
-  { mes: "Abr", media: 2.61 },
-  { mes: "Mai", media: 2.67 },
-  { mes: "Jun", media: 2.72 },
-];
-
-const mockRanking = [...mockMotoristas].sort((a, b) => b.media - a.media).slice(0, 5).map((m) => ({ name: m.motorista.split(" ")[0], media: m.media }));
-
-const formatBRL = (v: number) =>
+/* ── Formatters ─────────────────────────────────── */
+const fmtNum = (v: number) => v.toLocaleString("pt-BR");
+const fmtBRL = (v: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
 
-/* ── Component ────────────────────────────────────── */
-
+/* ── Component ──────────────────────────────────── */
 const MediasAbastecimento = () => {
   const [file, setFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -92,10 +45,36 @@ const MediasAbastecimento = () => {
   const [tipoFrota, setTipoFrota] = useState<string>("todos");
   const [periodoInicio, setPeriodoInicio] = useState("");
   const [periodoFim, setPeriodoFim] = useState("");
+  const [activeTab, setActiveTab] = useState("Geral");
 
   const { isPresentationMode, togglePresentationMode } = usePresentationMode();
   const pm = isPresentationMode;
 
+  /* ── Data processing (desacoplado) ─────────────── */
+  const allRecords = mockVehicleRecords; // Futuro: substituir por dados do banco/API
+
+  const filteredRecords = useMemo(
+    () => filterByFleetType(allRecords, activeTab),
+    [allRecords, activeTab]
+  );
+
+  const globalKpis = useMemo(() => computeGlobalKpis(filteredRecords), [filteredRecords]);
+  const fleetSummaries = useMemo(() => computeFleetSummaries(allRecords), [allRecords]);
+  const effDist = useMemo(() => computeEfficiencyDistribution(filteredRecords), [filteredRecords]);
+  const insights = useMemo(
+    () => generateInsights(filteredRecords, fleetSummaries, globalKpis, effDist),
+    [filteredRecords, fleetSummaries, globalKpis, effDist]
+  );
+  const topConsumption = useMemo(() => rankByConsumption(filteredRecords, 10), [filteredRecords]);
+  const bestEfficiency = useMemo(() => rankByEfficiency(filteredRecords, true, 10), [filteredRecords]);
+  const worstEfficiency = useMemo(() => rankByEfficiency(filteredRecords, false, 10), [filteredRecords]);
+
+  const availableTypes = useMemo(
+    () => ["Geral", ...new Set(allRecords.map(r => r.tipoFrota))],
+    [allRecords]
+  );
+
+  /* ── Handlers ──────────────────────────────────── */
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (f) setFile(f);
@@ -127,23 +106,15 @@ const MediasAbastecimento = () => {
 
   /* ── KPIs ──────────────────────────────────────── */
   const kpis = [
-    { label: "Total de motoristas", value: "8", icon: Users, color: "text-blue-400" },
-    { label: "Total de veículos", value: "8", icon: Truck, color: "text-purple-400" },
-    { label: "Média geral da frota", value: "2.60 km/l", icon: TrendingUp, color: "text-primary", highlight: true },
-    { label: "Total consumido", value: "45.280 L", icon: Droplets, color: "text-cyan-400" },
-    { label: "Total de economia", value: "1.570 L", icon: Leaf, color: "text-emerald-400", highlight: true },
-    { label: "Total de bônus", value: formatBRL(2527), icon: DollarSign, color: "text-primary", highlight: true },
+    { label: "Total de Diesel", value: `${fmtNum(Math.round(globalKpis.totalDiesel))} L`, icon: Droplets, color: "text-cyan-400", highlight: true },
+    { label: "Total de KM", value: fmtNum(Math.round(globalKpis.totalKm)), icon: Truck, color: "text-purple-400" },
+    { label: "Média Geral", value: `${globalKpis.mediaGeral.toFixed(2)} km/l`, icon: TrendingUp, color: "text-primary", highlight: true, subValue: "Ponderada por KM" },
+    { label: "Eficiência Geral", value: `${globalKpis.eficienciaGeral.toFixed(1)}%`, icon: Gauge, color: "text-primary", highlight: true },
+    { label: "Economia Total", value: `+${fmtNum(Math.round(globalKpis.ganhoTotal))} L`, icon: Leaf, color: "text-emerald-400", highlight: true },
+    { label: "Custo Total", value: fmtBRL(globalKpis.custoTotal), icon: DollarSign, color: "text-primary" },
+    { label: "Veículos", value: String(globalKpis.totalVeiculos), icon: Truck, color: "text-blue-400" },
+    { label: "Motoristas", value: String(globalKpis.totalMotoristas), icon: Users, color: "text-blue-400" },
   ];
-
-  const chartHeight = pm ? 340 : 250;
-  const tooltipStyle = {
-    background: "hsl(var(--card))",
-    border: "1px solid hsl(var(--border))",
-    borderRadius: 8,
-    color: "hsl(var(--foreground))",
-    fontSize: pm ? 13 : 12,
-  };
-  const tickFont = { fontSize: pm ? 13 : 11, fill: "hsl(var(--muted-foreground))" };
 
   return (
     <motion.div
@@ -167,7 +138,7 @@ const MediasAbastecimento = () => {
                 Desempenho de Frota
               </h1>
               <p className="text-sm text-muted-foreground mt-1">
-                Visão executiva · Consumo por motorista e veículo
+                Visão executiva · {activeTab === "Geral" ? "Todas as frotas" : activeTab}
               </p>
             </motion.div>
           ) : (
@@ -180,13 +151,12 @@ const MediasAbastecimento = () => {
             >
               <h1 className="text-xl font-semibold text-foreground">Médias de Abastecimento</h1>
               <p className="text-sm text-muted-foreground mt-1">
-                Análise de desempenho de consumo por motorista e veículo
+                Dashboard executivo de consumo de diesel da frota
               </p>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Toggle button */}
         <button
           onClick={togglePresentationMode}
           title={pm ? "Sair do modo apresentação (ESC)" : "Modo apresentação (F)"}
@@ -204,7 +174,7 @@ const MediasAbastecimento = () => {
         </button>
       </div>
 
-      {/* ── Upload Card (hidden in presentation) ── */}
+      {/* ── Upload & Filters (hidden in presentation) ── */}
       <AnimatePresence>
         {!pm && (
           <motion.div
@@ -247,7 +217,6 @@ const MediasAbastecimento = () => {
               )}
             </div>
 
-            {/* Filters */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">Data inicial</label>
@@ -263,10 +232,9 @@ const MediasAbastecimento = () => {
                   <SelectTrigger className="w-full"><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="todos">Todos</SelectItem>
-                    <SelectItem value="truck">Truck</SelectItem>
-                    <SelectItem value="carreta">Carreta</SelectItem>
-                    <SelectItem value="rodotrem">Rodotrem</SelectItem>
-                    <SelectItem value="bitrem">Bitrem</SelectItem>
+                    {FLEET_TYPES.map(t => (
+                      <SelectItem key={t} value={t.toLowerCase()}>{t}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -287,186 +255,56 @@ const MediasAbastecimento = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: pm ? 0.15 : 0 }}
         >
+          {/* Fleet type tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="bg-card border border-border">
+              {availableTypes.map(t => (
+                <TabsTrigger key={t} value={t} className="text-xs sm:text-sm">
+                  {t}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+
           {/* KPIs */}
           <div className={`grid gap-4 transition-all duration-500 ${
             pm
-              ? "grid-cols-2 lg:grid-cols-3 xl:grid-cols-6"
-              : "grid-cols-2 md:grid-cols-3 lg:grid-cols-6"
+              ? "grid-cols-2 lg:grid-cols-4 xl:grid-cols-8"
+              : "grid-cols-2 md:grid-cols-4 lg:grid-cols-8"
           }`}>
             {kpis.map((kpi, i) => (
-              <motion.div
-                key={kpi.label}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.35, delay: i * 0.05 }}
-                className={`
-                  rounded-xl border bg-card transition-all duration-500
-                  ${pm
-                    ? `p-5 lg:p-6 ${kpi.highlight ? "border-primary/20 shadow-[0_0_30px_-8px_hsl(var(--primary)/0.15)]" : "border-border"}`
-                    : "p-4 border-border"
-                  }
-                `}
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <kpi.icon className={`${pm ? "h-5 w-5" : "h-4 w-4"} ${kpi.color} transition-all duration-300`} />
-                  <span className={`text-muted-foreground transition-all duration-300 ${pm ? "text-xs lg:text-sm" : "text-xs"}`}>
-                    {kpi.label}
-                  </span>
-                </div>
-                <p className={`font-bold text-foreground transition-all duration-300 ${
-                  pm
-                    ? kpi.highlight ? "text-2xl lg:text-3xl" : "text-xl lg:text-2xl"
-                    : "text-lg"
-                }`}>
-                  {kpi.value}
-                </p>
-              </motion.div>
+              <KpiCard key={kpi.label} {...kpi} pm={pm} index={i} />
             ))}
           </div>
 
-          {/* Charts */}
-          <div className={`grid gap-4 transition-all duration-500 ${
-            pm ? "grid-cols-1 lg:grid-cols-2 gap-6" : "grid-cols-1 lg:grid-cols-2"
-          }`}>
-            {/* Media por motorista */}
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-              className={`rounded-xl border border-border bg-card space-y-4 transition-all duration-500 ${pm ? "p-6 lg:p-8" : "p-5"}`}
-            >
-              <h3 className={`font-medium text-foreground transition-all duration-300 ${pm ? "text-base lg:text-lg" : "text-sm"}`}>
-                Média por Motorista
-              </h3>
-              <div style={{ height: chartHeight }} className="transition-all duration-500">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={mockBarMotorista}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="name" tick={tickFont} />
-                    <YAxis tick={tickFont} />
-                    <Tooltip contentStyle={tooltipStyle} />
-                    <Bar dataKey="media" name="Média" radius={[4, 4, 0, 0]} fill="hsl(var(--primary))" />
-                    <Bar dataKey="meta" name="Meta" radius={[4, 4, 0, 0]} fill="hsl(var(--muted-foreground))" opacity={0.3} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </motion.div>
+          {/* Insights */}
+          <InsightsPanel insights={insights} pm={pm} />
 
-            {/* Media por tipo */}
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.15 }}
-              className={`rounded-xl border border-border bg-card space-y-4 transition-all duration-500 ${pm ? "p-6 lg:p-8" : "p-5"}`}
-            >
-              <h3 className={`font-medium text-foreground transition-all duration-300 ${pm ? "text-base lg:text-lg" : "text-sm"}`}>
-                Média por Tipo de Caminhão
-              </h3>
-              <div style={{ height: chartHeight }} className="transition-all duration-500">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={mockBarTipo} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis type="number" tick={tickFont} />
-                    <YAxis dataKey="name" type="category" tick={tickFont} width={80} />
-                    <Tooltip contentStyle={tooltipStyle} />
-                    <Bar dataKey="media" name="Média" radius={[0, 4, 4, 0]} fill="hsl(var(--primary))" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </motion.div>
+          {/* Fleet Comparison (only on Geral tab) */}
+          {activeTab === "Geral" && (
+            <FleetComparison summaries={fleetSummaries} pm={pm} />
+          )}
 
-            {/* Evolução */}
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-              className={`rounded-xl border border-border bg-card space-y-4 transition-all duration-500 ${pm ? "p-6 lg:p-8" : "p-5"}`}
-            >
-              <h3 className={`font-medium text-foreground transition-all duration-300 ${pm ? "text-base lg:text-lg" : "text-sm"}`}>
-                Evolução ao Longo do Tempo
-              </h3>
-              <div style={{ height: chartHeight }} className="transition-all duration-500">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={mockEvolucao}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="mes" tick={tickFont} />
-                    <YAxis tick={tickFont} domain={[2.3, 2.8]} />
-                    <Tooltip contentStyle={tooltipStyle} />
-                    <Line type="monotone" dataKey="media" name="Média" stroke="hsl(var(--primary))" strokeWidth={pm ? 3 : 2} dot={{ fill: "hsl(var(--primary))", r: pm ? 5 : 4 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </motion.div>
-
-            {/* Ranking */}
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.25 }}
-              className={`rounded-xl border border-border bg-card space-y-4 transition-all duration-500 ${pm ? "p-6 lg:p-8" : "p-5"}`}
-            >
-              <h3 className={`font-medium text-foreground transition-all duration-300 ${pm ? "text-base lg:text-lg" : "text-sm"}`}>
-                Top Motoristas
-              </h3>
-              <div style={{ height: chartHeight }} className="transition-all duration-500">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={mockRanking} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis type="number" tick={tickFont} />
-                    <YAxis dataKey="name" type="category" tick={tickFont} width={70} />
-                    <Tooltip contentStyle={tooltipStyle} />
-                    <Bar dataKey="media" name="Média" radius={[0, 4, 4, 0]}>
-                      {mockRanking.map((_, i) => (
-                        <Cell key={i} fill={i === 0 ? "hsl(var(--primary))" : `hsl(var(--primary) / ${0.7 - i * 0.1})`} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </motion.div>
+          {/* Main charts row */}
+          <div className={`grid gap-4 ${pm ? "grid-cols-1 lg:grid-cols-3 gap-6" : "grid-cols-1 lg:grid-cols-3"}`}>
+            <div className="lg:col-span-2">
+              <TimeSeriesChart data={mockTimeSeries} pm={pm} />
+            </div>
+            <EfficiencyDonut dist={effDist} pm={pm} />
           </div>
 
-          {/* Table */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.3 }}
-            className={`rounded-xl border border-border bg-card space-y-4 transition-all duration-500 ${pm ? "p-6 lg:p-8" : "p-5"}`}
-          >
-            <h3 className={`font-medium text-foreground transition-all duration-300 ${pm ? "text-base lg:text-lg" : "text-sm"}`}>
-              Dados Detalhados
-            </h3>
-            <div className="overflow-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Motorista</TableHead>
-                    <TableHead>Placa</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead className="text-right">Média</TableHead>
-                    <TableHead className="text-right">Meta</TableHead>
-                    <TableHead className="text-right">Litros Econ.</TableHead>
-                    <TableHead className="text-right">Bônus</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {mockMotoristas.map((m) => (
-                    <TableRow key={m.placa}>
-                      <TableCell className={`font-medium ${pm ? "text-sm" : ""}`}>{m.motorista}</TableCell>
-                      <TableCell>{m.placa}</TableCell>
-                      <TableCell>{m.tipo}</TableCell>
-                      <TableCell className="text-right">{m.media.toFixed(2)}</TableCell>
-                      <TableCell className="text-right">{m.meta.toFixed(2)}</TableCell>
-                      <TableCell className={`text-right ${m.litrosEconomizados >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-                        {m.litrosEconomizados >= 0 ? "+" : ""}{m.litrosEconomizados}
-                      </TableCell>
-                      <TableCell className="text-right">{formatBRL(m.bonus)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </motion.div>
+          {/* Gain/Loss */}
+          <GainLossBlock records={filteredRecords} pm={pm} />
+
+          {/* Rankings */}
+          <div className={`grid gap-4 ${pm ? "grid-cols-1 lg:grid-cols-3 gap-6" : "grid-cols-1 lg:grid-cols-3"}`}>
+            <RankingChart title="Maior Consumo (L)" items={topConsumption} unit="L" pm={pm} />
+            <RankingChart title="Melhores Médias (KM/L)" items={bestEfficiency} unit="km/l" pm={pm} />
+            <RankingChart title="Piores Médias (KM/L)" items={worstEfficiency} unit="km/l" invertColors pm={pm} />
+          </div>
+
+          {/* Detailed Table */}
+          <DetailedTable records={filteredRecords} pm={pm} />
 
           {/* Export (hidden in presentation) */}
           <AnimatePresence>
@@ -481,7 +319,7 @@ const MediasAbastecimento = () => {
                 <div className="flex flex-wrap gap-3">
                   <button onClick={() => handleExport("PowerPoint")} className="flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent transition-colors">
                     <Presentation className="h-4 w-4 text-primary" />
-                    Gerar Apresentação (PowerPoint)
+                    Gerar Apresentação
                   </button>
                   <button onClick={() => handleExport("PDF")} className="flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent transition-colors">
                     <FileText className="h-4 w-4 text-red-400" />
