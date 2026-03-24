@@ -13,7 +13,17 @@ const fmtKmL = (v: number) => v.toFixed(2);
 const formatBRL = (v: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
 
-type SortKey = "motorista" | "placa" | "tipoFrota" | "km" | "litros" | "mediaKmL" | "metaKmL" | "ganhoPerda" | "eficiencia" | "custoEstimado";
+type SortKey =
+  | "motorista"
+  | "placa"
+  | "tipoFrota"
+  | "km"
+  | "litros"
+  | "mediaKmL"
+  | "metaKmL"
+  | "ganhoPerda"
+  | "eficiencia"
+  | "custoEstimado";
 
 interface Props {
   records: VehicleRecord[];
@@ -38,20 +48,38 @@ const DetailedTable = ({ records, pm }: Props) => {
     return [...filtered].sort((a, b) => {
       const va = a[sortKey];
       const vb = b[sortKey];
-      if (typeof va === "string") return sortAsc ? va.localeCompare(vb as string) : (vb as string).localeCompare(va);
-      return sortAsc ? (va as number) - (vb as number) : (vb as number) - (va as number);
+
+      if (typeof va === "string") {
+        return sortAsc
+          ? va.localeCompare(vb as string)
+          : (vb as string).localeCompare(va);
+      }
+
+      return sortAsc
+        ? (va as number) - (vb as number)
+        : (vb as number) - (va as number);
     });
   }, [filtered, sortKey, sortAsc]);
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) setSortAsc(!sortAsc);
-    else { setSortKey(key); setSortAsc(false); }
+    else {
+      setSortKey(key);
+      setSortAsc(false);
+    }
   };
 
   const statusLabel = (eff: number) => {
     if (eff >= 103) return { text: "Acima", cls: "text-emerald-400" };
     if (eff >= 97) return { text: "Na meta", cls: "text-primary" };
     return { text: "Abaixo", cls: "text-red-400" };
+  };
+
+  const getRowStyle = (eff: number) => {
+    if (!pm) return "";
+    if (eff < 97) return "bg-red-500/5";
+    if (eff >= 103) return "bg-emerald-500/5";
+    return "";
   };
 
   const SortHeader = ({ label, k }: { label: string; k: SortKey }) => (
@@ -71,12 +99,15 @@ const DetailedTable = ({ records, pm }: Props) => {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.3 }}
-      className={`rounded-xl border border-border bg-card space-y-4 transition-all duration-500 ${pm ? "p-6 lg:p-8" : "p-5"}`}
+      className={`rounded-xl border border-border bg-card space-y-4 transition-all duration-500 ${
+        pm ? "p-6 lg:p-8" : "p-5"
+      }`}
     >
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <h3 className={`font-medium text-foreground ${pm ? "text-base lg:text-lg" : "text-sm"}`}>
           Dados Detalhados
         </h3>
+
         {!pm && (
           <div className="relative w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -89,11 +120,12 @@ const DetailedTable = ({ records, pm }: Props) => {
           </div>
         )}
       </div>
+
       <div className="overflow-auto">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="cursor-pointer" onClick={() => toggleSort("motorista")}>Motorista</TableHead>
+              <TableHead onClick={() => toggleSort("motorista")}>Motorista</TableHead>
               <TableHead>Placa</TableHead>
               <TableHead>Tipo</TableHead>
               <SortHeader label="KM" k="km" />
@@ -106,33 +138,67 @@ const DetailedTable = ({ records, pm }: Props) => {
               <TableHead className="text-right">Status</TableHead>
             </TableRow>
           </TableHeader>
+
           <TableBody>
             {sorted.map(r => {
               const st = statusLabel(r.eficiencia);
+
               return (
-                <TableRow key={r.id}>
+                <TableRow
+                  key={r.id}
+                  className={`transition-colors ${getRowStyle(r.eficiencia)}`}
+                >
                   <TableCell className="font-medium">{r.motorista}</TableCell>
                   <TableCell>{r.placa}</TableCell>
                   <TableCell>{r.tipoFrota}</TableCell>
+
                   <TableCell className="text-right">{fmt(r.km)}</TableCell>
                   <TableCell className="text-right">{fmt(r.litros)}</TableCell>
-                  <TableCell className="text-right">{fmtKmL(r.mediaKmL)}</TableCell>
-                  <TableCell className="text-right">{fmtKmL(r.metaKmL)}</TableCell>
-                  <TableCell className={`text-right font-medium ${r.ganhoPerda >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-                    {r.ganhoPerda >= 0 ? "+" : ""}{r.ganhoPerda.toFixed(0)} L
+
+                  <TableCell className="text-right font-medium">
+                    {fmtKmL(r.mediaKmL)}
                   </TableCell>
-                  <TableCell className={`text-right font-medium ${r.eficiencia >= 100 ? "text-emerald-400" : "text-red-400"}`}>
+
+                  <TableCell className="text-right text-muted-foreground">
+                    {fmtKmL(r.metaKmL)}
+                  </TableCell>
+
+                  <TableCell
+                    className={`text-right font-semibold ${
+                      r.ganhoPerda >= 0 ? "text-emerald-400" : "text-red-400"
+                    }`}
+                  >
+                    {r.ganhoPerda >= 0 ? "+" : ""}
+                    {r.ganhoPerda.toFixed(0)} L
+                  </TableCell>
+
+                  <TableCell
+                    className={`text-right font-semibold ${
+                      r.eficiencia >= 100 ? "text-emerald-400" : "text-red-400"
+                    }`}
+                  >
                     {r.eficiencia.toFixed(1)}%
                   </TableCell>
-                  <TableCell className="text-right">{formatBRL(r.custoEstimado)}</TableCell>
-                  <TableCell className={`text-right font-medium ${st.cls}`}>{st.text}</TableCell>
+
+                  <TableCell className="text-right">
+                    {formatBRL(r.custoEstimado)}
+                  </TableCell>
+
+                  <TableCell
+                    className={`text-right font-semibold ${st.cls}`}
+                  >
+                    {st.text}
+                  </TableCell>
                 </TableRow>
               );
             })}
           </TableBody>
         </Table>
       </div>
-      <p className="text-xs text-muted-foreground">{sorted.length} de {records.length} registros</p>
+
+      <p className="text-xs text-muted-foreground">
+        {sorted.length} de {records.length} registros
+      </p>
     </motion.div>
   );
 };
