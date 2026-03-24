@@ -15,10 +15,18 @@ import { usePresentationMode } from "@/contexts/PresentationModeContext";
 
 // Data layer (desacoplada — pronta para futura integração)
 import {
-  mockVehicleRecords, mockTimeSeries, DIESEL_PRICE_REF,
-  computeGlobalKpis, computeFleetSummaries, filterByFleetType,
-  rankByConsumption, rankByEfficiency, computeEfficiencyDistribution,
-  generateInsights, FLEET_TYPES,
+  mockVehicleRecords,
+  mockTimeSeries,
+  DIESEL_PRICE_REF,
+  computeGlobalKpis,
+  computeFleetSummaries,
+  filterByFleetType,
+  rankByConsumption,
+  rankByEfficiency,
+  computeEfficiencyDistribution,
+  computeRecordHighlights,
+  generateInsights,
+  FLEET_TYPES,
 } from "@/lib/abastecimento";
 
 // Componentes modulares
@@ -61,10 +69,13 @@ const MediasAbastecimento = () => {
   const globalKpis = useMemo(() => computeGlobalKpis(filteredRecords), [filteredRecords]);
   const fleetSummaries = useMemo(() => computeFleetSummaries(allRecords), [allRecords]);
   const effDist = useMemo(() => computeEfficiencyDistribution(filteredRecords), [filteredRecords]);
+  const highlights = useMemo(() => computeRecordHighlights(filteredRecords), [filteredRecords]);
+
   const insights = useMemo(
     () => generateInsights(filteredRecords, fleetSummaries, globalKpis, effDist),
     [filteredRecords, fleetSummaries, globalKpis, effDist]
   );
+
   const topConsumption = useMemo(() => rankByConsumption(filteredRecords, 10), [filteredRecords]);
   const bestEfficiency = useMemo(() => rankByEfficiency(filteredRecords, true, 10), [filteredRecords]);
   const worstEfficiency = useMemo(() => rankByEfficiency(filteredRecords, false, 10), [filteredRecords]);
@@ -118,7 +129,7 @@ const MediasAbastecimento = () => {
 
   return (
     <motion.div
-      className="space-y-6"
+      className={`space-y-6 ${pm ? "max-w-[1720px] mx-auto" : ""}`}
       initial={false}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
@@ -198,7 +209,10 @@ const MediasAbastecimento = () => {
                     <p className="font-medium text-foreground">{file.name}</p>
                     <p className="text-muted-foreground">{(file.size / 1024).toFixed(0)} KB</p>
                   </div>
-                  <button onClick={() => setFile(null)} className="ml-2 rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">
+                  <button
+                    onClick={() => setFile(null)}
+                    className="ml-2 rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                  >
                     <X className="h-4 w-4" />
                   </button>
                 </div>
@@ -220,11 +234,21 @@ const MediasAbastecimento = () => {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">Data inicial</label>
-                <input type="date" value={periodoInicio} onChange={(e) => setPeriodoInicio(e.target.value)} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground" />
+                <input
+                  type="date"
+                  value={periodoInicio}
+                  onChange={(e) => setPeriodoInicio(e.target.value)}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
+                />
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">Data final</label>
-                <input type="date" value={periodoFim} onChange={(e) => setPeriodoFim(e.target.value)} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground" />
+                <input
+                  type="date"
+                  value={periodoFim}
+                  onChange={(e) => setPeriodoFim(e.target.value)}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
+                />
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">Tipo de frota</label>
@@ -240,7 +264,11 @@ const MediasAbastecimento = () => {
               </div>
             </div>
 
-            <button onClick={handleProcess} disabled={processing} className="w-full sm:w-auto rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50">
+            <button
+              onClick={handleProcess}
+              disabled={processing}
+              className="w-full sm:w-auto rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+            >
               {processing ? "Processando…" : "Processar Planilha"}
             </button>
           </motion.div>
@@ -257,7 +285,7 @@ const MediasAbastecimento = () => {
         >
           {/* Fleet type tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="bg-card border border-border">
+            <TabsList className={`bg-card border border-border ${pm ? "w-full flex-wrap h-auto" : ""}`}>
               {availableTypes.map(t => (
                 <TabsTrigger key={t} value={t} className="text-xs sm:text-sm">
                   {t}
@@ -267,11 +295,13 @@ const MediasAbastecimento = () => {
           </Tabs>
 
           {/* KPIs */}
-          <div className={`grid gap-4 transition-all duration-500 ${
-            pm
-              ? "grid-cols-2 lg:grid-cols-4 xl:grid-cols-8"
-              : "grid-cols-2 md:grid-cols-4 lg:grid-cols-8"
-          }`}>
+          <div
+            className={`grid gap-4 transition-all duration-500 ${
+              pm
+                ? "grid-cols-2 md:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8 max-w-[1600px] mx-auto"
+                : "grid-cols-2 md:grid-cols-4 lg:grid-cols-8"
+            }`}
+          >
             {kpis.map((kpi, i) => (
               <KpiCard key={kpi.label} {...kpi} pm={pm} index={i} />
             ))}
@@ -280,31 +310,110 @@ const MediasAbastecimento = () => {
           {/* Insights */}
           <InsightsPanel insights={insights} pm={pm} />
 
+          {/* Destaques executivos */}
+          <div
+            className={`grid gap-4 ${
+              pm
+                ? "grid-cols-2 lg:grid-cols-3 max-w-[1400px] mx-auto"
+                : "grid-cols-2 md:grid-cols-3"
+            }`}
+          >
+            {highlights.worstEfficiency && (
+              <KpiCard
+                label="Pior Média"
+                value={`${highlights.worstEfficiency.mediaKmL.toFixed(2)} km/l`}
+                subValue={highlights.worstEfficiency.placa}
+                icon={TrendingUp}
+                color="text-red-400"
+                pm={pm}
+              />
+            )}
+
+            {highlights.bestEfficiency && (
+              <KpiCard
+                label="Melhor Média"
+                value={`${highlights.bestEfficiency.mediaKmL.toFixed(2)} km/l`}
+                subValue={highlights.bestEfficiency.placa}
+                icon={TrendingUp}
+                color="text-emerald-400"
+                pm={pm}
+              />
+            )}
+
+            {highlights.highestConsumption && (
+              <KpiCard
+                label="Maior Consumo"
+                value={`${Math.round(highlights.highestConsumption.litros)} L`}
+                subValue={highlights.highestConsumption.placa}
+                icon={Fuel}
+                color="text-red-400"
+                pm={pm}
+              />
+            )}
+
+            {highlights.highestKm && (
+              <KpiCard
+                label="Maior KM"
+                value={fmtNum(Math.round(highlights.highestKm.km))}
+                subValue={highlights.highestKm.placa}
+                icon={Truck}
+                color="text-blue-400"
+                pm={pm}
+              />
+            )}
+
+            {highlights.biggestLoss && (
+              <KpiCard
+                label="Maior Perda"
+                value={`-${fmtNum(Math.abs(highlights.biggestLoss.ganhoPerda))} L`}
+                subValue={highlights.biggestLoss.placa}
+                icon={TrendingUp}
+                color="text-red-500"
+                pm={pm}
+              />
+            )}
+
+            {highlights.biggestGain && (
+              <KpiCard
+                label="Maior Economia"
+                value={`+${fmtNum(highlights.biggestGain.ganhoPerda)} L`}
+                subValue={highlights.biggestGain.placa}
+                icon={Leaf}
+                color="text-emerald-500"
+                pm={pm}
+              />
+            )}
+          </div>
+
           {/* Fleet Comparison (only on Geral tab) */}
           {activeTab === "Geral" && (
             <FleetComparison summaries={fleetSummaries} pm={pm} />
           )}
 
           {/* Main charts row */}
-          <div className={`grid gap-4 ${pm ? "grid-cols-1 lg:grid-cols-3 gap-6" : "grid-cols-1 lg:grid-cols-3"}`}>
-            <div className="lg:col-span-2">
+          <div className={`grid grid-cols-1 lg:grid-cols-3 ${pm ? "gap-6 max-w-[1600px] mx-auto" : "gap-4"}`}>
+            <div className={`lg:col-span-2 ${pm ? "min-h-[420px]" : ""}`}>
               <TimeSeriesChart data={mockTimeSeries} pm={pm} />
             </div>
             <EfficiencyDonut dist={effDist} pm={pm} />
           </div>
 
           {/* Gain/Loss */}
-          <GainLossBlock records={filteredRecords} pm={pm} />
+          <div className={pm ? "max-w-[1600px] mx-auto" : ""}>
+            <GainLossBlock records={filteredRecords} pm={pm} />
+          </div>
 
           {/* Rankings */}
-          <div className={`grid gap-4 ${pm ? "grid-cols-1 lg:grid-cols-3 gap-6" : "grid-cols-1 lg:grid-cols-3"}`}>
+          <div className={`grid grid-cols-1 lg:grid-cols-3 ${pm ? "gap-6 max-w-[1600px] mx-auto" : "gap-4"}`}>
             <RankingChart title="Maior Consumo (L)" items={topConsumption} unit="L" pm={pm} />
             <RankingChart title="Melhores Médias (KM/L)" items={bestEfficiency} unit="km/l" pm={pm} />
             <RankingChart title="Piores Médias (KM/L)" items={worstEfficiency} unit="km/l" invertColors pm={pm} />
           </div>
 
           {/* Detailed Table */}
-          <DetailedTable records={filteredRecords} pm={pm} />
+          <div className={pm ? "max-w-[1600px] mx-auto" : ""}>
+            <DetailedTable records={filteredRecords} pm={pm} />
+          </div>
 
           {/* Export (hidden in presentation) */}
           <AnimatePresence>
@@ -317,15 +426,24 @@ const MediasAbastecimento = () => {
               >
                 <h3 className="text-sm font-medium text-foreground">Exportar Relatório</h3>
                 <div className="flex flex-wrap gap-3">
-                  <button onClick={() => handleExport("PowerPoint")} className="flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent transition-colors">
+                  <button
+                    onClick={() => handleExport("PowerPoint")}
+                    className="flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent transition-colors"
+                  >
                     <Presentation className="h-4 w-4 text-primary" />
                     Gerar Apresentação
                   </button>
-                  <button onClick={() => handleExport("PDF")} className="flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent transition-colors">
+                  <button
+                    onClick={() => handleExport("PDF")}
+                    className="flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent transition-colors"
+                  >
                     <FileText className="h-4 w-4 text-red-400" />
                     Exportar PDF
                   </button>
-                  <button onClick={() => handleExport("Excel")} className="flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent transition-colors">
+                  <button
+                    onClick={() => handleExport("Excel")}
+                    className="flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent transition-colors"
+                  >
                     <Download className="h-4 w-4 text-emerald-400" />
                     Exportar Excel
                   </button>
