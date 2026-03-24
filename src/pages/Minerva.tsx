@@ -152,7 +152,10 @@ const autoSize = (sheet: XLSX.WorkSheet, widths: number[]) => {
   sheet["!cols"] = widths.map((wch) => ({ wch }));
 };
 
-const buildImportWorkbook = (rows: Array<[number, number, string, string, number]>, missingDocs: string[]) => {
+const buildImportWorkbook = (
+  rows: Array<[number, number, string, string, number]>,
+  missingDocs: string[]
+) => {
   const workbook = XLSX.utils.book_new();
 
   const importSheet = XLSX.utils.aoa_to_sheet([
@@ -182,7 +185,11 @@ const pickReportSheet = (workbook: XLSX.WorkBook) =>
 const pickPlanilhaZeroSheet = (workbook: XLSX.WorkBook) =>
   workbook.SheetNames.find((name) => {
     const normalized = normalizeText(name);
-    return normalized === "planilha1" || normalized.includes("planilha 0") || normalized.includes("planilha0");
+    return (
+      normalized === "planilha1" ||
+      normalized.includes("planilha 0") ||
+      normalized.includes("planilha0")
+    );
   }) ||
   workbook.SheetNames.find((name) => !normalizeText(name).includes("resumo")) ||
   workbook.SheetNames[0];
@@ -219,13 +226,19 @@ const Minerva = () => {
       const planilhaZeroSheet = planilhaZeroWorkbook.Sheets[pickPlanilhaZeroSheet(planilhaZeroWorkbook)];
 
       const reportDateCol = findColumn(reportSheet, ["antecipado", "antecipacao", "antecipação"]);
-      const reportConhecimentoCol = findColumn(reportSheet, ["conhecimento frete", "conhecimento", "frete"]);
+      const reportConhecimentoCol = findColumn(reportSheet, [
+        "conhecimento frete",
+        "conhecimento",
+        "frete",
+      ]);
 
       const numeroCol = findColumn(planilhaZeroSheet, ["numero", "número"]);
       const valorReceberCol = findColumn(planilhaZeroSheet, ["valor a receber"]);
 
       if (reportDateCol < 0 || reportConhecimentoCol < 0) {
-        throw new Error("Não consegui localizar as colunas de antecipação / conhecimento frete no relatório.");
+        throw new Error(
+          "Não consegui localizar as colunas de antecipação / conhecimento frete no relatório."
+        );
       }
 
       if (numeroCol < 0 || valorReceberCol < 0) {
@@ -268,7 +281,6 @@ const Minerva = () => {
         setCellValue(planilhaZeroSheet, markerColumn, r, markerDate);
 
         const valorReceber = toNumber(getCellValue(planilhaZeroSheet, valorReceberCol, r));
-
         importRows.push([1, 26, numero, "CTRC", valorReceber]);
       }
 
@@ -310,8 +322,9 @@ const Minerva = () => {
       >
         <h1 className="text-xl font-semibold text-foreground tracking-tight">Minerva</h1>
         <p className="mt-1 text-sm text-muted-foreground max-w-3xl">
-          Informe a data, anexe o <strong>Relatório Validação Envio</strong> e a <strong>Planilha 0</strong>.
-          O sistema cruza os conhecimentos e gera a planilha final de importação.
+          Informe a data, anexe o <strong>Relatório Validação Envio</strong> e a{" "}
+          <strong>Planilha 0</strong>. O sistema cruza os conhecimentos e gera a planilha final de
+          importação.
         </p>
       </motion.div>
 
@@ -319,14 +332,19 @@ const Minerva = () => {
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05, duration: 0.3 }}
-        className="grid gap-4 lg:grid-cols-3 mb-6"
+        className="mb-4 flex flex-col gap-3 rounded-xl border border-border bg-card p-4 lg:flex-row lg:items-center lg:justify-between"
       >
-        <div className="rounded-xl border border-border bg-card p-4">
-          <div className="flex items-center gap-2 mb-3">
+        <div>
+          <div className="flex items-center gap-2">
             <CalendarDays className="h-4 w-4 text-primary" />
             <p className="text-sm font-medium text-foreground">Data da antecipação</p>
           </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            A busca nas planilhas será feita com base nessa data.
+          </p>
+        </div>
 
+        <div className="w-full lg:w-[240px]">
           <input
             type="date"
             value={selectedDate}
@@ -334,7 +352,14 @@ const Minerva = () => {
             className="h-10 w-full rounded-lg px-3 text-sm outline-none bg-muted border border-border text-foreground transition-colors focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
           />
         </div>
+      </motion.div>
 
+      <motion.div
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.08, duration: 0.3 }}
+        className="grid gap-4 lg:grid-cols-2 mb-6"
+      >
         <label className="rounded-xl border border-dashed border-border bg-card p-4 cursor-pointer hover:border-primary/30 transition-colors">
           <div className="flex items-center gap-2 mb-3">
             <UploadCloud className="h-4 w-4 text-primary" />
@@ -396,8 +421,7 @@ const Minerva = () => {
           <div>
             <p className="text-sm font-medium text-foreground">Processamento</p>
             <p className="text-xs text-muted-foreground mt-1">
-              Gera a planilha de importação com:
-              {" "}FILIAL = 1, SERIE = 26, TIPO DOCUMENTO = CTRC.
+              Gera a planilha de importação com: FILIAL = 1, SERIE = 26, TIPO DOCUMENTO = CTRC.
             </p>
           </div>
 
