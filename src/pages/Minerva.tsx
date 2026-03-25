@@ -355,8 +355,26 @@ const Minerva = () => {
         "emissão",
       ]);
       const statusCol = findColumn(planilhaZeroSheet, [
-        "status", "situacao", "situação", "sit", "estado",
+        "status", "situacao", "situação", "sit", "estado", "status cte", "tipo",
       ]);
+
+      // --- Pré-filtragem: identificar linhas com status INUTILIZADO ---
+      const normalizeForStatus = (v: unknown) =>
+        String(v ?? "")
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .trim()
+          .toUpperCase();
+
+      const inutilizadoRows = new Set<number>();
+      if (statusCol >= 0) {
+        for (let r = 1; r <= planilhaZeroRange.e.r; r += 1) {
+          const statusValue = normalizeForStatus(getCellValue(planilhaZeroSheet, statusCol, r));
+          if (statusValue.includes("INUTILIZ")) {
+            inutilizadoRows.add(r);
+          }
+        }
+      }
 
       if (reportDateCol < 0 || reportConhecimentoCol < 0) {
         throw new Error(
@@ -409,14 +427,11 @@ const Minerva = () => {
       setCellValue(planilhaZeroSheet, markerColumn, 0, markerHeader);
 
       for (let r = 1; r <= planilhaZeroRange.e.r; r += 1) {
+        // Pular linhas inutilizadas (filtradas no início)
+        if (inutilizadoRows.has(r)) continue;
+
         const numero = normalizeDocument(getCellValue(planilhaZeroSheet, numeroCol, r));
         if (!numero || !docsSet.has(numero)) continue;
-
-        // Filtrar documentos inutilizados
-        if (statusCol >= 0) {
-          const rawStatus = String(getCellValue(planilhaZeroSheet, statusCol, r) ?? "").trim().toUpperCase();
-          if (rawStatus.startsWith("INUTILIZAD")) continue;
-        }
 
         matchedDocs.add(numero);
         setCellValue(planilhaZeroSheet, markerColumn, r, markerDate);
