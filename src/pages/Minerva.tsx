@@ -358,23 +358,6 @@ const Minerva = () => {
         "status", "situacao", "situação", "sit", "estado", "status cte", "tipo",
       ]);
 
-      // --- Pré-filtragem: identificar linhas com status INUTILIZADO ---
-      const normalizeForStatus = (v: unknown) =>
-        String(v ?? "")
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .trim()
-          .toUpperCase();
-
-      const inutilizadoRows = new Set<number>();
-      if (statusCol >= 0) {
-        for (let r = 1; r <= planilhaZeroRange.e.r; r += 1) {
-          const statusValue = normalizeForStatus(getCellValue(planilhaZeroSheet, statusCol, r));
-          if (statusValue.includes("INUTILIZ")) {
-            inutilizadoRows.add(r);
-          }
-        }
-      }
 
       if (reportDateCol < 0 || reportConhecimentoCol < 0) {
         throw new Error(
@@ -392,6 +375,24 @@ const Minerva = () => {
 
       const reportRange = XLSX.utils.decode_range(reportSheet["!ref"] || "A1:A1");
       const planilhaZeroRange = XLSX.utils.decode_range(planilhaZeroSheet["!ref"] || "A1:A1");
+
+      // --- Pré-filtragem: identificar linhas com status INUTILIZADO ---
+      const normalizeForStatus = (v: unknown) =>
+        String(v ?? "")
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .trim()
+          .toUpperCase();
+
+      const inutilizadoRows = new Set<number>();
+      if (statusCol >= 0) {
+        for (let r = 1; r <= planilhaZeroRange.e.r; r += 1) {
+          const statusValue = normalizeForStatus(getCellValue(planilhaZeroSheet, statusCol, r));
+          if (statusValue.includes("INUTILIZ")) {
+            inutilizadoRows.add(r);
+          }
+        }
+      }
 
       const docsSet = new Set<string>();
       let filteredReportRows = 0;
