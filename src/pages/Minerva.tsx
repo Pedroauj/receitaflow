@@ -354,6 +354,9 @@ const Minerva = () => {
         "emissao",
         "emissão",
       ]);
+      const statusCol = findColumn(planilhaZeroSheet, [
+        "status", "situacao", "situação", "sit", "estado",
+      ]);
 
       if (reportDateCol < 0 || reportConhecimentoCol < 0) {
         throw new Error(
@@ -408,6 +411,12 @@ const Minerva = () => {
       for (let r = 1; r <= planilhaZeroRange.e.r; r += 1) {
         const numero = normalizeDocument(getCellValue(planilhaZeroSheet, numeroCol, r));
         if (!numero || !docsSet.has(numero)) continue;
+
+        // Filtrar documentos inutilizados
+        if (statusCol >= 0) {
+          const rawStatus = String(getCellValue(planilhaZeroSheet, statusCol, r) ?? "").trim().toUpperCase();
+          if (rawStatus.startsWith("INUTILIZAD")) continue;
+        }
 
         matchedDocs.add(numero);
         setCellValue(planilhaZeroSheet, markerColumn, r, markerDate);
