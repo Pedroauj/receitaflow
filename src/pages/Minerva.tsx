@@ -355,9 +355,16 @@ const Minerva = () => {
         "emissão",
       ]);
       const statusCol = findColumn(planilhaZeroSheet, [
-        "status", "situacao", "situação", "sit", "estado", "status cte", "tipo",
+        "status",
+        "status cte",
+        "status do cte",
+        "situacao",
+        "situação",
+        "situacao do cte",
+        "situação do cte",
+        "estado",
+        "tipo",
       ]);
-
 
       if (reportDateCol < 0 || reportConhecimentoCol < 0) {
         throw new Error(
@@ -376,7 +383,7 @@ const Minerva = () => {
       const reportRange = XLSX.utils.decode_range(reportSheet["!ref"] || "A1:A1");
       const planilhaZeroRange = XLSX.utils.decode_range(planilhaZeroSheet["!ref"] || "A1:A1");
 
-      // --- Pré-filtragem: identificar linhas com status INUTILIZADO ---
+      // --- Pré-filtragem ROBUSTA: identificar linhas inutilizadas ---
       const normalizeForStatus = (v: unknown) =>
         String(v ?? "")
           .normalize("NFD")
@@ -385,14 +392,39 @@ const Minerva = () => {
           .toUpperCase();
 
       const inutilizadoRows = new Set<number>();
-      if (statusCol >= 0) {
-        for (let r = 1; r <= planilhaZeroRange.e.r; r += 1) {
-          const statusValue = normalizeForStatus(getCellValue(planilhaZeroSheet, statusCol, r));
+
+      for (let r = 1; r <= planilhaZeroRange.e.r; r += 1) {
+        let isInutilizado = false;
+
+        // 1) Prioridade: validar pela coluna de status, quando encontrada
+        if (statusCol >= 0) {
+          const statusValue = normalizeForStatus(
+            getCellValue(planilhaZeroSheet, statusCol, r)
+          );
+
           if (statusValue.includes("INUTILIZ")) {
-            inutilizadoRows.add(r);
+            isInutilizado = true;
           }
         }
+
+        // 2) Fallback: procurar "INUTILIZ" em qualquer célula da linha
+        if (!isInutilizado) {
+          for (let c = planilhaZeroRange.s.c; c <= planilhaZeroRange.e.c; c += 1) {
+            const value = normalizeForStatus(getCellValue(planilhaZeroSheet, c, r));
+            if (value.includes("INUTILIZ")) {
+              isInutilizado = true;
+              break;
+            }
+          }
+        }
+
+        if (isInutilizado) {
+          inutilizadoRows.add(r);
+        }
       }
+
+      console.log("Planilha 0 - total de linhas:", planilhaZeroRange.e.r);
+      console.log("Planilha 0 - inutilizados removidos:", inutilizadoRows.size);
 
       const docsSet = new Set<string>();
       let filteredReportRows = 0;
@@ -428,7 +460,6 @@ const Minerva = () => {
       setCellValue(planilhaZeroSheet, markerColumn, 0, markerHeader);
 
       for (let r = 1; r <= planilhaZeroRange.e.r; r += 1) {
-        // Pular linhas inutilizadas (filtradas no início)
         if (inutilizadoRows.has(r)) continue;
 
         const numero = normalizeDocument(getCellValue(planilhaZeroSheet, numeroCol, r));
@@ -596,8 +627,13 @@ const Minerva = () => {
       >
         <label
           className="cursor-pointer rounded-xl border border-dashed border-border bg-card p-4 transition-colors hover:border-primary/30 data-[dragover=true]:border-primary data-[dragover=true]:bg-primary/5"
-          onDragOver={(e) => { e.preventDefault(); e.currentTarget.dataset.dragover = "true"; }}
-          onDragLeave={(e) => { e.currentTarget.dataset.dragover = "false"; }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.currentTarget.dataset.dragover = "true";
+          }}
+          onDragLeave={(e) => {
+            e.currentTarget.dataset.dragover = "false";
+          }}
           onDrop={(e) => {
             e.preventDefault();
             e.currentTarget.dataset.dragover = "false";
@@ -631,8 +667,13 @@ const Minerva = () => {
 
         <label
           className="cursor-pointer rounded-xl border border-dashed border-border bg-card p-4 transition-colors hover:border-primary/30 data-[dragover=true]:border-primary data-[dragover=true]:bg-primary/5"
-          onDragOver={(e) => { e.preventDefault(); e.currentTarget.dataset.dragover = "true"; }}
-          onDragLeave={(e) => { e.currentTarget.dataset.dragover = "false"; }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.currentTarget.dataset.dragover = "true";
+          }}
+          onDragLeave={(e) => {
+            e.currentTarget.dataset.dragover = "false";
+          }}
           onDrop={(e) => {
             e.preventDefault();
             e.currentTarget.dataset.dragover = "false";
