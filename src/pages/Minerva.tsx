@@ -569,14 +569,24 @@ const Minerva = () => {
         transition={{ delay: 0.08, duration: 0.3 }}
         className="mb-6 grid gap-4 lg:grid-cols-2"
       >
-        <label className="cursor-pointer rounded-xl border border-dashed border-border bg-card p-4 transition-colors hover:border-primary/30">
+        <label
+          className="cursor-pointer rounded-xl border border-dashed border-border bg-card p-4 transition-colors hover:border-primary/30 data-[dragover=true]:border-primary data-[dragover=true]:bg-primary/5"
+          onDragOver={(e) => { e.preventDefault(); e.currentTarget.dataset.dragover = "true"; }}
+          onDragLeave={(e) => { e.currentTarget.dataset.dragover = "false"; }}
+          onDrop={(e) => {
+            e.preventDefault();
+            e.currentTarget.dataset.dragover = "false";
+            const f = e.dataTransfer.files[0];
+            if (f && /\.(xlsx?|xls)$/i.test(f.name)) setReportFile(f);
+          }}
+        >
           <div className="mb-3 flex items-center gap-2">
             <UploadCloud className="h-4 w-4 text-primary" />
             <p className="text-sm font-medium text-foreground">Relatório Validação Envio</p>
           </div>
 
           <p className="text-xs text-muted-foreground">
-            Arquivo da esquerda. Será filtrado pela data informada.
+            Arraste o arquivo aqui ou clique para selecionar.
           </p>
 
           <div className="mt-4 flex min-h-[44px] items-center gap-2 rounded-lg bg-muted px-3 py-2">
@@ -594,14 +604,24 @@ const Minerva = () => {
           />
         </label>
 
-        <label className="cursor-pointer rounded-xl border border-dashed border-border bg-card p-4 transition-colors hover:border-primary/30">
+        <label
+          className="cursor-pointer rounded-xl border border-dashed border-border bg-card p-4 transition-colors hover:border-primary/30 data-[dragover=true]:border-primary data-[dragover=true]:bg-primary/5"
+          onDragOver={(e) => { e.preventDefault(); e.currentTarget.dataset.dragover = "true"; }}
+          onDragLeave={(e) => { e.currentTarget.dataset.dragover = "false"; }}
+          onDrop={(e) => {
+            e.preventDefault();
+            e.currentTarget.dataset.dragover = "false";
+            const f = e.dataTransfer.files[0];
+            if (f && /\.(xlsx?|xls)$/i.test(f.name)) setPlanilhaZeroFile(f);
+          }}
+        >
           <div className="mb-3 flex items-center gap-2">
             <UploadCloud className="h-4 w-4 text-primary" />
             <p className="text-sm font-medium text-foreground">Planilha 0</p>
           </div>
 
           <p className="text-xs text-muted-foreground">
-            Arquivo da direita. Dela saem Número, Valor a Receber e Data de Emissão.
+            Arraste o arquivo aqui ou clique para selecionar.
           </p>
 
           <div className="mt-4 flex min-h-[44px] items-center gap-2 rounded-lg bg-muted px-3 py-2">
