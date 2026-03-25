@@ -354,6 +354,9 @@ const Minerva = () => {
         "emissao",
         "emissão",
       ]);
+      const statusCol = findColumn(planilhaZeroSheet, [
+        "status", "situacao", "situação", "sit", "estado",
+      ]);
 
       if (reportDateCol < 0 || reportConhecimentoCol < 0) {
         throw new Error(
