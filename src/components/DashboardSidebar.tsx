@@ -22,10 +22,10 @@ interface NavItem {
   path: string;
   showBadge?: boolean;
   masterOnly?: boolean;
-  moduleKey?: string; // maps to user_module_permissions.module_key
+  moduleKey?: string;
 }
 
-const navSections: { label: string; items: NavItem[] }[] = [
+const navSections = [
   {
     label: "Visão geral",
     items: [
@@ -56,12 +56,7 @@ const navSections: { label: string; items: NavItem[] }[] = [
   },
 ];
 
-interface DashboardSidebarProps {
-  open: boolean;
-  onClose: () => void;
-}
-
-const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
+const DashboardSidebar = ({ open, onClose }: any) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut } = useAuth();
@@ -72,83 +67,61 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
     onClose();
   }, [location.pathname]);
 
-  const isActive = (path: string) => {
-    if (path === "/dashboard") return location.pathname === "/dashboard";
-    return location.pathname.startsWith(path);
-  };
+  const isActive = (path: string) =>
+    path === "/dashboard"
+      ? location.pathname === "/dashboard"
+      : location.pathname.startsWith(path);
 
-  const handleLogout = async () => {
-    await signOut();
-    navigate("/login", { replace: true });
-  };
+  const initials =
+    user?.user_metadata?.full_name
+      ?.split(" ")
+      .map((n: string) => n[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() ||
+    user?.email?.slice(0, 2).toUpperCase() ||
+    "RF";
 
-  const handleNavigate = (path: string) => {
-    navigate(path);
-  };
-
-  const initials = user?.user_metadata?.full_name
-    ? user.user_metadata.full_name
-        .split(" ")
-        .map((n: string) => n[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
-    : user?.email?.slice(0, 2).toUpperCase() || "RF";
-
-  const displayName = user?.user_metadata?.full_name || user?.email || "Usuário";
+  const displayName =
+    user?.user_metadata?.full_name || user?.email || "Usuário";
 
   const sidebarContent = (
     <div className="flex h-full flex-col px-3 py-4">
-      <div className="flex items-center justify-end mb-2 md:hidden">
-        <button
-          onClick={onClose}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-
-      <nav className="flex-1 overflow-y-auto space-y-5">
+      <nav className="flex-1 overflow-y-auto space-y-6">
         {navSections.map((section) => {
           const visibleItems = section.items.filter((item) => {
-            // masterOnly check
             if (item.masterOnly && !isMaster) return false;
-            // Module permission check (masters bypass)
             if (item.moduleKey && !canView(item.moduleKey)) return false;
             return true;
           });
-          if (visibleItems.length === 0) return null;
+
+          if (!visibleItems.length) return null;
 
           return (
             <div key={section.label}>
-              <p className="px-3 mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
+              <p className="px-3 mb-2 text-[11px] uppercase tracking-wider text-white/40">
                 {section.label}
               </p>
 
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 {visibleItems.map((item) => {
                   const active = isActive(item.path);
 
                   return (
                     <button
                       key={item.path}
-                      type="button"
-                      onClick={() => handleNavigate(item.path)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[13px] font-medium transition-all duration-150 ${
+                      onClick={() => navigate(item.path)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[13px] transition-all ${
                         active
-                          ? "bg-accent text-foreground"
-                          : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                          ? "bg-white/10 border border-white/10 text-white shadow"
+                          : "text-white/60 hover:text-white hover:bg-white/5"
                       }`}
                     >
-                      <item.icon
-                        className={`h-4 w-4 shrink-0 ${
-                          active ? "text-primary" : ""
-                        }`}
-                      />
+                      <item.icon className="h-4 w-4" />
                       <span className="flex-1 text-left">{item.title}</span>
 
                       {item.showBadge && historyCount > 0 && (
-                        <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-md bg-primary/15 text-primary">
+                        <span className="text-[11px] px-2 py-0.5 rounded-md bg-primary/20 text-primary">
                           {historyCount}
                         </span>
                       )}
@@ -161,23 +134,20 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
         })}
       </nav>
 
-      <div className="mt-4 pt-4 border-t border-border">
-        <div className="flex items-center gap-2.5 px-2">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-[11px] font-semibold text-primary">
+      {/* Footer */}
+      <div className="mt-4 pt-4 border-t border-white/10">
+        <div className="flex items-center gap-3 px-2">
+          <div className="h-9 w-9 rounded-xl bg-primary/20 flex items-center justify-center text-sm font-bold text-primary">
             {initials}
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-[12px] font-medium text-foreground">
-              {displayName}
-            </p>
-          </div>
+
+          <div className="flex-1 truncate text-sm">{displayName}</div>
+
           <button
-            type="button"
-            onClick={handleLogout}
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground hover:bg-accent"
-            title="Sair"
+            onClick={signOut}
+            className="p-2 rounded-lg hover:bg-white/5"
           >
-            <LogOut className="h-3.5 w-3.5" />
+            <LogOut className="h-4 w-4 text-white/60" />
           </button>
         </div>
       </div>
@@ -186,18 +156,24 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
 
   return (
     <>
-      <aside className="hidden md:flex fixed left-0 top-0 bottom-0 z-50 flex-col w-[240px] bg-sidebar border-r border-sidebar-border">
-        {sidebarContent}
+      {/* DESKTOP */}
+      <aside className="hidden md:flex fixed left-4 top-4 bottom-4 z-50 w-[240px]">
+        <div className="w-full rounded-2xl bg-white/[0.04] backdrop-blur-xl border border-white/10 shadow-2xl">
+          {sidebarContent}
+        </div>
       </aside>
 
+      {/* MOBILE */}
       {open && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={onClose}
           />
-          <aside className="absolute left-0 top-0 bottom-0 w-[280px] bg-sidebar border-r border-sidebar-border animate-in slide-in-from-left duration-200">
-            {sidebarContent}
+          <aside className="absolute left-4 top-4 bottom-4 w-[260px]">
+            <div className="h-full rounded-2xl bg-white/[0.06] backdrop-blur-xl border border-white/10 shadow-2xl">
+              {sidebarContent}
+            </div>
           </aside>
         </div>
       )}
