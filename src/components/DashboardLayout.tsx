@@ -23,7 +23,24 @@ const DashboardLayout = () => {
   }, [location.pathname, navigate, isPresentationMode]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      {/* Ambient glow effects — matches Landing / Login */}
+      <div className="pointer-events-none fixed inset-0 z-0">
+        <div
+          className="absolute left-1/2 top-[-120px] h-[320px] w-[320px] -translate-x-1/2 rounded-full blur-3xl"
+          style={{ background: "rgba(186, 117, 23, 0.07)" }}
+        />
+        <div
+          className="absolute left-[10%] top-[18%] h-[180px] w-[180px] rounded-full blur-3xl"
+          style={{ background: "rgba(250, 199, 117, 0.04)" }}
+        />
+        <div
+          className="absolute right-[8%] bottom-[12%] h-[220px] w-[220px] rounded-full blur-3xl"
+          style={{ background: "rgba(239, 159, 39, 0.04)" }}
+        />
+        <div className="absolute inset-0 bg-grid-pattern" />
+      </div>
+
       {!isPresentationMode && (
         <>
           <DashboardSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -31,7 +48,7 @@ const DashboardLayout = () => {
         </>
       )}
       <main
-        className={`transition-all duration-500 ease-out ${
+        className={`relative z-10 transition-all duration-500 ease-out ${
           isPresentationMode ? "" : "md:ml-[240px]"
         }`}
       >
