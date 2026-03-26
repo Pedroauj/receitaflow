@@ -42,53 +42,55 @@ const DashboardTopbar = ({ onMenuToggle }: DashboardTopbarProps) => {
   }, [user]);
 
   return (
-    <div className="sticky top-0 z-40 px-3 pt-3 pb-0 md:px-4 md:ml-4">
-      <div
-        className="flex h-11 items-center rounded-2xl border border-white/[0.06] px-3 shadow-lg shadow-black/20 md:px-5"
-        style={{
-          background: "rgba(30, 30, 32, 0.38)",
-          backdropFilter: "blur(16px) saturate(1.4)",
-          WebkitBackdropFilter: "blur(16px) saturate(1.4)",
-        }}
-      >
-        <button
-          onClick={onMenuToggle}
-          className="mr-2 flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground md:hidden"
+    <div className="sticky top-0 z-40 pt-3 pb-0">
+      <div className="px-4">
+        <div
+          className="h-11 rounded-2xl border border-white/[0.06] flex items-center px-3 md:px-5 shadow-lg shadow-black/20"
+          style={{
+            background: "rgba(30, 30, 32, 0.38)",
+            backdropFilter: "blur(16px) saturate(1.4)",
+            WebkitBackdropFilter: "blur(16px) saturate(1.4)",
+          }}
         >
-          <Menu className="h-4.5 w-4.5" />
-        </button>
+          <button
+            onClick={onMenuToggle}
+            className="flex md:hidden h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors mr-2"
+          >
+            <Menu className="h-4.5 w-4.5" />
+          </button>
 
-        <div className="flex items-center gap-1.5">
-          <span className="text-base" style={{ color: "#FAC775" }}>⬡</span>
-          <span className="text-sm font-semibold" style={{ color: "#F5F5F0" }}>
-            Receita<span style={{ color: "#FAC775" }}>Flow</span>
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-base" style={{ color: "#FAC775" }}>⬡</span>
+            <span className="text-sm font-semibold" style={{ color: "#F5F5F0" }}>
+              Receita<span style={{ color: "#FAC775" }}>Flow</span>
+            </span>
+          </div>
+
+          {company && (
+            <>
+              <div
+                className="h-5 w-px mx-3 md:mx-4"
+                style={{ background: "#2C2C2A" }}
+              />
+              <div className="flex items-center gap-2.5">
+                {company.logo_url ? (
+                  <img
+                    src={company.logo_url}
+                    alt={company.name}
+                    className="h-5 max-w-[90px] object-contain"
+                  />
+                ) : (
+                  <span
+                    className="text-sm font-medium"
+                    style={{ color: "#888780" }}
+                  >
+                    {company.name}
+                  </span>
+                )}
+              </div>
+            </>
+          )}
         </div>
-
-        {company && (
-          <>
-            <div
-              className="mx-3 h-5 w-px md:mx-4"
-              style={{ background: "#2C2C2A" }}
-            />
-            <div className="flex items-center gap-2.5">
-              {company.logo_url ? (
-                <img
-                  src={company.logo_url}
-                  alt={company.name}
-                  className="h-5 max-w-[90px] object-contain"
-                />
-              ) : (
-                <span
-                  className="text-sm font-medium"
-                  style={{ color: "#888780" }}
-                >
-                  {company.name}
-                </span>
-              )}
-            </div>
-          </>
-        )}
       </div>
     </div>
   );
