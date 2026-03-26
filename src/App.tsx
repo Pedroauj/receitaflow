@@ -95,4 +95,18 @@ const App = () => {
   );
 };
 
+/* Remove badge Lovable */
+iframe[src*="lovable"] {
+  display: none !important;
+}
+
+a[href*="lovable"] {
+  display: none !important;
+}
+
+div[class*="lovable"],
+div[id*="lovable"] {
+  display: none !important;
+}
+
 export default App;

@@ -35,7 +35,7 @@ const navSections: { label: string; items: NavItem[] }[] = [
   },
   {
     label: "Fiscal",
-    items: [
+    items: [ 
       { title: "NF-e / NFS-e", icon: FileSearch, path: "/conciliacao", moduleKey: "conciliacao" },
     ],
   },
