@@ -23,8 +23,7 @@ const DashboardLayout = () => {
   }, [location.pathname, navigate, isPresentationMode]);
 
   return (
-    <div className="min-h-screen bg-background relative">
-      {/* Ambient glow effects — matches Landing / Login */}
+    <div className="relative min-h-screen bg-background">
       <div className="pointer-events-none fixed inset-0 z-0">
         <div
           className="absolute left-1/2 top-[-120px] h-[320px] w-[320px] -translate-x-1/2 rounded-full blur-3xl"
@@ -47,16 +46,17 @@ const DashboardLayout = () => {
           <DashboardTopbar onMenuToggle={() => setSidebarOpen(true)} />
         </>
       )}
+
       <main
         className={`relative z-10 transition-all duration-500 ease-out ${
-          isPresentationMode ? "" : "md:ml-[240px]"
+          isPresentationMode ? "" : "md:ml-[272px]"
         }`}
       >
         <div
-          className={`mx-auto transition-all duration-500 ease-out ${
+          className={`transition-all duration-500 ease-out ${
             isPresentationMode
-              ? "p-6 lg:p-10 max-w-[1920px]"
-              : "p-4 md:p-6 lg:p-8 max-w-[1440px]"
+              ? "mx-auto max-w-[1920px] p-6 lg:p-10"
+              : "mx-auto max-w-[1500px] px-4 pb-6 pt-4 md:px-6 md:pb-8 md:pt-3 lg:px-8 lg:pb-10 lg:pt-3"
           }`}
         >
           <Outlet />
