@@ -42,9 +42,9 @@ const DashboardTopbar = ({ onMenuToggle }: DashboardTopbarProps) => {
   }, [user]);
 
   return (
-    <div className="sticky top-0 z-40 px-3 pt-3 pb-0 md:ml-[272px] md:px-4">
+    <div className="sticky top-0 z-40 px-3 pt-3 pb-0 md:px-4 md:ml-4">
       <div
-        className="h-11 rounded-2xl border border-white/[0.06] flex items-center px-3 md:px-5 shadow-lg shadow-black/20"
+        className="flex h-11 items-center rounded-2xl border border-white/[0.06] px-3 shadow-lg shadow-black/20 md:px-5"
         style={{
           background: "rgba(30, 30, 32, 0.38)",
           backdropFilter: "blur(16px) saturate(1.4)",
