@@ -135,7 +135,7 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
                       onClick={() => handleNavigate(item.path)}
                       className={`w-full flex items-center gap-3 rounded-xl px-4 py-3 text-[13px] font-medium transition-all duration-150 ${
                         active
-                          ? "border border-white/10 bg-white/[0.08] text-white shadow-[0_8px_24px_rgba(0,0,0,0.18)]"
+                          ? "border border-white/10 bg-white/[0.08] text-white"
                           : "text-white/65 hover:bg-white/[0.045] hover:text-white"
                       }`}
                     >
