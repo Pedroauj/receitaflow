@@ -65,10 +65,11 @@ const formatDate = (iso: string) => {
 };
 
 /* ── Animation presets ───────────────────────────── */
+const EASE = [0.16, 1, 0.3, 1] as const;
 const fadeUp = (delay = 0) => ({
-  initial: { opacity: 0, y: 14, filter: "blur(4px)" },
-  animate: { opacity: 1, y: 0, filter: "blur(0px)" },
-  transition: { delay, duration: 0.5, ease: [0.16, 1, 0.3, 1] as number[] },
+  initial: { opacity: 0, y: 14, filter: "blur(4px)" } as const,
+  animate: { opacity: 1, y: 0, filter: "blur(0px)" } as const,
+  transition: { delay, duration: 0.5, ease: EASE as unknown as [number, number, number, number] },
 });
 
 /* ── Component ───────────────────────────────────── */
