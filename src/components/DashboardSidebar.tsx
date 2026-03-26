@@ -133,14 +133,17 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
                       key={item.path}
                       type="button"
                       onClick={() => handleNavigate(item.path)}
-                      className={`w-full flex items-center gap-3 rounded-xl px-4 py-3 text-[13px] font-medium transition-all duration-150 ${
+                      className={[
+                        "w-full flex items-center gap-3 rounded-xl px-4 py-3 text-[13px] font-medium border transition-colors duration-150",
                         active
-                          ? "border border-white/10 bg-white/[0.08] text-white"
-                          : "text-white/65 hover:bg-white/[0.045] hover:text-white"
-                      }`}
+                          ? "border-white/10 bg-white/[0.08] text-white"
+                          : "border-transparent text-white/65 hover:bg-white/[0.045] hover:text-white hover:border-white/5",
+                      ].join(" ")}
                     >
                       <item.icon
-                        className={`h-4 w-4 shrink-0 ${active ? "text-primary" : "text-white/55"}`}
+                        className={`h-4 w-4 shrink-0 transition-colors duration-150 ${
+                          active ? "text-primary" : "text-white/55"
+                        }`}
                       />
                       <span className="flex-1 text-left">{item.title}</span>
 
@@ -186,7 +189,8 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
   return (
     <>
       <aside className="fixed left-4 top-[68px] bottom-4 z-50 hidden w-[240px] md:flex">
-        <div className="w-full rounded-2xl border border-white/8 bg-[rgba(17,18,23,0.42)] shadow-[0_18px_50px_rgba(0,0,0,0.24)] backdrop-blur-xl">          {sidebarContent}
+        <div className="w-full rounded-2xl border border-white/8 bg-[rgba(17,18,23,0.42)] shadow-[0_18px_50px_rgba(0,0,0,0.24)] backdrop-blur-xl">
+          {sidebarContent}
         </div>
       </aside>
 
