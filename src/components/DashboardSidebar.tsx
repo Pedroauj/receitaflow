@@ -185,7 +185,7 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
 
   return (
     <>
-      <aside className="fixed left-4 top-15 bottom-4 z-50 hidden w-[240px] md:flex">
+      <aside className="fixed left-4 top-20 bottom-4 z-50 hidden w-[240px] md:flex">
         <div className="w-full rounded-2xl border border-white/8 bg-[rgba(17,18,23,0.42)] shadow-[0_18px_50px_rgba(0,0,0,0.24)] backdrop-blur-xl">
           {sidebarContent}
         </div>
