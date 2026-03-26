@@ -186,7 +186,7 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
   return (
     <>
       <aside className="fixed left-4 top-[68px] bottom-4 z-50 hidden w-[240px] md:flex">
-        <div className="w-full rounded-2xl border border-white/8 bg-[rgba(17,18,23,0.42)] shadow-[0_18px_50px_rgba(0,0,0,0.24)] backdrop-blur-xl">
+        <div className="w-full animate-in fade-in-0 slide-in-from-left-1 duration-500 rounded-2xl border border-white/8 bg-[rgba(17,18,23,0.42)] shadow-[0_18px_50px_rgba(0,0,0,0.24)] backdrop-blur-xl">
           {sidebarContent}
         </div>
       </aside>
@@ -194,11 +194,11 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
       {open && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in-0 duration-200"
             onClick={onClose}
           />
           <aside className="absolute left-4 top-4 bottom-4 w-[280px]">
-            <div className="h-full rounded-2xl border border-white/8 bg-[rgba(17,18,23,0.58)] shadow-[0_18px_50px_rgba(0,0,0,0.28)] backdrop-blur-xl animate-in slide-in-from-left duration-200">
+            <div className="h-full rounded-2xl border border-white/8 bg-[rgba(17,18,23,0.58)] shadow-[0_18px_50px_rgba(0,0,0,0.28)] backdrop-blur-xl animate-in slide-in-from-left duration-200 fade-in-0">
               {sidebarContent}
             </div>
           </aside>
