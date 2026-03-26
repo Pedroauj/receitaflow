@@ -42,24 +42,22 @@ const DashboardTopbar = ({ onMenuToggle }: DashboardTopbarProps) => {
   }, [user]);
 
   return (
-    <div className="sticky top-0 z-40 px-3 md:px-4 pt-3 pb-0 md:ml-[240px]">
+    <div className="sticky top-0 z-40 px-3 pt-3 pb-0 md:ml-[272px] md:px-4">
       <div
         className="h-11 rounded-2xl border border-white/[0.06] flex items-center px-3 md:px-5 shadow-lg shadow-black/20"
         style={{
-          background: "rgba(30, 30, 32, 0.45)",
+          background: "rgba(30, 30, 32, 0.38)",
           backdropFilter: "blur(16px) saturate(1.4)",
           WebkitBackdropFilter: "blur(16px) saturate(1.4)",
         }}
       >
-        {/* Mobile menu button */}
         <button
           onClick={onMenuToggle}
-          className="flex md:hidden h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors mr-2"
+          className="mr-2 flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground md:hidden"
         >
           <Menu className="h-4.5 w-4.5" />
         </button>
 
-        {/* ReceitaFlow branding */}
         <div className="flex items-center gap-1.5">
           <span className="text-base" style={{ color: "#FAC775" }}>⬡</span>
           <span className="text-sm font-semibold" style={{ color: "#F5F5F0" }}>
@@ -67,11 +65,10 @@ const DashboardTopbar = ({ onMenuToggle }: DashboardTopbarProps) => {
           </span>
         </div>
 
-        {/* Divider + Company logo */}
         {company && (
           <>
             <div
-              className="h-5 w-px mx-3 md:mx-4"
+              className="mx-3 h-5 w-px md:mx-4"
               style={{ background: "#2C2C2A" }}
             />
             <div className="flex items-center gap-2.5">
