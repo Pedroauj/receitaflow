@@ -106,16 +106,16 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
     navigate(path);
   };
 
-  const initials = user?.user_metadata?.full_name
-    ? user.user_metadata.full_name
-        .split(" ")
-        .map((n: string) => n[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
-    : user?.email?.slice(0, 2).toUpperCase() || "RF";
+  const displayName = profileData?.display_name || profileData?.full_name || user?.user_metadata?.full_name || user?.email || "Usuário";
 
-  const displayName = user?.user_metadata?.full_name || user?.email || "Usuário";
+  const initials = displayName
+    .split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  const avatarUrl = profileData?.avatar_url || null;
 
   const sidebarContent = (
     <div className="flex h-full flex-col px-3 py-4">
