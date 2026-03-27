@@ -183,8 +183,12 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
 
       <div className="mt-4 border-t border-white/8 pt-4">
         <div className="flex items-center gap-2.5 px-2">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-[11px] font-semibold text-primary">
-            {initials}
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg overflow-hidden bg-primary/15 text-[11px] font-semibold text-primary">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+            ) : (
+              initials
+            )}
           </div>
 
           <div className="min-w-0 flex-1">
