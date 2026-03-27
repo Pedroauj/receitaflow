@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { User, Lock, Bell, Save, Loader2, Eye, EyeOff, Check } from "lucide-react";
+import { User, Lock, Bell, Save, Loader2, Eye, EyeOff, Check, Camera, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -115,19 +115,38 @@ function Toggle({
   );
 }
 
+/* ── Helper: get initials ── */
+function getInitials(name?: string | null, email?: string | null): string {
+  if (name) {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+  }
+  return (email || "U").slice(0, 2).toUpperCase();
+}
+
 /* ── Main ── */
 const Configuracoes = () => {
   const { user } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Profile state
   const [fullName, setFullName] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [profileEmail, setProfileEmail] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileSaving, setProfileSaving] = useState(false);
 
+  // Avatar upload state
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null);
+
   // Password state
-  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showNewPass, setShowNewPass] = useState(false);
@@ -144,7 +163,7 @@ const Configuracoes = () => {
     setProfileLoading(true);
     supabase
       .from("profiles")
-      .select("full_name, display_name, email")
+      .select("full_name, display_name, email, avatar_url")
       .eq("user_id", user.id)
       .single()
       .then(({ data }) => {
@@ -152,20 +171,87 @@ const Configuracoes = () => {
           setFullName(data.full_name || "");
           setDisplayName(data.display_name || "");
           setProfileEmail(data.email || user.email || "");
+          setAvatarUrl(data.avatar_url || null);
         }
         setProfileLoading(false);
       });
   }, [user]);
 
-  // Save profile
+  // Handle avatar file selection
+  const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Selecione uma imagem (PNG ou JPG)", variant: "destructive" });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "A imagem deve ter no máximo 5MB", variant: "destructive" });
+      return;
+    }
+
+    setPendingAvatarFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setAvatarPreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const cancelAvatarPreview = () => {
+    setPendingAvatarFile(null);
+    setAvatarPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  // Upload avatar to storage
+  const uploadAvatar = async (): Promise<string | null> => {
+    if (!pendingAvatarFile || !user) return avatarUrl;
+
+    setAvatarUploading(true);
+    try {
+      const ext = pendingAvatarFile.name.split(".").pop()?.toLowerCase() || "jpg";
+      const filePath = `${user.id}/avatar.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, pendingAvatarFile, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicData } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(filePath);
+
+      const url = publicData.publicUrl + `?t=${Date.now()}`;
+      setAvatarUrl(url);
+      setAvatarPreview(null);
+      setPendingAvatarFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return url;
+    } catch (err: any) {
+      toast({ title: "Erro ao enviar foto", description: err.message, variant: "destructive" });
+      return avatarUrl;
+    } finally {
+      setAvatarUploading(false);
+    }
+  };
+
+  // Save profile (includes avatar upload if pending)
   const handleSaveProfile = async () => {
     if (!user) return;
     setProfileSaving(true);
+
+    let finalAvatarUrl = avatarUrl;
+    if (pendingAvatarFile) {
+      finalAvatarUrl = await uploadAvatar();
+    }
+
     const { error } = await supabase
       .from("profiles")
       .update({
         full_name: fullName.trim(),
         display_name: displayName.trim() || fullName.trim(),
+        avatar_url: finalAvatarUrl,
       })
       .eq("user_id", user.id);
 
@@ -199,7 +285,6 @@ const Configuracoes = () => {
       toast({ title: "Erro ao alterar senha", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Senha alterada com sucesso" });
-      setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     }
@@ -214,6 +299,9 @@ const Configuracoes = () => {
     setNotifSaved(true);
     setTimeout(() => setNotifSaved(false), 2000);
   };
+
+  const initials = getInitials(fullName || displayName, profileEmail);
+  const displayedAvatar = avatarPreview || avatarUrl;
 
   return (
     <div className="w-full">
@@ -269,7 +357,105 @@ const Configuracoes = () => {
                 Carregando...
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-5">
+                {/* ── Avatar upload ── */}
+                <div className="flex items-center gap-5">
+                  <div className="relative group">
+                    <div
+                      className="h-20 w-20 rounded-2xl overflow-hidden flex items-center justify-center shrink-0 transition-shadow duration-200"
+                      style={{
+                        background: displayedAvatar ? "transparent" : "#1E1A14",
+                        border: "2px solid #2C2C30",
+                        boxShadow: "0 0 0 0 rgba(215,146,43,0)",
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 0 0 3px rgba(215,146,43,0.25)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "0 0 0 0 rgba(215,146,43,0)")}
+                    >
+                      {displayedAvatar ? (
+                        <img
+                          src={displayedAvatar}
+                          alt="Avatar"
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <span
+                          style={{
+                            fontSize: 22,
+                            fontWeight: 700,
+                            color: "#D7922B",
+                            letterSpacing: 1,
+                          }}
+                        >
+                          {initials}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Camera overlay */}
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="absolute -bottom-1 -right-1 h-7 w-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:scale-110"
+                      style={{
+                        background: "#D7922B",
+                        border: "2px solid #15161A",
+                        cursor: "pointer",
+                      }}
+                      title="Alterar foto"
+                    >
+                      <Camera style={{ width: 13, height: 13, color: "#111113" }} />
+                    </button>
+
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      onChange={handleAvatarSelect}
+                      className="hidden"
+                    />
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <p style={{ fontSize: 14, fontWeight: 600, color: "#E2E2E7", margin: 0 }}>
+                      Foto de perfil
+                    </p>
+                    <p style={{ fontSize: 12, color: "#6E6E76", margin: "4px 0 0" }}>
+                      PNG, JPG ou WebP. Máximo 5MB.
+                    </p>
+                    {avatarPreview && (
+                      <div className="flex items-center gap-2 mt-2">
+                        <span
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: "#D7922B",
+                            background: "rgba(215,146,43,0.12)",
+                            padding: "3px 8px",
+                            borderRadius: 6,
+                          }}
+                        >
+                          Preview — salve para aplicar
+                        </span>
+                        <button
+                          type="button"
+                          onClick={cancelAvatarPreview}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            color: "#6E6E76",
+                            display: "flex",
+                          }}
+                          title="Cancelar"
+                        >
+                          <X style={{ width: 14, height: 14 }} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* ── Name fields ── */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label style={labelStyle}>Nome completo</label>
@@ -294,6 +480,9 @@ const Configuracoes = () => {
                       onFocus={(e) => (e.currentTarget.style.borderColor = "#D7922B")}
                       onBlur={(e) => (e.currentTarget.style.borderColor = "#2C2C30")}
                     />
+                    <p style={{ fontSize: 11, color: "#55555D", marginTop: 4 }}>
+                      Este será o nome principal exibido no sistema.
+                    </p>
                   </div>
                 </div>
                 <div>
@@ -313,10 +502,10 @@ const Configuracoes = () => {
                   <button
                     type="button"
                     onClick={handleSaveProfile}
-                    disabled={profileSaving}
-                    style={{ ...btnPrimary, opacity: profileSaving ? 0.6 : 1 }}
+                    disabled={profileSaving || avatarUploading}
+                    style={{ ...btnPrimary, opacity: profileSaving || avatarUploading ? 0.6 : 1 }}
                   >
-                    {profileSaving ? (
+                    {profileSaving || avatarUploading ? (
                       <Loader2 style={{ width: 16, height: 16 }} className="animate-spin" />
                     ) : (
                       <Save style={{ width: 16, height: 16 }} />

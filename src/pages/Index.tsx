@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useModulePermissions } from "@/hooks/useModulePermissions";
@@ -78,7 +79,24 @@ const Index = () => {
   const { user } = useAuth();
   const { canView, isMaster, loading: permLoading } = useModulePermissions();
 
+  /* ── Fetch display name from profile ── */
+  const [profileName, setProfileName] = useState<string | null>(null);
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("display_name, full_name")
+      .eq("user_id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          setProfileName(data.display_name || data.full_name || null);
+        }
+      });
+  }, [user]);
+
   const firstName =
+    profileName?.split(" ")[0] ||
     user?.user_metadata?.full_name?.split(" ")[0] ||
     user?.email?.split("@")[0] ||
     "Usuário";
