@@ -56,7 +56,7 @@ const DashboardLayout = () => {
           className={`transition-all duration-500 ease-out ${
             isPresentationMode
               ? "mx-auto max-w-[1920px] p-6 lg:p-10"
-              : "mx-auto max-w-[1500px] px-4 pb-6 pt-4 md:px-6 md:pb-8 md:pt-3 lg:px-8 lg:pb-10 lg:pt-3"
+              : "mx-auto max-w-[1500px] px-4 pb-6 pt-20 md:px-6 md:pb-8 md:pt-20 lg:px-8 lg:pb-10 lg:pt-20"
           }`}
         >
           <Outlet />
