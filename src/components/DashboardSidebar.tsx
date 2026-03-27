@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Building2,
   Fuel,
@@ -68,6 +69,25 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
   const { canView, isMaster } = useModulePermissions();
   const historyCount = getRecords().length;
 
+  // Fetch profile data (avatar, display_name)
+  const [profileData, setProfileData] = useState<{
+    avatar_url: string | null;
+    display_name: string | null;
+    full_name: string | null;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("avatar_url, display_name, full_name")
+      .eq("user_id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data) setProfileData(data);
+      });
+  }, [user]);
+
   useEffect(() => {
     onClose();
   }, [location.pathname, onClose]);
@@ -86,16 +106,16 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
     navigate(path);
   };
 
-  const initials = user?.user_metadata?.full_name
-    ? user.user_metadata.full_name
-        .split(" ")
-        .map((n: string) => n[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
-    : user?.email?.slice(0, 2).toUpperCase() || "RF";
+  const displayName = profileData?.display_name || profileData?.full_name || user?.user_metadata?.full_name || user?.email || "Usuário";
 
-  const displayName = user?.user_metadata?.full_name || user?.email || "Usuário";
+  const initials = displayName
+    .split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  const avatarUrl = profileData?.avatar_url || null;
 
   const sidebarContent = (
     <div className="flex h-full flex-col px-3 py-4">
@@ -163,8 +183,12 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
 
       <div className="mt-4 border-t border-white/8 pt-4">
         <div className="flex items-center gap-2.5 px-2">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-[11px] font-semibold text-primary">
-            {initials}
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg overflow-hidden bg-primary/15 text-[11px] font-semibold text-primary">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+            ) : (
+              initials
+            )}
           </div>
 
           <div className="min-w-0 flex-1">
