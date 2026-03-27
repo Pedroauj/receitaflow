@@ -69,6 +69,25 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
   const { canView, isMaster } = useModulePermissions();
   const historyCount = getRecords().length;
 
+  // Fetch profile data (avatar, display_name)
+  const [profileData, setProfileData] = useState<{
+    avatar_url: string | null;
+    display_name: string | null;
+    full_name: string | null;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("avatar_url, display_name, full_name")
+      .eq("user_id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data) setProfileData(data);
+      });
+  }, [user]);
+
   useEffect(() => {
     onClose();
   }, [location.pathname, onClose]);
