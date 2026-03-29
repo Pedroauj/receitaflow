@@ -71,6 +71,43 @@
   }
 }
 
+/* ── macOS-style scrollbar ── */
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(90, 90, 90, 0);
+  border-radius: 999px;
+  transition: background 0.3s ease;
+}
+
+*:hover::-webkit-scrollbar-thumb,
+.is-scrolling *::-webkit-scrollbar-thumb,
+.is-scrolling::-webkit-scrollbar-thumb {
+  background: rgba(90, 90, 90, 0.5);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(120, 120, 120, 0.8);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: none;
+}
+
+*:hover,
+.is-scrolling * {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(90, 90, 90, 0.5) transparent;
+}
+
 @layer components {
   /* Subtle grid pattern matching Landing / Login pages */
   .bg-grid-pattern {
