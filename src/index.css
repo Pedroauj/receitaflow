@@ -73,13 +73,13 @@
 
 /* ── macOS-style subtle scrollbar ── */
 
-/* Reserve scrollbar space to prevent layout shift */
+/* Reserve scrollbar gutter on html to prevent layout shift */
 html {
   overflow-y: scroll;
   scrollbar-gutter: stable;
 }
 
-/* Webkit: ultra-thin overlay scrollbar */
+/* Webkit scrollbar — always present but thumb is transparent by default */
 .mac-scroll::-webkit-scrollbar,
 html::-webkit-scrollbar {
   width: 4px;
@@ -94,15 +94,19 @@ html::-webkit-scrollbar-track {
 
 .mac-scroll::-webkit-scrollbar-thumb,
 html::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.0);
+  background: rgba(140, 140, 140, 0);
   border-radius: 999px;
-  transition: background 0.28s ease;
+  transition: background 0.3s ease;
 }
 
-/* Show on hover or while scrolling */
+/* Reveal on hover / scroll — sidebar & inner containers */
 .mac-scroll:hover::-webkit-scrollbar-thumb,
-html.is-scrolling::-webkit-scrollbar-thumb,
 .mac-scroll.is-scrolling::-webkit-scrollbar-thumb {
+  background: rgba(140, 140, 140, 0.22);
+}
+
+/* Reveal on scroll — page-level (html) */
+html.is-scrolling::-webkit-scrollbar-thumb {
   background: rgba(140, 140, 140, 0.22);
 }
 
@@ -111,7 +115,7 @@ html::-webkit-scrollbar-thumb:hover {
   background: rgba(180, 180, 180, 0.32);
 }
 
-/* Firefox */
+/* Firefox — hide by default, show thin on interaction */
 html,
 .mac-scroll {
   scrollbar-width: none;

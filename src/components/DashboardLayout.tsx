@@ -48,7 +48,7 @@ const DashboardLayout = () => {
       )}
 
       <main
-        className={`relative z-10 transition-all duration-500 ease-out ${
+        className={`relative z-10 transition-all duration-500 ease-out mac-scroll ${
           isPresentationMode ? "" : "md:ml-[272px]"
         }`}
       >
