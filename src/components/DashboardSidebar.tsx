@@ -128,7 +128,7 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
         </button>
       </div>
 
-      <nav className="flex-1 overflow-y-auto space-y-5">
+      <nav className="flex-1 overflow-y-auto mac-scroll space-y-5">
         {navSections.map((section) => {
           const visibleItems = section.items.filter((item) => {
             if (item.masterOnly && !isMaster) return false;
