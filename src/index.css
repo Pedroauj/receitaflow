@@ -71,41 +71,57 @@
   }
 }
 
-/* ── macOS-style scrollbar ── */
-*::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* ── macOS-style subtle scrollbar ── */
+
+/* Reserve scrollbar space to prevent layout shift */
+html {
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
 }
 
-*::-webkit-scrollbar-track {
+/* Webkit: ultra-thin overlay scrollbar */
+.mac-scroll::-webkit-scrollbar,
+html::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
   background: transparent;
 }
 
-*::-webkit-scrollbar-thumb {
-  background: rgba(90, 90, 90, 0);
+.mac-scroll::-webkit-scrollbar-track,
+html::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mac-scroll::-webkit-scrollbar-thumb,
+html::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.0);
   border-radius: 999px;
-  transition: background 0.3s ease;
+  transition: background 0.28s ease;
 }
 
-*:hover::-webkit-scrollbar-thumb,
-.is-scrolling *::-webkit-scrollbar-thumb,
-.is-scrolling::-webkit-scrollbar-thumb {
-  background: rgba(90, 90, 90, 0.5);
+/* Show on hover or while scrolling */
+.mac-scroll:hover::-webkit-scrollbar-thumb,
+html.is-scrolling::-webkit-scrollbar-thumb,
+.mac-scroll.is-scrolling::-webkit-scrollbar-thumb {
+  background: rgba(140, 140, 140, 0.22);
 }
 
-*::-webkit-scrollbar-thumb:hover {
-  background: rgba(120, 120, 120, 0.8);
+.mac-scroll::-webkit-scrollbar-thumb:hover,
+html::-webkit-scrollbar-thumb:hover {
+  background: rgba(180, 180, 180, 0.32);
 }
 
 /* Firefox */
-* {
+html,
+.mac-scroll {
   scrollbar-width: none;
 }
 
-*:hover,
-.is-scrolling * {
+html.is-scrolling,
+.mac-scroll:hover,
+.mac-scroll.is-scrolling {
   scrollbar-width: thin;
-  scrollbar-color: rgba(90, 90, 90, 0.5) transparent;
+  scrollbar-color: rgba(140, 140, 140, 0.22) transparent;
 }
 
 @layer components {
