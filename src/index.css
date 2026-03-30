@@ -196,11 +196,24 @@ html.is-scrolling,
     background-size: 38px 38px;
   }
 
-  /* Elevated card surface — used across all processing pages */
+  /* Elevated card surface — Apple glass style */
   .card-elevated {
-    background: linear-gradient(180deg, hsl(240 5% 12%) 0%, hsl(240 4% 10%) 100%);
-    border: 1px solid hsl(240 5% 17%);
+    background: linear-gradient(180deg, hsl(240 5% 12% / 0.8) 0%, hsl(240 4% 10% / 0.6) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 16px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  /* Apple-style glass card */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18),
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
   }
 }

@@ -156,8 +156,8 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
                       className={[
                         "w-full flex items-center gap-3 rounded-xl px-4 py-3 text-[13px] font-medium border transition-all duration-200",
                         active
-                          ? "border-primary/15 bg-white/[0.08] text-white shadow-[0_0_12px_rgba(239,159,39,0.12)]"
-                          : "border-transparent text-white/65 hover:bg-white/[0.045] hover:text-white hover:border-white/5",
+                          ? "border-white/[0.08] bg-white/[0.07] text-white shadow-[0_2px_8px_rgba(0,0,0,0.15)]"
+                          : "border-transparent text-white/60 hover:bg-white/[0.04] hover:text-white/90 hover:border-white/[0.04]",
                       ].join(" ")}
                     >
                       <item.icon

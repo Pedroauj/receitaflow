@@ -341,7 +341,7 @@ const Index = () => {
         {/* ── Activity Feed ── */}
         <motion.div
           {...fadeUp(0.4)}
-          className="rounded-2xl border border-white/[0.05] bg-card flex flex-col overflow-hidden transition-all duration-250"
+          className="rounded-2xl border border-white/[0.06] flex flex-col overflow-hidden transition-all duration-250 glass-card"
         >
           <div className="px-6 py-5 border-b border-border">
             <div className="flex items-center gap-3">
