@@ -248,10 +248,8 @@ const Index = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.28 + i * 0.04, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                className="group/link text-left rounded-2xl border border-white/[0.05] bg-card p-5 active:scale-[0.98]"
-                style={{ transition: "all 0.22s ease, box-shadow 0.25s ease, transform 0.2s ease" }}
-                onMouseEnter={(e) => { e.currentTarget.style.boxShadow = `0 0 28px ${mod.color}1A`; e.currentTarget.style.borderColor = `${mod.color}25`; e.currentTarget.style.transform = "translateY(-2px)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.boxShadow = ""; e.currentTarget.style.borderColor = ""; e.currentTarget.style.transform = ""; }}
+                className="group/link text-left rounded-2xl border border-white/[0.06] p-5 active:scale-[0.98] glass-card hover:border-white/[0.09] hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(0,0,0,0.2)]"
+                style={{ transition: "all 0.22s cubic-bezier(0.25,0.46,0.45,0.94)" }}
               >
                 <div className="flex items-start justify-between mb-3">
                   <div
