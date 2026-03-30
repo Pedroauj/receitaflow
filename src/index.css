@@ -58,6 +58,7 @@
 
   html {
     background: hsl(240 4% 10%);
+    scroll-behavior: smooth;
   }
 
   body {
@@ -68,6 +69,28 @@
 
   #root {
     min-height: 100vh;
+  }
+
+  /* ── Global micro-interaction baseline ── */
+  button, a, [role="button"] {
+    transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  button:active:not(:disabled), [role="button"]:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  /* ── Input focus glow ── */
+  input:focus, textarea:focus, select:focus,
+  [data-state="open"] {
+    outline: none;
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.15);
+    transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 

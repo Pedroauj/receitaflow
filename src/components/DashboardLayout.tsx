@@ -8,8 +8,8 @@ import { usePresentationMode } from "@/contexts/PresentationModeContext";
 
 const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const navigate = useNavigate();
   const location = useLocation();
+  const navigate = useNavigate();
   const { isPresentationMode } = usePresentationMode();
 
   useEffect(() => {
