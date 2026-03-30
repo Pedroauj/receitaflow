@@ -51,9 +51,10 @@
     --sidebar-border: 240 4% 14%;
     --sidebar-ring: 40 70% 50%;
 
-    --apple-ease: cubic-bezier(0.4, 0, 0.2, 1);
-    --apple-fast: 180ms;
-    --apple-normal: 220ms;
+    --apple-ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --apple-ease-soft: cubic-bezier(0.25, 0.9, 0.3, 1);
+    --apple-fast: 220ms;
+    --apple-normal: 320ms;
     --apple-surface: rgba(255, 255, 255, 0.03);
     --apple-surface-strong: rgba(255, 255, 255, 0.05);
     --apple-border-soft: rgba(255, 255, 255, 0.06);
@@ -111,29 +112,36 @@
   [data-state],
   [data-slot="card"] {
     transition:
-      transform var(--apple-fast) var(--apple-ease),
-      box-shadow var(--apple-normal) var(--apple-ease),
-      background-color var(--apple-normal) var(--apple-ease),
-      border-color var(--apple-normal) var(--apple-ease),
-      color var(--apple-normal) var(--apple-ease),
-      opacity var(--apple-fast) var(--apple-ease);
+      transform var(--apple-normal) var(--apple-ease),
+      box-shadow var(--apple-normal) var(--apple-ease-soft),
+      background-color var(--apple-normal) var(--apple-ease-soft),
+      border-color var(--apple-normal) var(--apple-ease-soft),
+      color var(--apple-fast) var(--apple-ease-soft),
+      opacity var(--apple-fast) var(--apple-ease-soft),
+      filter var(--apple-normal) var(--apple-ease-soft);
   }
 
   button,
   a,
   [role="button"] {
-    will-change: transform, box-shadow, background-color;
+    transform: translate3d(0, 0, 0) scale(1);
+    will-change: transform, box-shadow, background-color, border-color;
+    backface-visibility: hidden;
+    transform-origin: center;
   }
 
   button:hover:not(:disabled),
   a:hover,
   [role="button"]:hover:not(:disabled) {
-    transform: translateY(-1px);
+    transform: translate3d(0, -1px, 0) scale(1.008);
+    filter: brightness(1.01);
   }
 
   button:active:not(:disabled),
   [role="button"]:active:not(:disabled) {
-    transform: translateY(0) scale(0.985);
+    transform: translate3d(0, 0, 0) scale(0.992);
+    transition-duration: 140ms;
+    transition-timing-function: cubic-bezier(0.3, 0, 0.2, 1);
   }
 
   button:focus-visible,
@@ -204,7 +212,7 @@
   [data-slot="card"]:hover {
     border-color: rgba(255, 255, 255, 0.11);
     box-shadow: var(--apple-shadow-sm), var(--apple-highlight);
-    transform: translateY(-1px);
+    transform: translate3d(0, -1px, 0);
   }
 
   .apple-focusable:focus-within,
