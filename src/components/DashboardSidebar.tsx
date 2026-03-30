@@ -69,7 +69,6 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
   const { canView, isMaster } = useModulePermissions();
   const historyCount = getRecords().length;
 
-  // Fetch profile data (avatar, display_name)
   const [profileData, setProfileData] = useState<{
     avatar_url: string | null;
     display_name: string | null;
@@ -78,6 +77,7 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
 
   useEffect(() => {
     if (!user) return;
+
     supabase
       .from("profiles")
       .select("avatar_url, display_name, full_name")
@@ -106,7 +106,12 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
     navigate(path);
   };
 
-  const displayName = profileData?.display_name || profileData?.full_name || user?.user_metadata?.full_name || user?.email || "Usuário";
+  const displayName =
+    profileData?.display_name ||
+    profileData?.full_name ||
+    user?.user_metadata?.full_name ||
+    user?.email ||
+    "Usuário";
 
   const initials = displayName
     .split(" ")
@@ -122,13 +127,13 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
       <div className="mb-2 flex items-center justify-end md:hidden">
         <button
           onClick={onClose}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground"
+          className="flex h-8 w-8 items-center justify-center rounded-xl border border-transparent text-muted-foreground transition-all duration-200 hover:-translate-y-[1px] hover:border-white/8 hover:bg-white/[0.045] hover:text-foreground active:translate-y-0 active:scale-[0.98]"
         >
           <X className="h-4 w-4" />
         </button>
       </div>
 
-      <nav className="flex-1 overflow-y-auto mac-scroll space-y-5">
+      <nav className="mac-scroll flex-1 space-y-5 overflow-y-auto pr-1">
         {navSections.map((section) => {
           const visibleItems = section.items.filter((item) => {
             if (item.masterOnly && !isMaster) return false;
@@ -140,7 +145,7 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
 
           return (
             <div key={section.label}>
-              <p className="mb-2 px-3 text-[11px] font-medium uppercase tracking-wider text-white/38">
+              <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/32">
                 {section.label}
               </p>
 
@@ -154,21 +159,44 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
                       type="button"
                       onClick={() => handleNavigate(item.path)}
                       className={[
-                        "w-full flex items-center gap-3 rounded-xl px-4 py-3 text-[13px] font-medium border transition-all duration-200",
+                        "group relative flex w-full items-center gap-3 overflow-hidden rounded-2xl border px-4 py-3 text-[13px] font-medium transition-all duration-200",
                         active
-                          ? "border-white/[0.08] bg-white/[0.07] text-white shadow-[0_2px_8px_rgba(0,0,0,0.15)]"
-                          : "border-transparent text-white/60 hover:bg-white/[0.04] hover:text-white/90 hover:border-white/[0.04]",
+                          ? "border-white/[0.11] bg-white/[0.07] text-white shadow-[0_10px_30px_rgba(0,0,0,0.20),inset_0_1px_0_rgba(255,255,255,0.06)]"
+                          : "border-transparent bg-transparent text-white/58 hover:-translate-y-[1px] hover:border-white/[0.05] hover:bg-white/[0.04] hover:text-white/90",
                       ].join(" ")}
                     >
+                      <span
+                        className={[
+                          "pointer-events-none absolute inset-y-[8px] left-0 w-[3px] rounded-r-full transition-all duration-200",
+                          active
+                            ? "bg-primary opacity-100 shadow-[0_0_14px_rgba(250,199,117,0.35)]"
+                            : "bg-primary opacity-0 group-hover:opacity-45",
+                        ].join(" ")}
+                      />
+
+                      <span
+                        className={[
+                          "pointer-events-none absolute inset-0 rounded-2xl transition-opacity duration-200",
+                          active ? "opacity-100" : "opacity-0 group-hover:opacity-100",
+                        ].join(" ")}
+                        style={{
+                          background:
+                            "linear-gradient(180deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.015) 40%, rgba(255,255,255,0) 100%)",
+                        }}
+                      />
+
                       <item.icon
-                        className={`h-4 w-4 shrink-0 transition-colors duration-150 ${
-                          active ? "text-primary" : "text-white/55"
+                        className={`relative z-[1] h-4 w-4 shrink-0 transition-all duration-200 ${
+                          active ? "text-primary" : "text-white/50 group-hover:text-white/75"
                         }`}
                       />
-                      <span className="flex-1 text-left">{item.title}</span>
+
+                      <span className="relative z-[1] flex-1 text-left tracking-[-0.01em]">
+                        {item.title}
+                      </span>
 
                       {item.showBadge && historyCount > 0 && (
-                        <span className="rounded-md bg-primary/15 px-1.5 py-0.5 text-[11px] font-medium text-primary">
+                        <span className="relative z-[1] rounded-lg border border-primary/15 bg-primary/12 px-1.5 py-0.5 text-[11px] font-semibold text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
                           {historyCount}
                         </span>
                       )}
@@ -182,8 +210,8 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
       </nav>
 
       <div className="mt-4 border-t border-white/8 pt-4">
-        <div className="flex items-center gap-2.5 px-2">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg overflow-hidden bg-primary/15 text-[11px] font-semibold text-primary">
+        <div className="flex items-center gap-2.5 rounded-2xl border border-white/[0.05] bg-white/[0.025] px-2.5 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-primary/12 bg-primary/12 text-[11px] font-semibold text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
             {avatarUrl ? (
               <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
             ) : (
@@ -192,15 +220,16 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
           </div>
 
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[12px] font-medium text-white">
+            <p className="truncate text-[12px] font-semibold tracking-[-0.01em] text-white">
               {displayName}
             </p>
+            <p className="truncate text-[11px] text-white/40">Sessão ativa</p>
           </div>
 
           <button
             type="button"
             onClick={handleLogout}
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-white/55 transition-colors hover:bg-white/5 hover:text-white"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-transparent text-white/55 transition-all duration-200 hover:-translate-y-[1px] hover:border-white/8 hover:bg-white/[0.05] hover:text-white active:translate-y-0 active:scale-[0.98]"
             title="Sair"
           >
             <LogOut className="h-3.5 w-3.5" />
@@ -213,7 +242,15 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
   return (
     <>
       <aside className="fixed left-4 top-[68px] bottom-4 z-50 hidden w-[240px] md:flex">
-        <div className="w-full rounded-2xl border border-white/[0.06] bg-[rgba(17,18,23,0.45)] shadow-[0_18px_50px_rgba(0,0,0,0.24),inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
+        <div
+          className="w-full rounded-[24px] border border-white/[0.07] shadow-[0_24px_60px_rgba(0,0,0,0.26),inset_0_1px_0_rgba(255,255,255,0.05)]"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(19,20,24,0.62) 0%, rgba(15,16,20,0.48) 100%)",
+            backdropFilter: "blur(18px) saturate(1.2)",
+            WebkitBackdropFilter: "blur(18px) saturate(1.2)",
+          }}
+        >
           {sidebarContent}
         </div>
       </aside>
@@ -225,7 +262,15 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
             onClick={onClose}
           />
           <aside className="absolute left-4 top-4 bottom-4 w-[280px]">
-            <div className="h-full rounded-2xl border border-white/8 bg-[rgba(17,18,23,0.58)] shadow-[0_18px_50px_rgba(0,0,0,0.28)] backdrop-blur-xl animate-in slide-in-from-left duration-200 fade-in-0">
+            <div
+              className="h-full rounded-[24px] border border-white/[0.08] shadow-[0_24px_60px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.05)] animate-in slide-in-from-left duration-200 fade-in-0"
+              style={{
+                background:
+                  "linear-gradient(180deg, rgba(19,20,24,0.78) 0%, rgba(15,16,20,0.62) 100%)",
+                backdropFilter: "blur(18px) saturate(1.22)",
+                WebkitBackdropFilter: "blur(18px) saturate(1.22)",
+              }}
+            >
               {sidebarContent}
             </div>
           </aside>

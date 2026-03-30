@@ -51,36 +51,50 @@
     --sidebar-border: 240 4% 14%;
     --sidebar-ring: 40 70% 50%;
 
-    /* Spotlight cursor tracker */
-    --mouse-x: 50%;
-    --mouse-y: 50%;
+    --apple-ease: cubic-bezier(0.4, 0, 0.2, 1);
+    --apple-fast: 180ms;
+    --apple-normal: 220ms;
+    --apple-surface: rgba(255, 255, 255, 0.03);
+    --apple-surface-strong: rgba(255, 255, 255, 0.05);
+    --apple-border-soft: rgba(255, 255, 255, 0.06);
+    --apple-border-strong: rgba(255, 255, 255, 0.12);
+    --apple-shadow-sm: 0 10px 26px rgba(0, 0, 0, 0.18);
+    --apple-shadow-md: 0 18px 42px rgba(0, 0, 0, 0.24);
+    --apple-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
 
   * {
     @apply border-border;
   }
 
+  *::selection {
+    background: rgba(250, 199, 117, 0.18);
+    color: hsl(var(--foreground));
+  }
+
   html {
     background: hsl(240 4% 10%);
     scroll-behavior: smooth;
+    overflow-y: scroll;
+    scrollbar-gutter: stable;
   }
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     letter-spacing: -0.01em;
+    text-rendering: optimizeLegibility;
   }
 
   #root {
     min-height: 100vh;
   }
 
-  /* ── Apple-style typography refinements ── */
   h1, h2, h3, h4, h5, h6 {
-    letter-spacing: -0.02em;
+    letter-spacing: -0.025em;
     font-weight: 600;
   }
 
@@ -88,57 +102,123 @@
     line-height: 1.5;
   }
 
-  /* ── Global micro-interaction baseline ── */
-  button, a, [role="button"] {
-    transition: transform 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                box-shadow 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                background-color 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                border-color 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                color 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                opacity 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  button,
+  a,
+  [role="button"],
+  input,
+  textarea,
+  select,
+  [data-state],
+  [data-slot="card"] {
+    transition:
+      transform var(--apple-fast) var(--apple-ease),
+      box-shadow var(--apple-normal) var(--apple-ease),
+      background-color var(--apple-normal) var(--apple-ease),
+      border-color var(--apple-normal) var(--apple-ease),
+      color var(--apple-normal) var(--apple-ease),
+      opacity var(--apple-fast) var(--apple-ease);
   }
 
-  button:active:not(:disabled), [role="button"]:active:not(:disabled) {
-    transform: scale(0.98);
+  button,
+  a,
+  [role="button"] {
+    will-change: transform, box-shadow, background-color;
   }
 
-  /* ── Input focus glow (Apple-style) ── */
-  input:focus, textarea:focus, select:focus {
+  button:hover:not(:disabled),
+  a:hover,
+  [role="button"]:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+
+  button:active:not(:disabled),
+  [role="button"]:active:not(:disabled) {
+    transform: translateY(0) scale(0.985);
+  }
+
+  button:focus-visible,
+  a:focus-visible,
+  [role="button"]:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.15),
-                0 0 16px hsl(var(--primary) / 0.06);
-    transition: box-shadow 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow:
+      0 0 0 2px rgba(255, 255, 255, 0.08),
+      0 0 0 1px rgba(255, 255, 255, 0.14),
+      0 12px 28px rgba(0, 0, 0, 0.16);
   }
 
-  /* ── Apple Spotlight — cursor light ── */
-  .spotlight-layer {
-    pointer-events: none;
-    position: fixed;
+  input,
+  textarea,
+  select {
+    border-color: rgba(255, 255, 255, 0.06);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  }
+
+  input:hover,
+  textarea:hover,
+  select:hover {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  input:focus,
+  textarea:focus,
+  select:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.035);
+    box-shadow:
+      0 0 0 2px rgba(255, 255, 255, 0.06),
+      0 14px 32px rgba(0, 0, 0, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  .apple-focusable,
+  .card,
+  [data-slot="card"] {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .apple-focusable::before,
+  .card::before,
+  [data-slot="card"]::before {
+    content: "";
+    position: absolute;
     inset: 0;
-    z-index: 1;
-    background: radial-gradient(
-      500px circle at var(--mouse-x) var(--mouse-y),
-      rgba(255, 255, 255, 0.04),
-      transparent 55%
+    pointer-events: none;
+    border-radius: inherit;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.045) 0%,
+      rgba(255, 255, 255, 0.016) 22%,
+      rgba(255, 255, 255, 0.008) 46%,
+      rgba(255, 255, 255, 0) 100%
     );
-    transition: opacity 0.4s ease;
-    opacity: 0;
+    opacity: 0.85;
   }
 
-  .spotlight-layer.active {
-    opacity: 1;
+  .apple-focusable:hover,
+  .card:hover,
+  [data-slot="card"]:hover {
+    border-color: rgba(255, 255, 255, 0.11);
+    box-shadow: var(--apple-shadow-sm), var(--apple-highlight);
+    transform: translateY(-1px);
+  }
+
+  .apple-focusable:focus-within,
+  .card:focus-within,
+  [data-slot="card"]:focus-within {
+    border-color: rgba(255, 255, 255, 0.14);
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.08),
+      var(--apple-shadow-md),
+      var(--apple-highlight);
   }
 }
 
-/* ── macOS-style subtle scrollbar ── */
-
-/* Reserve scrollbar gutter on html to prevent layout shift */
-html {
-  overflow-y: scroll;
-  scrollbar-gutter: stable;
-}
-
-/* Webkit scrollbar — always present but thumb is transparent by default */
+/* macOS-style subtle scrollbar */
 .mac-scroll::-webkit-scrollbar,
 html::-webkit-scrollbar {
   width: 4px;
@@ -158,13 +238,11 @@ html::-webkit-scrollbar-thumb {
   transition: background 0.3s ease;
 }
 
-/* Reveal on hover / scroll — sidebar & inner containers */
 .mac-scroll:hover::-webkit-scrollbar-thumb,
 .mac-scroll.is-scrolling::-webkit-scrollbar-thumb {
   background: rgba(140, 140, 140, 0.22);
 }
 
-/* Reveal on scroll — page-level (html) */
 html.is-scrolling::-webkit-scrollbar-thumb {
   background: rgba(140, 140, 140, 0.22);
 }
@@ -174,7 +252,6 @@ html::-webkit-scrollbar-thumb:hover {
   background: rgba(180, 180, 180, 0.32);
 }
 
-/* Firefox — hide by default, show thin on interaction */
 html,
 .mac-scroll {
   scrollbar-width: none;
@@ -188,7 +265,6 @@ html.is-scrolling,
 }
 
 @layer components {
-  /* Subtle grid pattern matching Landing / Login pages */
   .bg-grid-pattern {
     background-image:
       linear-gradient(rgba(250, 199, 117, 0.03) 1px, transparent 1px),
@@ -196,24 +272,24 @@ html.is-scrolling,
     background-size: 38px 38px;
   }
 
-  /* Elevated card surface — Apple glass style */
   .card-elevated {
     background: linear-gradient(180deg, hsl(240 5% 12% / 0.8) 0%, hsl(240 4% 10% / 0.6) 100%);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
   }
 
-  /* Apple-style glass card */
   .glass-card {
     background: rgba(255, 255, 255, 0.02);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18),
-                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
   }
 }
