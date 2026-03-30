@@ -18,7 +18,8 @@ type PreviewRowStatus =
   | "válida"
   | "não localizado"
   | "sem valor"
-  | "removida por pagamento";
+  | "removida por pagamento"
+  | "duplicado ignorado";
 
 type PreviewRow = {
   line: number;
@@ -42,6 +43,7 @@ type ProcessSummary = {
   emptyPaymentCount: number;
   filledPaymentCount: number;
   removedByPaymentCount: number;
+  duplicateIgnoredCount: number;
   finalValidCount: number;
   errorCount: number;
   previewRows: PreviewRow[];
@@ -268,6 +270,33 @@ const formatCurrencyInput = (value: string) => {
     currency: "BRL",
   }).format(number);
 };
+type CandidateRow = {
+  line: number;
+  invoiceNumber: string;
+  grossValue: number;
+  paymentDate: string;
+};
+
+const getCandidateScore = (candidate: CandidateRow) => {
+  const hasValue = candidate.grossValue > 0 ? 1_000_000 : 0;
+  const valueScore = Math.round(candidate.grossValue * 100);
+  const hasDate = candidate.paymentDate ? 100 : 0;
+
+  return hasValue + valueScore + hasDate;
+};
+
+const pickBestCandidate = (current: CandidateRow | undefined, incoming: CandidateRow) => {
+  if (!current) return incoming;
+
+  const currentScore = getCandidateScore(current);
+  const incomingScore = getCandidateScore(incoming);
+
+  if (incomingScore > currentScore) return incoming;
+  if (incomingScore < currentScore) return current;
+
+  return incoming.line < current.line ? incoming : current;
+};
+
 
 const getStatusBadgeClass = (status: PreviewRowStatus) => {
   switch (status) {
@@ -279,6 +308,8 @@ const getStatusBadgeClass = (status: PreviewRowStatus) => {
       return "bg-slate-500/10 text-slate-300 border border-slate-500/20";
     case "removida por pagamento":
       return "bg-zinc-500/10 text-zinc-300 border border-zinc-500/20";
+    case "duplicado ignorado":
+      return "bg-sky-500/10 text-sky-300 border border-sky-500/20";
     default:
       return "bg-muted text-muted-foreground border border-border";
   }
@@ -449,11 +480,14 @@ const Minerva = () => {
       const markerColumn = 11;
       const markerHeader = "Data Antecipação";
       const markerDate = formatDateBR(selectedDate);
+      const bestCandidates = new Map<string, CandidateRow>();
+      const duplicatePreviewRows: PreviewRow[] = [];
 
       let totalProcessed = 0;
       let emptyPaymentCount = 0;
       let filledPaymentCount = 0;
       let removedByPaymentCount = 0;
+      let duplicateIgnoredCount = 0;
       let finalValidCount = 0;
       let errorCount = 0;
 
@@ -466,35 +500,90 @@ const Minerva = () => {
         if (!numero || !docsSet.has(numero)) continue;
 
         matchedDocs.add(numero);
-        setCellValue(planilhaZeroSheet, markerColumn, r, markerDate);
 
         const valorReceber = toNumber(getCellValue(planilhaZeroSheet, valorReceberCol, r));
         const dataEmissaoBr = safeFormatDateBR(getCellValue(planilhaZeroSheet, dataEmissaoCol, r));
+        const candidate: CandidateRow = {
+          line: r + 1,
+          invoiceNumber: numero,
+          grossValue: valorReceber,
+          paymentDate: dataEmissaoBr,
+        };
 
-        const hasValue = valorReceber > 0;
-        const previewStatus: PreviewRowStatus = hasValue ? "válida" : "sem valor";
+        const previousBest = bestCandidates.get(numero);
+        const nextBest = pickBestCandidate(previousBest, candidate);
 
-        if (hasValue) {
-          filledPaymentCount += 1;
-          finalValidCount += 1;
-          totalProcessed += valorReceber;
-        } else {
-          emptyPaymentCount += 1;
-          removedByPaymentCount += 1;
-        }
-
-        importRows.push([1, 26, numero, "CTRC", valorReceber, dataEmissaoBr]);
-
-        if (previewRows.length < 20) {
-          previewRows.push({
-            line: r + 1,
+        if (previousBest && nextBest.line !== previousBest.line) {
+          duplicateIgnoredCount += 1;
+          duplicatePreviewRows.push({
+            line: previousBest.line,
             dueDate: markerDate,
-            paymentDate: dataEmissaoBr,
+            paymentDate: previousBest.paymentDate,
             invoiceNumber: numero,
-            grossValue: valorReceber,
-            status: previewStatus,
+            grossValue: previousBest.grossValue,
+            status: "duplicado ignorado",
           });
         }
+
+        if (previousBest && nextBest.line !== candidate.line) {
+          duplicateIgnoredCount += 1;
+          duplicatePreviewRows.push({
+            line: candidate.line,
+            dueDate: markerDate,
+            paymentDate: candidate.paymentDate,
+            invoiceNumber: numero,
+            grossValue: candidate.grossValue,
+            status: "duplicado ignorado",
+          });
+        }
+
+        bestCandidates.set(numero, nextBest);
+      }
+
+      Array.from(bestCandidates.values())
+        .sort((a, b) => a.line - b.line)
+        .forEach((candidate) => {
+          const sourceRowIndex = candidate.line - 1;
+          setCellValue(planilhaZeroSheet, markerColumn, sourceRowIndex, markerDate);
+
+          const hasValue = candidate.grossValue > 0;
+          const previewStatus: PreviewRowStatus = hasValue ? "válida" : "sem valor";
+
+          if (hasValue) {
+            filledPaymentCount += 1;
+            finalValidCount += 1;
+            totalProcessed += candidate.grossValue;
+          } else {
+            emptyPaymentCount += 1;
+            removedByPaymentCount += 1;
+          }
+
+          importRows.push([
+            1,
+            26,
+            candidate.invoiceNumber,
+            "CTRC",
+            candidate.grossValue,
+            candidate.paymentDate,
+          ]);
+
+          if (previewRows.length < 20) {
+            previewRows.push({
+              line: candidate.line,
+              dueDate: markerDate,
+              paymentDate: candidate.paymentDate,
+              invoiceNumber: candidate.invoiceNumber,
+              grossValue: candidate.grossValue,
+              status: previewStatus,
+            });
+          }
+        });
+
+      if (previewRows.length < 20 && duplicatePreviewRows.length > 0) {
+        duplicatePreviewRows
+          .sort((a, b) => a.line - b.line)
+          .slice(0, 20 - previewRows.length)
+          .forEach((row) => previewRows.push(row));
       }
 
       const missingDocs = Array.from(docsSet)
@@ -539,6 +628,7 @@ const Minerva = () => {
         emptyPaymentCount,
         filledPaymentCount,
         removedByPaymentCount,
+        duplicateIgnoredCount,
         finalValidCount,
         errorCount,
         previewRows,
@@ -776,6 +866,11 @@ const Minerva = () => {
             <div className={metricCardClass}>
               <p className={metricTitleClass}>Removidas por pagamento</p>
               <p className={metricValueClass}>{summary.removedByPaymentCount}</p>
+            </div>
+
+            <div className={metricCardClass}>
+              <p className={metricTitleClass}>Duplicados ignorados</p>
+              <p className={metricValueClass}>{summary.duplicateIgnoredCount}</p>
             </div>
 
             <div className={metricCardClass}>
