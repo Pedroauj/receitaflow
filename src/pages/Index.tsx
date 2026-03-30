@@ -206,7 +206,10 @@ const Index = () => {
             <motion.div
               key={card.label}
               {...fadeUp(0.06 + i * 0.05)}
-              className="group rounded-2xl border border-border bg-card p-5 transition-all duration-200 hover:shadow-lg hover:shadow-black/10 cursor-default"
+              className="group rounded-2xl border border-white/[0.05] bg-card p-5 cursor-default transition-all duration-250 ease-out hover:scale-[1.01]"
+              style={{ boxShadow: `0 0 0px transparent` }}
+              onMouseEnter={(e) => { e.currentTarget.style.boxShadow = `0 0 24px ${card.color}22, 0 0 6px ${card.color}11`; e.currentTarget.style.borderColor = `${card.color}20`; }}
+              onMouseLeave={(e) => { e.currentTarget.style.boxShadow = `0 0 0px transparent`; e.currentTarget.style.borderColor = ``; }}
             >
               <div className="flex items-center justify-between mb-4">
                 <div
