@@ -106,7 +106,7 @@ const DashboardTopbar = ({ onMenuToggle }: DashboardTopbarProps) => {
                       <img
                         src={company.logo_url}
                         alt={company.name}
-                        className="h-7 max-w-[140px] object-contain object-left"
+                        className="h-5 max-w-[120px] object-contain object-left opacity-90"
                       />
                     ) : (
                       <span
