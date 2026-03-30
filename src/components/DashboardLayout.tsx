@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import DashboardSidebar from "@/components/DashboardSidebar";
+import DashboardTopbar from "@/components/DashboardTopbar";
 import DashboardTopbar from "@/components/DashboardTopbar";
 import { usePresentationMode } from "@/contexts/PresentationModeContext";
 
