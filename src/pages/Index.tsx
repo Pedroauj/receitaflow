@@ -206,10 +206,7 @@ const Index = () => {
             <motion.div
               key={card.label}
               {...fadeUp(0.06 + i * 0.05)}
-              className="group rounded-2xl border border-white/[0.05] bg-card p-5 cursor-default transition-all duration-250 ease-out hover:scale-[1.01]"
-              style={{ boxShadow: `0 0 0px transparent` }}
-              onMouseEnter={(e) => { e.currentTarget.style.boxShadow = `0 0 24px ${card.color}22, 0 0 6px ${card.color}11`; e.currentTarget.style.borderColor = `${card.color}20`; }}
-              onMouseLeave={(e) => { e.currentTarget.style.boxShadow = `0 0 0px transparent`; e.currentTarget.style.borderColor = ``; }}
+              className="group rounded-2xl border border-white/[0.06] p-5 cursor-default transition-all duration-250 ease-out glass-card hover:scale-[1.01] hover:border-white/[0.09]"
             >
               <div className="flex items-center justify-between mb-4">
                 <div
@@ -251,10 +248,8 @@ const Index = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.28 + i * 0.04, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                className="group/link text-left rounded-2xl border border-white/[0.05] bg-card p-5 active:scale-[0.98]"
-                style={{ transition: "all 0.22s ease, box-shadow 0.25s ease, transform 0.2s ease" }}
-                onMouseEnter={(e) => { e.currentTarget.style.boxShadow = `0 0 28px ${mod.color}1A`; e.currentTarget.style.borderColor = `${mod.color}25`; e.currentTarget.style.transform = "translateY(-2px)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.boxShadow = ""; e.currentTarget.style.borderColor = ""; e.currentTarget.style.transform = ""; }}
+                className="group/link text-left rounded-2xl border border-white/[0.06] p-5 active:scale-[0.98] glass-card hover:border-white/[0.09] hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(0,0,0,0.2)]"
+                style={{ transition: "all 0.22s cubic-bezier(0.25,0.46,0.45,0.94)" }}
               >
                 <div className="flex items-start justify-between mb-3">
                   <div
@@ -282,7 +277,7 @@ const Index = () => {
         {/* ── Seus módulos ── */}
         <motion.div
           {...fadeUp(0.35)}
-          className="rounded-2xl border border-white/[0.05] bg-card overflow-hidden transition-all duration-250"
+          className="rounded-2xl border border-white/[0.06] overflow-hidden transition-all duration-250 glass-card"
         >
           <div className="px-6 py-5 flex items-center justify-between border-b border-border">
             <div className="flex items-center gap-3">
@@ -346,7 +341,7 @@ const Index = () => {
         {/* ── Activity Feed ── */}
         <motion.div
           {...fadeUp(0.4)}
-          className="rounded-2xl border border-white/[0.05] bg-card flex flex-col overflow-hidden transition-all duration-250"
+          className="rounded-2xl border border-white/[0.06] flex flex-col overflow-hidden transition-all duration-250 glass-card"
         >
           <div className="px-6 py-5 border-b border-border">
             <div className="flex items-center gap-3">
