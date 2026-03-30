@@ -184,6 +184,20 @@ const DashboardLayout = () => {
               var(--apple-highlight);
           }
 
+          /* BLOQUEIO TOTAL DO HOVER DA SIDEBAR */
+          .apple-dashboard-shell .sidebar-shell,
+          .apple-dashboard-shell .sidebar-shell:hover,
+          .apple-dashboard-shell .sidebar-shell:focus-within,
+          .apple-dashboard-shell .sidebar-shell:active {
+            transform: none !important;
+          }
+
+          .apple-dashboard-shell .sidebar-shell::before,
+          .apple-dashboard-shell .sidebar-shell:hover::before,
+          .apple-dashboard-shell .sidebar-shell:focus-within::before {
+            opacity: 1;
+          }
+
           .apple-dashboard-shell aside a[aria-current="page"],
           .apple-dashboard-shell aside button[aria-current="page"],
           .apple-dashboard-shell aside .active,

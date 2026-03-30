@@ -244,7 +244,7 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
     <>
       <aside className="fixed left-4 top-[68px] bottom-4 z-50 hidden w-[240px] md:flex">
         <div
-          className="w-full rounded-[24px] border border-white/[0.07] shadow-[0_24px_60px_rgba(0,0,0,0.26),inset_0_1px_0_rgba(255,255,255,0.05)]"
+          className="sidebar-shell w-full rounded-[24px] border border-white/[0.07] shadow-[0_24px_60px_rgba(0,0,0,0.26),inset_0_1px_0_rgba(255,255,255,0.05)]"
           style={{
             background:
               "linear-gradient(180deg, rgba(19,20,24,0.62) 0%, rgba(15,16,20,0.48) 100%)",
@@ -264,7 +264,7 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
           />
           <aside className="absolute left-4 top-4 bottom-4 w-[280px]">
             <div
-              className="h-full rounded-[24px] border border-white/[0.08] shadow-[0_24px_60px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.05)] animate-in slide-in-from-left duration-200 fade-in-0"
+              className="sidebar-shell h-full rounded-[24px] border border-white/[0.08] shadow-[0_24px_60px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.05)] animate-in slide-in-from-left duration-200 fade-in-0"
               style={{
                 background:
                   "linear-gradient(180deg, rgba(19,20,24,0.78) 0%, rgba(15,16,20,0.62) 100%)",
