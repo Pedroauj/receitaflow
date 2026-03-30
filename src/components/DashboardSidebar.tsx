@@ -127,7 +127,7 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
       <div className="mb-2 flex items-center justify-end md:hidden">
         <button
           onClick={onClose}
-          className="flex h-8 w-8 items-center justify-center rounded-xl border border-transparent text-muted-foreground transition-all duration-200 hover:-translate-y-[1px] hover:border-white/8 hover:bg-white/[0.045] hover:text-foreground active:translate-y-0 active:scale-[0.98]"
+          className="flex h-8 w-8 items-center justify-center rounded-xl border border-transparent text-muted-foreground transition-all duration-200 hover:translate-y-0 hover:border-white/8 hover:bg-white/[0.045] hover:text-foreground active:translate-y-0 active:scale-[0.98]"
         >
           <X className="h-4 w-4" />
         </button>
@@ -160,9 +160,10 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
                       onClick={() => handleNavigate(item.path)}
                       className={[
                         "group relative flex w-full items-center gap-3 overflow-hidden rounded-2xl border px-4 py-3 text-[13px] font-medium transition-all duration-200",
+                        "hover:translate-y-0 active:translate-y-0 active:scale-[0.995]",
                         active
                           ? "border-white/[0.11] bg-white/[0.07] text-white shadow-[0_10px_30px_rgba(0,0,0,0.20),inset_0_1px_0_rgba(255,255,255,0.06)]"
-                          : "border-transparent bg-transparent text-white/58 hover:-translate-y-[1px] hover:border-white/[0.05] hover:bg-white/[0.04] hover:text-white/90",
+                          : "border-transparent bg-transparent text-white/58 hover:border-white/[0.05] hover:bg-white/[0.04] hover:text-white/90",
                       ].join(" ")}
                     >
                       <span
@@ -229,7 +230,7 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
           <button
             type="button"
             onClick={handleLogout}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-transparent text-white/55 transition-all duration-200 hover:-translate-y-[1px] hover:border-white/8 hover:bg-white/[0.05] hover:text-white active:translate-y-0 active:scale-[0.98]"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-transparent text-white/55 transition-all duration-200 hover:translate-y-0 hover:border-white/8 hover:bg-white/[0.05] hover:text-white active:translate-y-0 active:scale-[0.98]"
             title="Sair"
           >
             <LogOut className="h-3.5 w-3.5" />
