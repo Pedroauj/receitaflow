@@ -71,6 +71,8 @@ const DashboardLayout = () => {
               <Outlet />
             </motion.div>
           </AnimatePresence>
+        </div>
+      </main>
     </div>
   );
 };
