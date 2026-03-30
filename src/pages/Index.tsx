@@ -282,7 +282,7 @@ const Index = () => {
         {/* ── Seus módulos ── */}
         <motion.div
           {...fadeUp(0.35)}
-          className="rounded-2xl border border-border bg-card overflow-hidden"
+          className="rounded-2xl border border-white/[0.05] bg-card overflow-hidden transition-all duration-250"
         >
           <div className="px-6 py-5 flex items-center justify-between border-b border-border">
             <div className="flex items-center gap-3">
