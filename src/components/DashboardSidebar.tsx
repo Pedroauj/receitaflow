@@ -154,9 +154,9 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
                       type="button"
                       onClick={() => handleNavigate(item.path)}
                       className={[
-                        "w-full flex items-center gap-3 rounded-xl px-4 py-3 text-[13px] font-medium border transition-colors duration-150",
+                        "w-full flex items-center gap-3 rounded-xl px-4 py-3 text-[13px] font-medium border transition-all duration-200",
                         active
-                          ? "border-white/10 bg-white/[0.08] text-white"
+                          ? "border-primary/15 bg-white/[0.08] text-white shadow-[0_0_12px_rgba(239,159,39,0.12)]"
                           : "border-transparent text-white/65 hover:bg-white/[0.045] hover:text-white hover:border-white/5",
                       ].join(" ")}
                     >
