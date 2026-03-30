@@ -7,6 +7,7 @@ import { usePresentationMode } from "@/contexts/PresentationModeContext";
 
 const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { isPresentationMode } = usePresentationMode();
@@ -24,6 +25,18 @@ const DashboardLayout = () => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [location.pathname, navigate, isPresentationMode]);
+
+
+  useEffect(() => {
+    if (isPresentationMode) return;
+
+    setIsTransitioning(true);
+    const timeout = window.setTimeout(() => {
+      setIsTransitioning(false);
+    }, 220);
+
+    return () => window.clearTimeout(timeout);
+  }, [location.pathname, isPresentationMode]);
 
   return (
     <div className="apple-dashboard-shell relative min-h-screen bg-background">
