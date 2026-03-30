@@ -45,7 +45,7 @@ const DashboardTopbar = ({ onMenuToggle }: DashboardTopbarProps) => {
     <div className="sticky top-0 z-40 pt-3 pb-0">
       <div className="px-4">
         <div
-          className="group h-12 rounded-[20px] border border-white/[0.07] px-3 md:px-5 shadow-[0_18px_45px_rgba(0,0,0,0.22),inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-300"
+          className="h-12 rounded-[20px] border border-white/[0.07] px-3 md:px-5 shadow-[0_18px_45px_rgba(0,0,0,0.22),inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-300"
           style={{
             background:
               "linear-gradient(180deg, rgba(34,34,37,0.64) 0%, rgba(24,24,27,0.46) 100%)",
@@ -57,7 +57,7 @@ const DashboardTopbar = ({ onMenuToggle }: DashboardTopbarProps) => {
             <div className="flex min-w-0 items-center">
               <button
                 onClick={onMenuToggle}
-                className="mr-2 flex h-8 w-8 items-center justify-center rounded-xl border border-transparent text-muted-foreground transition-all duration-200 hover:-translate-y-[1px] hover:border-white/8 hover:bg-white/[0.045] hover:text-foreground active:translate-y-0 active:scale-[0.98] md:hidden"
+                className="mr-2 flex h-8 w-8 items-center justify-center rounded-xl border border-transparent text-muted-foreground transition-all duration-200 hover:translate-y-0 hover:border-white/8 hover:bg-white/[0.045] hover:text-foreground active:translate-y-0 active:scale-[0.98] md:hidden"
               >
                 <Menu className="h-4.5 w-4.5" />
               </button>
@@ -97,27 +97,24 @@ const DashboardTopbar = ({ onMenuToggle }: DashboardTopbarProps) => {
                     className="mx-3 h-5 w-px md:mx-4"
                     style={{
                       background:
-                        "linear-gradient(to bottom, rgba(255,255,255,0.02), rgba(255,255,255,0.12), rgba(255,255,255,0.02))",
+                        "linear-gradient(to bottom, rgba(255,255,255,0.02), rgba(255,255,255,0.10), rgba(255,255,255,0.02))",
                     }}
                   />
-                  <div className="flex min-w-0 items-center gap-2.5">
+
+                  <div className="flex min-w-0 items-center">
                     {company.logo_url ? (
-                      <div className="flex h-7 items-center rounded-lg border border-white/[0.06] bg-white/[0.025] px-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-                        <img
-                          src={company.logo_url}
-                          alt={company.name}
-                          className="h-4.5 max-w-[100px] object-contain"
-                        />
-                      </div>
+                      <img
+                        src={company.logo_url}
+                        alt={company.name}
+                        className="h-7 max-w-[140px] object-contain object-left"
+                      />
                     ) : (
-                      <div className="rounded-lg border border-white/[0.06] bg-white/[0.025] px-2.5 py-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-                        <span
-                          className="block max-w-[140px] truncate text-[12px] font-medium tracking-[-0.01em]"
-                          style={{ color: "#A4A39D" }}
-                        >
-                          {company.name}
-                        </span>
-                      </div>
+                      <span
+                        className="block max-w-[160px] truncate text-[12px] font-medium tracking-[-0.01em]"
+                        style={{ color: "#A4A39D" }}
+                      >
+                        {company.name}
+                      </span>
                     )}
                   </div>
                 </>
