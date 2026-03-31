@@ -11,6 +11,8 @@ import {
   type PlatlogProcessingResult,
 } from "@/lib/processors/platlog";
 import { addRecord } from "@/lib/history";
+import { SummaryCard, SectionContainer, DataTable } from "@/components/dashboard";
+import type { DataTableColumn } from "@/components/dashboard";
 
 const Platlog = () => {
   const navigate = useNavigate();

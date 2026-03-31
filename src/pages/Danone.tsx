@@ -11,6 +11,8 @@ import {
   type DanoneProcessingResult,
 } from "@/lib/processors/danone";
 import { addRecord } from "@/lib/history";
+import { SummaryCard, SectionContainer, DataTable } from "@/components/dashboard";
+import type { DataTableColumn } from "@/components/dashboard";
 
 const Danone = () => {
   const navigate = useNavigate();

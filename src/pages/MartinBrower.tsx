@@ -13,6 +13,8 @@ import { toast } from "@/hooks/use-toast";
 import { processarMartinBrower, gerarPlanilhaFinal } from "@/lib/processors/martin-brower";
 import type { ProcessingResult } from "@/lib/processors/types";
 import { addRecord } from "@/lib/history";
+import { SummaryCard, HighlightCard, SectionContainer, DataTable, StatusCard } from "@/components/dashboard";
+import type { DataTableColumn } from "@/components/dashboard";
 
 const MartinBrower = () => {
   const navigate = useNavigate();

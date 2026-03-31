@@ -8,6 +8,8 @@ import { processarNatura, gerarPlanilhaNatura } from "@/lib/processors/natura";
 import type { NaturaProcessingResult } from "@/lib/processors/natura";
 import { addRecord } from "@/lib/history";
 import { Badge } from "@/components/ui/badge";
+import { SummaryCard, SectionContainer, DataTable, StatusCard } from "@/components/dashboard";
+import type { DataTableColumn } from "@/components/dashboard";
 
 const Natura = () => {
   const navigate = useNavigate();
