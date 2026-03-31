@@ -49,7 +49,7 @@ const MODULE_REGISTRY: ModuleDef[] = [
     description: "Visão geral e métricas do sistema",
     icon: LayoutDashboard,
     path: "/dashboard",
-    color: "#C6A35B",
+    color: "#D4AF37",
   },
   {
     key: "historico",
@@ -57,7 +57,7 @@ const MODULE_REGISTRY: ModuleDef[] = [
     description: "Registros de processamentos realizados",
     icon: History,
     path: "/historico",
-    color: "#6C8DB8",
+    color: "#7AA2D6",
   },
   {
     key: "conciliacao",
@@ -65,7 +65,7 @@ const MODULE_REGISTRY: ModuleDef[] = [
     description: "Conciliação fiscal de notas",
     icon: FileSearch,
     path: "/conciliacao",
-    color: "#4E9A6E",
+    color: "#58B172",
   },
   {
     key: "abastecimento",
@@ -73,7 +73,7 @@ const MODULE_REGISTRY: ModuleDef[] = [
     description: "Registro e controle de abastecimentos",
     icon: Fuel,
     path: "/abastecimento",
-    color: "#C48B3A",
+    color: "#D39A47",
   },
   {
     key: "medias-abastecimento",
@@ -81,7 +81,7 @@ const MODULE_REGISTRY: ModuleDef[] = [
     description: "Dashboard executivo de consumo e eficiência",
     icon: BarChart3,
     path: "/medias-abastecimento",
-    color: "#8E78BF",
+    color: "#A084DC",
   },
   {
     key: "clientes",
@@ -89,7 +89,7 @@ const MODULE_REGISTRY: ModuleDef[] = [
     description: "Gestão e processamento por cliente",
     icon: Building2,
     path: "/clientes",
-    color: "#48A690",
+    color: "#46B7A0",
   },
   {
     key: "configuracoes",
@@ -97,7 +97,7 @@ const MODULE_REGISTRY: ModuleDef[] = [
     description: "Preferências e ajustes do sistema",
     icon: Settings,
     path: "/configuracoes",
-    color: "#C56B6B",
+    color: "#D46A6A",
   },
 ];
 
@@ -130,15 +130,15 @@ const fadeUp = (delay = 0) => ({
   },
 });
 
-/* ── Helpers ─────────────────────────────────────── */
-const PAGE_BG = "#F6F4EE";
-const CARD_BG = "#FFFFFF";
-const CARD_BG_SOFT = "#FBFAF7";
-const BORDER = "rgba(24, 24, 27, 0.08)";
-const BORDER_STRONG = "rgba(24, 24, 27, 0.12)";
-const TEXT = "#171717";
-const TEXT_SOFT = "#6B6B74";
-const GOLD = "#C6A35B";
+/* ── Theme helpers ───────────────────────────────── */
+const GOLD = "#D4AF37";
+const TEXT = "#F5F5F0";
+const TEXT_SOFT = "#A6A6B0";
+const BORDER = "rgba(255,255,255,0.08)";
+const BORDER_STRONG = "rgba(255,255,255,0.12)";
+const CARD_BG = "linear-gradient(180deg, rgba(24,24,27,0.92) 0%, rgba(18,18,21,0.96) 100%)";
+const CARD_BG_SOFT = "rgba(255,255,255,0.025)";
+const PANEL_BG = "linear-gradient(180deg, rgba(20,20,23,0.88) 0%, rgba(14,14,16,0.94) 100%)";
 
 /* ── Component ───────────────────────────────────── */
 const Index = () => {
@@ -146,8 +146,8 @@ const Index = () => {
   const { user } = useAuth();
   const { canView, isMaster, loading: permLoading } = useModulePermissions();
 
+  /* ── Fetch display name from profile ── */
   const [profileName, setProfileName] = useState<string | null>(null);
-
   useEffect(() => {
     if (!user) return;
     supabase
@@ -180,6 +180,7 @@ const Index = () => {
     year: "numeric",
   });
 
+  /* ── Permission-filtered modules ─── */
   const accessibleModules = useMemo(() => {
     if (permLoading) return [];
     return MODULE_REGISTRY.filter((mod) => {
@@ -188,10 +189,12 @@ const Index = () => {
     });
   }, [permLoading, canView, isMaster]);
 
+  /* ── Stats from history ─── */
   const stats = getStats();
   const records = getRecords();
   const recentRecords = records.slice(0, 5);
 
+  /* ── Summary cards ─── */
   const summaryCards = useMemo(() => {
     const cards: {
       icon: LucideIcon;
@@ -213,21 +216,21 @@ const Index = () => {
         icon: FileSpreadsheet,
         label: "Planilhas processadas",
         value: stats.totalPlanilhas,
-        color: "#6C8DB8",
+        color: "#7AA2D6",
         moduleKey: "historico",
       });
       cards.push({
         icon: Hash,
         label: "Documentos gerados",
         value: stats.totalDocumentos,
-        color: "#4E9A6E",
+        color: "#58B172",
         moduleKey: "historico",
       });
       cards.push({
         icon: DollarSign,
         label: "Valor total processado",
         value: formatCurrency(stats.valorTotalProcessado),
-        color: "#C48B3A",
+        color: "#D39A47",
         moduleKey: "historico",
       });
     }
@@ -235,15 +238,16 @@ const Index = () => {
     return cards;
   }, [accessibleModules, stats, canView, isMaster]);
 
+  /* ── Loading state ─── */
   if (permLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div
           className="flex items-center gap-3 rounded-2xl border px-4 py-3"
           style={{
-            background: CARD_BG,
+            background: PANEL_BG,
             borderColor: BORDER,
-            boxShadow: "0 12px 30px rgba(15, 23, 42, 0.06)",
+            boxShadow: "0 18px 40px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.04)",
           }}
         >
           <Loader2 className="h-5 w-5 animate-spin" style={{ color: GOLD }} />
@@ -259,44 +263,46 @@ const Index = () => {
     <div className="space-y-8">
       <style>
         {`
-          .hybrid-page-shell {
+          .rf-dark-shell {
             position: relative;
-            border-radius: 32px;
-            background: linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(250,248,242,0.98) 100%);
-            border: 1px solid rgba(24,24,27,0.06);
-            box-shadow:
-              0 24px 60px rgba(15, 23, 42, 0.08),
-              inset 0 1px 0 rgba(255,255,255,0.55);
             overflow: hidden;
+            border-radius: 30px;
+            border: 1px solid rgba(255,255,255,0.06);
+            background: linear-gradient(180deg, rgba(16,16,18,0.72) 0%, rgba(12,12,14,0.52) 100%);
+            box-shadow:
+              0 24px 60px rgba(0,0,0,0.28),
+              inset 0 1px 0 rgba(255,255,255,0.04);
+            backdrop-filter: blur(14px) saturate(1.1);
+            -webkit-backdrop-filter: blur(14px) saturate(1.1);
           }
 
-          .hybrid-page-shell::before {
+          .rf-dark-shell::before {
             content: "";
             position: absolute;
             inset: 0;
             pointer-events: none;
             background:
-              radial-gradient(circle at top right, rgba(198,163,91,0.08), transparent 26%),
-              radial-gradient(circle at top left, rgba(255,255,255,0.58), transparent 24%);
+              radial-gradient(circle at top right, rgba(212,175,55,0.08), transparent 24%),
+              linear-gradient(180deg, rgba(255,255,255,0.025), transparent 28%);
           }
 
-          .hybrid-card {
+          .rf-card {
             position: relative;
             overflow: hidden;
             border-radius: 22px;
-            background: #FFFFFF;
-            border: 1px solid rgba(24,24,27,0.07);
+            border: 1px solid rgba(255,255,255,0.07);
+            background: linear-gradient(180deg, rgba(24,24,27,0.92) 0%, rgba(18,18,21,0.96) 100%);
             box-shadow:
-              0 10px 24px rgba(15, 23, 42, 0.05),
-              inset 0 1px 0 rgba(255,255,255,0.7);
+              0 12px 28px rgba(0,0,0,0.24),
+              inset 0 1px 0 rgba(255,255,255,0.04);
             transition:
               transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1),
               border-color 220ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1),
               background-color 220ms cubic-bezier(0.16, 1, 0.3, 1);
           }
 
-          .hybrid-card::before {
+          .rf-card::before {
             content: "";
             position: absolute;
             inset: 0;
@@ -304,29 +310,29 @@ const Index = () => {
             border-radius: inherit;
             background: linear-gradient(
               180deg,
-              rgba(255,255,255,0.55) 0%,
-              rgba(255,255,255,0.12) 28%,
+              rgba(255,255,255,0.05) 0%,
+              rgba(255,255,255,0.018) 24%,
               rgba(255,255,255,0) 100%
             );
           }
 
-          .hybrid-card:hover {
+          .rf-card:hover {
             transform: translateY(-2px);
-            border-color: rgba(24,24,27,0.10);
+            border-color: rgba(255,255,255,0.1);
             box-shadow:
-              0 18px 34px rgba(15, 23, 42, 0.08),
-              inset 0 1px 0 rgba(255,255,255,0.78);
+              0 18px 38px rgba(0,0,0,0.3),
+              inset 0 1px 0 rgba(255,255,255,0.05);
           }
 
-          .hybrid-soft {
-            background: #FBFAF7;
-            border: 1px solid rgba(24,24,27,0.06);
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+          .rf-soft {
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(255,255,255,0.06);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
           }
         `}
       </style>
 
-      <div className="hybrid-page-shell px-5 py-5 md:px-6 md:py-6 lg:px-7 lg:py-7" style={{ backgroundColor: PAGE_BG }}>
+      <div className="rf-dark-shell px-5 py-5 md:px-6 md:py-6 lg:px-7 lg:py-7">
         {/* ════════ Header ════════ */}
         <motion.div {...fadeUp(0)}>
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
@@ -335,9 +341,9 @@ const Index = () => {
                 <div
                   className="flex h-11 w-11 items-center justify-center rounded-2xl border"
                   style={{
-                    background: "linear-gradient(180deg, rgba(198,163,91,0.14) 0%, rgba(198,163,91,0.07) 100%)",
-                    borderColor: "rgba(198,163,91,0.16)",
-                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.6)",
+                    background: "linear-gradient(180deg, rgba(212,175,55,0.18) 0%, rgba(212,175,55,0.08) 100%)",
+                    borderColor: "rgba(212,175,55,0.14)",
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)",
                   }}
                 >
                   <GreetingIcon className="h-5 w-5" style={{ color: GOLD }} />
@@ -365,7 +371,7 @@ const Index = () => {
             </div>
 
             <div
-              className="hybrid-soft inline-flex h-10 items-center rounded-full px-4 text-[12px] font-medium"
+              className="rf-soft inline-flex h-10 items-center rounded-full px-4 text-[12px] font-medium"
               style={{ color: GOLD }}
             >
               Painel executivo
@@ -380,14 +386,14 @@ const Index = () => {
               <motion.div
                 key={card.label}
                 {...fadeUp(0.06 + i * 0.05)}
-                className="hybrid-card group cursor-default p-5"
+                className="rf-card group cursor-default p-5"
               >
                 <div className="mb-4 flex items-center justify-between">
                   <div
                     className="flex h-11 w-11 items-center justify-center rounded-2xl border transition-transform duration-200 group-hover:scale-[1.04]"
                     style={{
-                      background: `${card.color}12`,
-                      borderColor: `${card.color}22`,
+                      background: `${card.color}14`,
+                      borderColor: `${card.color}24`,
                     }}
                   >
                     <card.icon className="h-[18px] w-[18px]" style={{ color: card.color }} />
@@ -397,9 +403,9 @@ const Index = () => {
                     <span
                       className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold"
                       style={{
-                        background: "rgba(198,163,91,0.10)",
+                        background: "rgba(212,175,55,0.10)",
                         color: GOLD,
-                        border: "1px solid rgba(198,163,91,0.14)",
+                        border: "1px solid rgba(212,175,55,0.12)",
                       }}
                     >
                       <TrendingUp className="h-3 w-3" />
@@ -448,14 +454,14 @@ const Index = () => {
                     duration: 0.4,
                     ease: [0.16, 1, 0.3, 1],
                   }}
-                  className="hybrid-card group/link p-5 text-left active:scale-[0.98]"
+                  className="rf-card group/link p-5 text-left active:scale-[0.98]"
                 >
                   <div className="mb-3 flex items-start justify-between">
                     <div
                       className="flex h-11 w-11 items-center justify-center rounded-2xl border transition-transform duration-200 group-hover/link:scale-[1.06]"
                       style={{
-                        background: `${mod.color}12`,
-                        borderColor: `${mod.color}20`,
+                        background: `${mod.color}14`,
+                        borderColor: `${mod.color}22`,
                       }}
                     >
                       <mod.icon className="h-5 w-5" style={{ color: mod.color }} />
@@ -463,7 +469,7 @@ const Index = () => {
 
                     <ArrowRight
                       className="mt-1 h-4 w-4 transition-all duration-200 group-hover/link:translate-x-0.5"
-                      style={{ color: "rgba(23,23,23,0.28)" }}
+                      style={{ color: "rgba(255,255,255,0.28)" }}
                     />
                   </div>
 
@@ -488,7 +494,7 @@ const Index = () => {
         {/* ════════ Bottom grid: Modules + Activity ════════ */}
         <div className="mt-8 grid gap-5 xl:grid-cols-[minmax(0,1.5fr)_380px]">
           {/* ── Seus módulos ── */}
-          <motion.div {...fadeUp(0.35)} className="hybrid-card overflow-hidden">
+          <motion.div {...fadeUp(0.35)} className="rf-card overflow-hidden">
             <div
               className="flex items-center justify-between border-b px-6 py-5"
               style={{ borderColor: BORDER }}
@@ -521,12 +527,12 @@ const Index = () => {
               <div className="px-6 py-12 text-center">
                 <AlertCircle
                   className="mx-auto mb-3 h-8 w-8"
-                  style={{ color: "rgba(23,23,23,0.25)" }}
+                  style={{ color: "rgba(255,255,255,0.25)" }}
                 />
                 <p className="text-sm" style={{ color: TEXT_SOFT }}>
                   Nenhum módulo disponível para sua conta.
                 </p>
-                <p className="mt-1 text-xs" style={{ color: "rgba(107,107,116,0.75)" }}>
+                <p className="mt-1 text-xs" style={{ color: "rgba(166,166,176,0.72)" }}>
                   Entre em contato com o administrador.
                 </p>
               </div>
@@ -545,7 +551,7 @@ const Index = () => {
                       borderTop: i === 0 ? "none" : `1px solid ${BORDER}`,
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "rgba(250,248,242,0.9)";
+                      e.currentTarget.style.background = "rgba(255,255,255,0.02)";
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.background = "transparent";
@@ -554,8 +560,8 @@ const Index = () => {
                     <div
                       className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border transition-transform duration-200 group-hover/mod:scale-[1.04]"
                       style={{
-                        background: `${mod.color}12`,
-                        borderColor: `${mod.color}20`,
+                        background: `${mod.color}14`,
+                        borderColor: `${mod.color}22`,
                       }}
                     >
                       <mod.icon className="h-5 w-5" style={{ color: mod.color }} />
@@ -580,9 +586,9 @@ const Index = () => {
                       <span
                         className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold"
                         style={{
-                          background: "rgba(78,154,110,0.10)",
-                          color: "#4E9A6E",
-                          border: "1px solid rgba(78,154,110,0.12)",
+                          background: "rgba(88,177,114,0.10)",
+                          color: "#58B172",
+                          border: "1px solid rgba(88,177,114,0.12)",
                         }}
                       >
                         <CheckCircle2 className="h-3 w-3" />
@@ -591,7 +597,7 @@ const Index = () => {
 
                       <ArrowRight
                         className="h-4 w-4 transition-all duration-200 group-hover/mod:translate-x-0.5"
-                        style={{ color: "rgba(23,23,23,0.28)" }}
+                        style={{ color: "rgba(255,255,255,0.28)" }}
                       />
                     </div>
                   </motion.button>
@@ -603,7 +609,7 @@ const Index = () => {
           {/* ── Activity Feed ── */}
           <motion.div
             {...fadeUp(0.4)}
-            className="hybrid-card flex flex-col overflow-hidden"
+            className="rf-card flex flex-col overflow-hidden"
           >
             <div className="border-b px-6 py-5" style={{ borderColor: BORDER }}>
               <div className="flex items-center gap-3">
@@ -633,12 +639,12 @@ const Index = () => {
                 <div className="py-10 text-center">
                   <Clock
                     className="mx-auto mb-3 h-7 w-7"
-                    style={{ color: "rgba(23,23,23,0.24)" }}
+                    style={{ color: "rgba(255,255,255,0.24)" }}
                   />
                   <p className="text-sm" style={{ color: TEXT_SOFT }}>
                     Nenhuma atividade registrada ainda.
                   </p>
-                  <p className="mt-1 text-xs" style={{ color: "rgba(107,107,116,0.75)" }}>
+                  <p className="mt-1 text-xs" style={{ color: "rgba(166,166,176,0.72)" }}>
                     Processamentos aparecerão aqui automaticamente.
                   </p>
                 </div>
@@ -655,15 +661,15 @@ const Index = () => {
                     }}
                     className="rounded-2xl border p-3.5 transition-all duration-200"
                     style={{
-                      background: CARD_BG_SOFT,
+                      background: "rgba(255,255,255,0.02)",
                       borderColor: BORDER,
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "#FFFFFF";
+                      e.currentTarget.style.background = "rgba(255,255,255,0.03)";
                       e.currentTarget.style.borderColor = BORDER_STRONG;
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = CARD_BG_SOFT;
+                      e.currentTarget.style.background = "rgba(255,255,255,0.02)";
                       e.currentTarget.style.borderColor = BORDER;
                     }}
                   >
@@ -673,14 +679,14 @@ const Index = () => {
                         style={{
                           background:
                             record.statusConferencia === "confere"
-                              ? "rgba(78,154,110,0.12)"
-                              : "rgba(197,107,107,0.12)",
+                              ? "rgba(88,177,114,0.12)"
+                              : "rgba(212,106,106,0.12)",
                         }}
                       >
                         {record.statusConferencia === "confere" ? (
-                          <CheckCircle2 className="h-4 w-4" style={{ color: "#4E9A6E" }} />
+                          <CheckCircle2 className="h-4 w-4" style={{ color: "#58B172" }} />
                         ) : (
-                          <AlertCircle className="h-4 w-4" style={{ color: "#C56B6B" }} />
+                          <AlertCircle className="h-4 w-4" style={{ color: "#D46A6A" }} />
                         )}
                       </div>
 
@@ -721,18 +727,18 @@ const Index = () => {
                 <button
                   className="flex h-11 w-full items-center justify-center gap-2 rounded-2xl border text-[13px] font-medium transition-all duration-150 active:scale-[0.97]"
                   style={{
-                    background: CARD_BG_SOFT,
+                    background: "rgba(255,255,255,0.025)",
                     color: TEXT_SOFT,
                     borderColor: BORDER,
-                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.65)",
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "#FFFFFF";
+                    e.currentTarget.style.background = "rgba(255,255,255,0.04)";
                     e.currentTarget.style.color = TEXT;
                     e.currentTarget.style.borderColor = BORDER_STRONG;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = CARD_BG_SOFT;
+                    e.currentTarget.style.background = "rgba(255,255,255,0.025)";
                     e.currentTarget.style.color = TEXT_SOFT;
                     e.currentTarget.style.borderColor = BORDER;
                   }}
