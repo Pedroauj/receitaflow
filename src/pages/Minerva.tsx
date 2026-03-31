@@ -315,11 +315,16 @@ const getStatusBadgeClass = (status: PreviewRowStatus) => {
   }
 };
 
+import { SummaryCard, HighlightCard, StatusCard, SectionContainer, DataTable } from "@/components/dashboard";
+import type { DataTableColumn } from "@/components/dashboard";
+
 const sectionCardClass = "rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(24,24,27,0.96),rgba(16,16,18,0.94))] shadow-[0_18px_60px_rgba(0,0,0,0.35)] backdrop-blur-xl";
 const metricCardClass =
   "rounded-3xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.025))] p-4 shadow-[0_10px_30px_rgba(0,0,0,0.18)] transition-all duration-200 hover:-translate-y-0.5 hover:border-white/15";
 const metricTitleClass = "text-[11px] uppercase tracking-[0.18em] text-muted-foreground";
 const metricValueClass = "mt-2 text-2xl font-semibold tracking-tight text-foreground";
+
+
 
 const Minerva = () => {
   const [selectedDate, setSelectedDate] = useState("");
