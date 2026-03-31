@@ -45,55 +45,46 @@ const DashboardTopbar = ({ onMenuToggle }: DashboardTopbarProps) => {
     <div className="sticky top-0 z-40 pt-3 pb-0">
       <div className="px-4">
         <div
-          className="h-14 rounded-[22px] border px-3 md:px-5 shadow-[0_20px_55px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-300"
+          className="h-12 rounded-[20px] border border-white/[0.07] px-3 md:px-5 shadow-[0_18px_45px_rgba(0,0,0,0.22),inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-300"
           style={{
-            borderColor: "rgba(255,255,255,0.07)",
             background:
-              "linear-gradient(180deg, rgba(20,20,23,0.78) 0%, rgba(13,13,15,0.68) 100%)",
-            backdropFilter: "blur(20px) saturate(1.25)",
-            WebkitBackdropFilter: "blur(20px) saturate(1.25)",
+              "linear-gradient(180deg, rgba(34,34,37,0.64) 0%, rgba(24,24,27,0.46) 100%)",
+            backdropFilter: "blur(18px) saturate(1.35)",
+            WebkitBackdropFilter: "blur(18px) saturate(1.35)",
           }}
         >
           <div className="flex h-full items-center justify-between gap-3">
             <div className="flex min-w-0 items-center">
               <button
                 onClick={onMenuToggle}
-                className="mr-2 flex h-9 w-9 items-center justify-center rounded-xl border border-transparent text-white/55 transition-all duration-200 hover:translate-y-0 hover:border-white/10 hover:bg-white/[0.045] hover:text-white active:translate-y-0 active:scale-[0.98] md:hidden"
+                className="mr-2 flex h-8 w-8 items-center justify-center rounded-xl border border-transparent text-muted-foreground transition-all duration-200 hover:translate-y-0 hover:border-white/8 hover:bg-white/[0.045] hover:text-foreground active:translate-y-0 active:scale-[0.98] md:hidden"
               >
                 <Menu className="h-4.5 w-4.5" />
               </button>
 
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2">
                 <div
-                  className="relative flex h-8 w-8 items-center justify-center rounded-[13px] border shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_8px_24px_rgba(0,0,0,0.22)]"
+                  className="flex h-7 w-7 items-center justify-center rounded-xl border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
                   style={{
-                    borderColor: "rgba(212, 175, 55, 0.16)",
                     background:
-                      "linear-gradient(180deg, rgba(212,175,55,0.18) 0%, rgba(212,175,55,0.07) 100%)",
+                      "linear-gradient(180deg, rgba(250,199,117,0.18) 0%, rgba(250,199,117,0.08) 100%)",
                   }}
                 >
-                  <span
-                    className="absolute inset-0 rounded-[13px] opacity-80"
-                    style={{
-                      background:
-                        "radial-gradient(circle at top, rgba(255,255,255,0.10), transparent 58%)",
-                    }}
-                  />
-                  <span className="relative text-sm leading-none" style={{ color: "#D4AF37" }}>
+                  <span className="text-sm leading-none" style={{ color: "#FAC775" }}>
                     ⬡
                   </span>
                 </div>
 
                 <div className="flex items-baseline gap-0.5">
                   <span
-                    className="text-[15px] font-semibold tracking-[-0.03em]"
-                    style={{ color: "#F7F7F2" }}
+                    className="text-sm font-semibold tracking-[-0.02em]"
+                    style={{ color: "#F5F5F0" }}
                   >
                     Receita
                   </span>
                   <span
-                    className="text-[15px] font-semibold tracking-[-0.03em]"
-                    style={{ color: "#D4AF37" }}
+                    className="text-sm font-semibold tracking-[-0.02em]"
+                    style={{ color: "#FAC775" }}
                   >
                     Flow
                   </span>
@@ -103,51 +94,34 @@ const DashboardTopbar = ({ onMenuToggle }: DashboardTopbarProps) => {
               {company && (
                 <>
                   <div
-                    className="mx-3 h-6 w-px md:mx-4"
+                    className="mx-3 h-5 w-px md:mx-4"
                     style={{
                       background:
-                        "linear-gradient(to bottom, rgba(255,255,255,0.02), rgba(255,255,255,0.12), rgba(255,255,255,0.02))",
+                        "linear-gradient(to bottom, rgba(255,255,255,0.02), rgba(255,255,255,0.10), rgba(255,255,255,0.02))",
                     }}
                   />
 
-                  <div className="min-w-0">
-                    <div
-                      className="flex min-w-0 items-center rounded-full border px-2.5 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
-                      style={{
-                        borderColor: "rgba(255,255,255,0.06)",
-                        background: "rgba(255,255,255,0.02)",
-                      }}
-                    >
-                      {company.logo_url ? (
-                        <img
-                          src={company.logo_url}
-                          alt={company.name}
-                          className="h-5 max-w-[120px] object-contain object-left opacity-95"
-                        />
-                      ) : (
-                        <span
-                          className="block max-w-[180px] truncate text-[12px] font-medium tracking-[-0.01em]"
-                          style={{ color: "#B6B2AA" }}
-                        >
-                          {company.name}
-                        </span>
-                      )}
-                    </div>
+                  <div className="flex min-w-0 items-center">
+                    {company.logo_url ? (
+                      <img
+                        src={company.logo_url}
+                        alt={company.name}
+                        className="h-5 max-w-[120px] object-contain object-left opacity-90"
+                      />
+                    ) : (
+                      <span
+                        className="block max-w-[160px] truncate text-[12px] font-medium tracking-[-0.01em]"
+                        style={{ color: "#A4A39D" }}
+                      >
+                        {company.name}
+                      </span>
+                    )}
                   </div>
                 </>
               )}
             </div>
 
-            <div
-              className="pointer-events-none hidden h-8 items-center rounded-full border px-3.5 text-[11px] font-medium tracking-[0.01em] md:flex"
-              style={{
-                color: "#D8C08A",
-                borderColor: "rgba(212,175,55,0.12)",
-                background:
-                  "linear-gradient(180deg, rgba(212,175,55,0.10) 0%, rgba(212,175,55,0.04) 100%)",
-                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
-              }}
-            >
+            <div className="pointer-events-none hidden h-7 items-center rounded-full border border-white/[0.05] bg-white/[0.025] px-3 text-[11px] font-medium tracking-[-0.01em] text-white/45 md:flex">
               Sistema ativo
             </div>
           </div>
