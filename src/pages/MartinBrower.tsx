@@ -175,132 +175,89 @@ const MartinBrower = () => {
 
       {/* Resultado */}
       {result && (
-        <div className="card-elevated p-5">
-          <p className="text-sm font-semibold mb-5" style={{ color: "#F5F5F0" }}>Resultado do Processamento</p>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="space-y-5"
+        >
+          <SectionContainer title="Performance operacional" badge={`${result.totalLinhasLidas} linha(s) analisada(s)`}>
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <SummaryCard label="Linhas lidas" value={result.totalLinhasLidas} index={0} />
+              <SummaryCard label="Filtradas por Data Vcto." value={result.totalLinhasFiltradasData} index={1} />
+              <SummaryCard label="Pgto vazio" value={result.totalLinhasPagamentoVazio} index={2} />
+              <SummaryCard label="Pgto preenchido" value={result.totalLinhasPagamentoPreenchido} index={3} />
+              <SummaryCard label="Removidas por pagamento" value={result.totalLinhasRemovidasPagamento} index={4} />
+              <SummaryCard label="Válidas finais" value={result.totalLinhasValidas} index={5} />
+              <SummaryCard label="Com erro" value={result.totalLinhasComErro} index={6} />
+            </div>
+          </SectionContainer>
 
-          {/* Resumo */}
-          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 mb-5">
-            {[
-              { label: "Linhas lidas", value: result.totalLinhasLidas },
-              { label: "Filtradas por Data Vcto.", value: result.totalLinhasFiltradasData },
-              { label: "Pgto vazio", value: result.totalLinhasPagamentoVazio },
-              { label: "Pgto preenchido", value: result.totalLinhasPagamentoPreenchido, dim: true },
-              { label: "Removidas por pagamento", value: result.totalLinhasRemovidasPagamento, dim: true },
-              { label: "Válidas finais", value: result.totalLinhasValidas },
-              { label: "Com erro", value: result.totalLinhasComErro, error: result.totalLinhasComErro > 0 },
-            ].map((s) => (
-              <div key={s.label} className="rounded-lg p-4" style={{ background: "#18181A", border: "0.5px solid #2C2C2A" }}>
-                <p className="text-[11px] mb-1" style={{ color: "#5F5E5A" }}>{s.label}</p>
-                <p className="text-2xl font-semibold tabular-nums" style={{ color: s.error ? "#E74C3C" : s.dim ? "#888780" : "#F5F5F0" }}>{s.value}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Valores */}
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-5">
-            <div className="rounded-lg p-4" style={{ background: "#18181A", border: "0.5px solid #2C2C2A" }}>
-              <p className="text-[11px] mb-1" style={{ color: "#5F5E5A" }}>Total processado</p>
-              <p className="text-lg font-semibold tabular-nums" style={{ color: "#FAC775" }}>{formatBRL(result.totalValorBruto)}</p>
+          <SectionContainer title="Conciliação financeira">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <HighlightCard label="Total processado" value={formatBRL(result.totalValorBruto)} color="amber" index={0} />
+              <HighlightCard label="Valor banco" value={formatBRL(valorBancoNum)} color="neutral" index={1} />
+              <HighlightCard
+                label="Diferença"
+                value={formatBRL(diferenca)}
+                color={diferenca === 0 ? "emerald" : "red"}
+                index={2}
+              />
+              <StatusCard
+                icon={confere ? CheckCircle2 : XCircle}
+                title={confere ? "Confere" : "Diverge"}
+                variant={confere ? "success" : "error"}
+                badge={confere ? "OK" : "DIVERGE"}
+              />
             </div>
-            <div className="rounded-lg p-4" style={{ background: "#18181A", border: "0.5px solid #2C2C2A" }}>
-              <p className="text-[11px] mb-1" style={{ color: "#5F5E5A" }}>Valor banco</p>
-              <p className="text-lg font-semibold tabular-nums" style={{ color: "#F5F5F0" }}>{formatBRL(valorBancoNum)}</p>
-            </div>
-            <div className="rounded-lg p-4" style={{ background: "#18181A", border: "0.5px solid #2C2C2A" }}>
-              <p className="text-[11px] mb-1" style={{ color: "#5F5E5A" }}>Diferença</p>
-              <p className="text-lg font-semibold tabular-nums" style={{ color: diferenca === 0 ? "#C0DD97" : "#E74C3C" }}>{formatBRL(diferenca)}</p>
-            </div>
-            <div className="rounded-lg p-4" style={{ background: confere ? "rgba(39,80,10,0.15)" : "rgba(231,76,60,0.1)", border: `0.5px solid ${confere ? "#27500A" : "#E74C3C33"}` }}>
-              <p className="text-[11px] mb-1" style={{ color: "#5F5E5A" }}>Status</p>
-              <div className="flex items-center gap-2">
-                {confere ? <CheckCircle2 className="h-5 w-5" style={{ color: "#C0DD97" }} /> : <XCircle className="h-5 w-5" style={{ color: "#E74C3C" }} />}
-                <span className="font-semibold text-sm" style={{ color: confere ? "#C0DD97" : "#E74C3C" }}>{confere ? "Confere" : "Diverge"}</span>
-              </div>
-            </div>
-          </div>
+          </SectionContainer>
 
           {result.totalLinhasValidas === 0 && (
-            <div className="rounded-lg p-4 flex items-center gap-3 mb-5" style={{ background: "#18181A", border: "0.5px solid #2C2C2A" }}>
-              <Info className="h-5 w-5 shrink-0" style={{ color: "#5F5E5A" }} />
-              <p className="text-sm" style={{ color: "#888780" }}>Nenhum documento em aberto foi encontrado para a data de vencimento selecionada.</p>
-            </div>
+            <StatusCard icon={Info} title="Nenhum documento em aberto foi encontrado para a data de vencimento selecionada." variant="neutral" />
           )}
 
-          {/* Preview */}
           {result.preview.length > 0 && (
-            <div className="rounded-lg p-4 mb-5" style={{ background: "#18181A", border: "0.5px solid #2C2C2A" }}>
-              <div className="flex items-center gap-2 mb-3">
-                <Info className="h-4 w-4" style={{ color: "#5F5E5A" }} />
-                <p className="text-sm font-medium" style={{ color: "#F5F5F0" }}>Preview de validação (primeiras {result.preview.length} linhas)</p>
-              </div>
-              <div className="max-h-72 overflow-auto rounded-lg">
-                <table className="w-full">
-                  <thead>
-                    <tr style={{ borderBottom: "0.5px solid #2C2C2A" }}>
-                      {["Linha", "Data Vcto.", "Data Pagamento", "Nº Fatura", "Valor Bruto", "Status"].map((h) => (
-                        <th key={h} className="px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-left" style={{ color: "#5F5E5A" }}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {result.preview.map((p, i) => (
-                      <tr key={i} style={{ borderBottom: "0.5px solid #2C2C2A" }}>
-                        <td className="px-4 py-2 tabular-nums text-sm" style={{ color: "#B4B2A9" }}>{p.row}</td>
-                        <td className="px-4 py-2 text-sm" style={{ color: "#B4B2A9" }}>{p.dataVcto || "—"}</td>
-                        <td className="px-4 py-2 text-sm" style={{ color: "#B4B2A9" }}>{p.dataPagamento || "—"}</td>
-                        <td className="px-4 py-2 font-mono text-sm" style={{ color: "#B4B2A9" }}>{p.faturaOriginal || "—"}</td>
-                        <td className="px-4 py-2 tabular-nums text-sm" style={{ color: "#B4B2A9" }}>{p.valorBrutoOriginal || (p.valorBrutoConvertido != null ? formatBRL(p.valorBrutoConvertido) : "—")}</td>
-                        <td className="px-4 py-2">
-                          <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full")}
-                            style={{
-                              background: p.status === "válida" ? "#27500A" : p.status === "erro" ? "rgba(231,76,60,0.15)" : "#2C2C2A",
-                              color: p.status === "válida" ? "#C0DD97" : p.status === "erro" ? "#E74C3C" : "#888780",
-                            }}
-                          >{p.status}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <DataTable
+              title="Preview de validação"
+              badge={`${result.preview.length} linha(s)`}
+              columns={[
+                { key: "row", label: "Linha", width: "80px" },
+                { key: "dataVcto", label: "Data Vcto.", width: "140px", render: (row: any) => row.dataVcto || "—" },
+                { key: "dataPagamento", label: "Data Pagamento", width: "160px", render: (row: any) => row.dataPagamento || "—" },
+                { key: "faturaOriginal", label: "Nº Fatura", width: "160px", render: (row: any) => <span className="font-mono">{row.faturaOriginal || "—"}</span> },
+                { key: "valorBruto", label: "Valor Bruto", width: "140px", render: (row: any) => row.valorBrutoOriginal || (row.valorBrutoConvertido != null ? formatBRL(row.valorBrutoConvertido) : "—") },
+                { key: "status", label: "Status", width: "120px", render: (row: any) => (
+                  <span className={cn("text-xs font-medium px-2.5 py-1 rounded-full", 
+                    row.status === "válida" ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20" : 
+                    row.status === "erro" ? "bg-red-500/10 text-red-300 border border-red-500/20" : 
+                    "bg-white/5 text-muted-foreground border border-white/10"
+                  )}>{row.status}</span>
+                )},
+              ]}
+              data={result.preview}
+              keyExtractor={(_: any, i) => String(i)}
+              maxHeight="300px"
+            />
           )}
 
-          {/* Erros */}
           {result.errors.length > 0 && (
-            <div className="rounded-lg p-4 mb-5" style={{ background: "rgba(231,76,60,0.05)", border: "0.5px solid rgba(231,76,60,0.2)" }}>
-              <div className="flex items-center gap-2 mb-3">
-                <AlertTriangle className="h-4 w-4" style={{ color: "#EF9F27" }} />
-                <p className="text-sm font-medium" style={{ color: "#EF9F27" }}>{result.errors.length} erro(s) encontrado(s)</p>
-              </div>
-              <div className="max-h-64 overflow-auto rounded-lg">
-                <table className="w-full">
-                  <thead>
-                    <tr style={{ borderBottom: "0.5px solid #2C2C2A" }}>
-                      {["Linha", "Fatura", "Motivo"].map((h) => (
-                        <th key={h} className="px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-left" style={{ color: "#5F5E5A" }}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {result.errors.map((err, i) => (
-                      <tr key={i} style={{ borderBottom: "0.5px solid #2C2C2A" }}>
-                        <td className="px-4 py-2 tabular-nums text-sm" style={{ color: "#B4B2A9" }}>{err.row}</td>
-                        <td className="px-4 py-2 font-mono text-sm" style={{ color: "#B4B2A9" }}>{err.fatura || "—"}</td>
-                        <td className="px-4 py-2 text-sm" style={{ color: "#B4B2A9" }}>{err.motivo}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <DataTable
+              title={`${result.errors.length} erro(s) encontrado(s)`}
+              columns={[
+                { key: "row", label: "Linha", width: "80px" },
+                { key: "fatura", label: "Fatura", width: "160px", render: (row: any) => <span className="font-mono">{row.fatura || "—"}</span> },
+                { key: "motivo", label: "Motivo", width: "1fr" },
+              ]}
+              data={result.errors}
+              keyExtractor={(_: any, i) => String(i)}
+              maxHeight="260px"
+            />
           )}
 
-          {/* Download */}
           <Button className="gradient-btn border-0 text-xs h-9 px-5" onClick={handleDownload} disabled={result.documents.length === 0}>
             <Download className="mr-2 h-4 w-4" />Baixar planilha final
           </Button>
-        </div>
+        </motion.div>
       )}
     </div>
   );
