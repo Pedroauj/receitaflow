@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import DashboardSidebar from "@/components/DashboardSidebar";
@@ -8,8 +8,6 @@ import { usePresentationMode } from "@/contexts/PresentationModeContext";
 const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const mainRef = useRef<HTMLElement | null>(null);
-
   const location = useLocation();
   const navigate = useNavigate();
   const { isPresentationMode } = usePresentationMode();
@@ -28,6 +26,7 @@ const DashboardLayout = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [location.pathname, navigate, isPresentationMode]);
 
+
   useEffect(() => {
     if (isPresentationMode) return;
 
@@ -38,85 +37,6 @@ const DashboardLayout = () => {
 
     return () => window.clearTimeout(timeout);
   }, [location.pathname, isPresentationMode]);
-
-  useEffect(() => {
-    const html = document.documentElement;
-    const body = document.body;
-    const mainEl = mainRef.current;
-
-    let scrollTimeout = 0;
-    let hoverTimeout = 0;
-
-    const addScrollState = () => {
-      html.classList.add("is-scrolling");
-      body.classList.add("is-scrolling");
-      mainEl?.classList.add("is-scrolling");
-
-      window.clearTimeout(scrollTimeout);
-      scrollTimeout = window.setTimeout(() => {
-        html.classList.remove("is-scrolling");
-        body.classList.remove("is-scrolling");
-        mainEl?.classList.remove("is-scrolling");
-      }, 850);
-    };
-
-    const addHoverState = () => {
-      html.classList.add("scrollbar-awake");
-      body.classList.add("scrollbar-awake");
-      mainEl?.classList.add("scrollbar-awake");
-
-      window.clearTimeout(hoverTimeout);
-      hoverTimeout = window.setTimeout(() => {
-        html.classList.remove("scrollbar-awake");
-        body.classList.remove("scrollbar-awake");
-        mainEl?.classList.remove("scrollbar-awake");
-      }, 900);
-    };
-
-    const handleWindowScroll = () => {
-      addScrollState();
-    };
-
-    const handlePointerMove = (e: PointerEvent) => {
-      const nearViewportRightEdge = window.innerWidth - e.clientX <= 28;
-      if (nearViewportRightEdge) {
-        addHoverState();
-      }
-    };
-
-    const handleMainMouseEnter = () => {
-      addHoverState();
-    };
-
-    const handleMainMouseMove = (e: MouseEvent) => {
-      const rect = mainEl?.getBoundingClientRect();
-      if (!rect) return;
-
-      const nearContainerRightEdge = rect.right - e.clientX <= 28;
-      if (nearContainerRightEdge) {
-        addHoverState();
-      }
-    };
-
-    window.addEventListener("scroll", handleWindowScroll, { passive: true });
-    window.addEventListener("pointermove", handlePointerMove, { passive: true });
-    mainEl?.addEventListener("mouseenter", handleMainMouseEnter);
-    mainEl?.addEventListener("mousemove", handleMainMouseMove);
-
-    return () => {
-      window.removeEventListener("scroll", handleWindowScroll);
-      window.removeEventListener("pointermove", handlePointerMove);
-      mainEl?.removeEventListener("mouseenter", handleMainMouseEnter);
-      mainEl?.removeEventListener("mousemove", handleMainMouseMove);
-
-      window.clearTimeout(scrollTimeout);
-      window.clearTimeout(hoverTimeout);
-
-      html.classList.remove("is-scrolling", "scrollbar-awake");
-      body.classList.remove("is-scrolling", "scrollbar-awake");
-      mainEl?.classList.remove("is-scrolling", "scrollbar-awake");
-    };
-  }, []);
 
   return (
     <div className="apple-dashboard-shell relative min-h-screen bg-background">
@@ -378,7 +298,6 @@ const DashboardLayout = () => {
       )}
 
       <main
-        ref={mainRef}
         className={`relative z-10 mac-scroll transition-all duration-500 ease-out ${
           isPresentationMode ? "" : "md:ml-[272px]"
         }`}

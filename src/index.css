@@ -62,12 +62,6 @@
     --apple-shadow-sm: 0 10px 26px rgba(0, 0, 0, 0.18);
     --apple-shadow-md: 0 18px 42px rgba(0, 0, 0, 0.24);
     --apple-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.05);
-
-    --scrollbar-size: 10px;
-    --scrollbar-radius: 999px;
-    --scrollbar-thumb-hidden: rgba(140, 140, 140, 0);
-    --scrollbar-thumb-visible: rgba(180, 180, 180, 0.22);
-    --scrollbar-thumb-strong: rgba(205, 205, 205, 0.34);
   }
 
   * {
@@ -82,7 +76,7 @@
   html {
     background: hsl(240 4% 10%);
     scroll-behavior: smooth;
-    overflow-y: auto;
+    overflow-y: scroll;
     scrollbar-gutter: stable;
   }
 
@@ -232,75 +226,50 @@
   }
 }
 
-/* Scrollbar global estável, discreta e sem empurrar layout */
-html,
-body,
-.mac-scroll {
-  scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
-}
-
-html::-webkit-scrollbar,
-body::-webkit-scrollbar,
-.mac-scroll::-webkit-scrollbar {
-  width: var(--scrollbar-size);
-  height: var(--scrollbar-size);
-}
-
-html::-webkit-scrollbar-track,
-body::-webkit-scrollbar-track,
-.mac-scroll::-webkit-scrollbar-track {
+/* macOS-style subtle scrollbar */
+.mac-scroll::-webkit-scrollbar,
+html::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
   background: transparent;
 }
 
-html::-webkit-scrollbar-thumb,
-body::-webkit-scrollbar-thumb,
-.mac-scroll::-webkit-scrollbar-thumb {
-  background-color: var(--scrollbar-thumb-hidden);
-  border-radius: var(--scrollbar-radius);
-  border: 3px solid transparent;
-  background-clip: content-box;
-  transition:
-    background-color 240ms var(--apple-ease-soft),
-    border-color 240ms var(--apple-ease-soft),
-    opacity 240ms var(--apple-ease-soft);
+.mac-scroll::-webkit-scrollbar-track,
+html::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-html:hover::-webkit-scrollbar-thumb,
-body:hover::-webkit-scrollbar-thumb,
+.mac-scroll::-webkit-scrollbar-thumb,
+html::-webkit-scrollbar-thumb {
+  background: rgba(140, 140, 140, 0);
+  border-radius: 999px;
+  transition: background 0.3s ease;
+}
+
 .mac-scroll:hover::-webkit-scrollbar-thumb,
-html.scrollbar-awake::-webkit-scrollbar-thumb,
-body.scrollbar-awake::-webkit-scrollbar-thumb,
-.mac-scroll.scrollbar-awake::-webkit-scrollbar-thumb,
-html.is-scrolling::-webkit-scrollbar-thumb,
-body.is-scrolling::-webkit-scrollbar-thumb,
 .mac-scroll.is-scrolling::-webkit-scrollbar-thumb {
-  background-color: var(--scrollbar-thumb-visible);
+  background: rgba(140, 140, 140, 0.22);
 }
 
-html::-webkit-scrollbar-thumb:hover,
-body::-webkit-scrollbar-thumb:hover,
-.mac-scroll::-webkit-scrollbar-thumb:hover {
-  background-color: var(--scrollbar-thumb-strong);
+html.is-scrolling::-webkit-scrollbar-thumb {
+  background: rgba(140, 140, 140, 0.22);
 }
 
-html:hover,
-body:hover,
-.mac-scroll:hover,
-html.scrollbar-awake,
-body.scrollbar-awake,
-.mac-scroll.scrollbar-awake,
+.mac-scroll::-webkit-scrollbar-thumb:hover,
+html::-webkit-scrollbar-thumb:hover {
+  background: rgba(180, 180, 180, 0.32);
+}
+
+html,
+.mac-scroll {
+  scrollbar-width: none;
+}
+
 html.is-scrolling,
-body.is-scrolling,
+.mac-scroll:hover,
 .mac-scroll.is-scrolling {
-  scrollbar-color: var(--scrollbar-thumb-visible) transparent;
-}
-
-/* Evita mudança visual brusca em navegadores compatíveis */
-@supports (scrollbar-gutter: stable) {
-  html {
-    scrollbar-gutter: stable;
-  }
+  scrollbar-width: thin;
+  scrollbar-color: rgba(140, 140, 140, 0.22) transparent;
 }
 
 @layer components {

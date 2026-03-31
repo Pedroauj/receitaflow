@@ -38,67 +38,18 @@ interface ModuleDef {
   description: string;
   icon: LucideIcon;
   path: string;
-  color: string;
+  color: string;        // hex accent for the module
   masterOnly?: boolean;
 }
 
 const MODULE_REGISTRY: ModuleDef[] = [
-  {
-    key: "dashboard",
-    title: "Dashboard",
-    description: "Visão geral e métricas do sistema",
-    icon: LayoutDashboard,
-    path: "/dashboard",
-    color: "#D4AF37",
-  },
-  {
-    key: "historico",
-    title: "Histórico",
-    description: "Registros de processamentos realizados",
-    icon: History,
-    path: "/historico",
-    color: "#7AA2D6",
-  },
-  {
-    key: "conciliacao",
-    title: "NF-e / NFS-e",
-    description: "Conciliação fiscal de notas",
-    icon: FileSearch,
-    path: "/conciliacao",
-    color: "#58B172",
-  },
-  {
-    key: "abastecimento",
-    title: "Abastecimento",
-    description: "Registro e controle de abastecimentos",
-    icon: Fuel,
-    path: "/abastecimento",
-    color: "#D39A47",
-  },
-  {
-    key: "medias-abastecimento",
-    title: "Médias de Abastecimento",
-    description: "Dashboard executivo de consumo e eficiência",
-    icon: BarChart3,
-    path: "/medias-abastecimento",
-    color: "#A084DC",
-  },
-  {
-    key: "clientes",
-    title: "Clientes",
-    description: "Gestão e processamento por cliente",
-    icon: Building2,
-    path: "/clientes",
-    color: "#46B7A0",
-  },
-  {
-    key: "configuracoes",
-    title: "Configurações",
-    description: "Preferências e ajustes do sistema",
-    icon: Settings,
-    path: "/configuracoes",
-    color: "#D46A6A",
-  },
+  { key: "dashboard", title: "Dashboard", description: "Visão geral e métricas do sistema", icon: LayoutDashboard, path: "/dashboard", color: "#EF9F27" },
+  { key: "historico", title: "Histórico", description: "Registros de processamentos realizados", icon: History, path: "/historico", color: "#5B9BD5" },
+  { key: "conciliacao", title: "NF-e / NFS-e", description: "Conciliação fiscal de notas", icon: FileSearch, path: "/conciliacao", color: "#4AAF60" },
+  { key: "abastecimento", title: "Abastecimento", description: "Registro e controle de abastecimentos", icon: Fuel, path: "/abastecimento", color: "#D4922A" },
+  { key: "medias-abastecimento", title: "Médias de Abastecimento", description: "Dashboard executivo de consumo e eficiência", icon: BarChart3, path: "/medias-abastecimento", color: "#9B7BD4" },
+  { key: "clientes", title: "Clientes", description: "Gestão e processamento por cliente", icon: Building2, path: "/clientes", color: "#3BBFA0" },
+  { key: "configuracoes", title: "Configurações", description: "Preferências e ajustes do sistema", icon: Settings, path: "/configuracoes", color: "#D95F5F" },
 ];
 
 /* ── Formatters ──────────────────────────────────── */
@@ -108,11 +59,7 @@ const formatCurrency = (v: number) =>
 const formatDate = (iso: string) => {
   try {
     const d = new Date(iso);
-    return d.toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
+    return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
   } catch {
     return iso;
   }
@@ -123,22 +70,8 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 14, filter: "blur(4px)" } as const,
   animate: { opacity: 1, y: 0, filter: "blur(0px)" } as const,
-  transition: {
-    delay,
-    duration: 0.5,
-    ease: EASE as unknown as [number, number, number, number],
-  },
+  transition: { delay, duration: 0.5, ease: EASE as unknown as [number, number, number, number] },
 });
-
-/* ── Theme helpers ───────────────────────────────── */
-const GOLD = "#D4AF37";
-const TEXT = "#F5F5F0";
-const TEXT_SOFT = "#A6A6B0";
-const BORDER = "rgba(255,255,255,0.08)";
-const BORDER_STRONG = "rgba(255,255,255,0.12)";
-const CARD_BG = "linear-gradient(180deg, rgba(24,24,27,0.92) 0%, rgba(18,18,21,0.96) 100%)";
-const CARD_BG_SOFT = "rgba(255,255,255,0.025)";
-const PANEL_BG = "linear-gradient(180deg, rgba(20,20,23,0.88) 0%, rgba(14,14,16,0.94) 100%)";
 
 /* ── Component ───────────────────────────────────── */
 const Index = () => {
@@ -194,21 +127,15 @@ const Index = () => {
   const records = getRecords();
   const recentRecords = records.slice(0, 5);
 
-  /* ── Summary cards ─── */
+  /* ── Summary cards (only shown if user has relevant access) ─── */
   const summaryCards = useMemo(() => {
-    const cards: {
-      icon: LucideIcon;
-      label: string;
-      value: string | number;
-      color: string;
-      moduleKey?: string;
-    }[] = [];
+    const cards: { icon: LucideIcon; label: string; value: string | number; color: string; moduleKey?: string }[] = [];
 
     cards.push({
       icon: Layers,
       label: "Módulos liberados",
       value: accessibleModules.length,
-      color: GOLD,
+      color: "#EF9F27",
     });
 
     if (canView("historico") || isMaster) {
@@ -216,21 +143,21 @@ const Index = () => {
         icon: FileSpreadsheet,
         label: "Planilhas processadas",
         value: stats.totalPlanilhas,
-        color: "#7AA2D6",
+        color: "#5B9BD5",
         moduleKey: "historico",
       });
       cards.push({
         icon: Hash,
         label: "Documentos gerados",
         value: stats.totalDocumentos,
-        color: "#58B172",
+        color: "#4AAF60",
         moduleKey: "historico",
       });
       cards.push({
         icon: DollarSign,
         label: "Valor total processado",
         value: formatCurrency(stats.valorTotalProcessado),
-        color: "#D39A47",
+        color: "#D4922A",
         moduleKey: "historico",
       });
     }
@@ -241,516 +168,258 @@ const Index = () => {
   /* ── Loading state ─── */
   if (permLoading) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div
-          className="flex items-center gap-3 rounded-2xl border px-4 py-3"
-          style={{
-            background: PANEL_BG,
-            borderColor: BORDER,
-            boxShadow: "0 18px 40px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.04)",
-          }}
-        >
-          <Loader2 className="h-5 w-5 animate-spin" style={{ color: GOLD }} />
-          <span className="text-sm font-medium" style={{ color: TEXT_SOFT }}>
-            Carregando painel...
-          </span>
-        </div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
     <div className="space-y-8">
-      <style>
-        {`
-          .rf-dark-shell {
-            position: relative;
-            overflow: hidden;
-            border-radius: 30px;
-            border: 1px solid rgba(255,255,255,0.06);
-            background: linear-gradient(180deg, rgba(16,16,18,0.72) 0%, rgba(12,12,14,0.52) 100%);
-            box-shadow:
-              0 24px 60px rgba(0,0,0,0.28),
-              inset 0 1px 0 rgba(255,255,255,0.04);
-            backdrop-filter: blur(14px) saturate(1.1);
-            -webkit-backdrop-filter: blur(14px) saturate(1.1);
-          }
-
-          .rf-dark-shell::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            background:
-              radial-gradient(circle at top right, rgba(212,175,55,0.08), transparent 24%),
-              linear-gradient(180deg, rgba(255,255,255,0.025), transparent 28%);
-          }
-
-          .rf-card {
-            position: relative;
-            overflow: hidden;
-            border-radius: 22px;
-            border: 1px solid rgba(255,255,255,0.07);
-            background: linear-gradient(180deg, rgba(24,24,27,0.92) 0%, rgba(18,18,21,0.96) 100%);
-            box-shadow:
-              0 12px 28px rgba(0,0,0,0.24),
-              inset 0 1px 0 rgba(255,255,255,0.04);
-            transition:
-              transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 220ms cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1),
-              background-color 220ms cubic-bezier(0.16, 1, 0.3, 1);
-          }
-
-          .rf-card::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            border-radius: inherit;
-            background: linear-gradient(
-              180deg,
-              rgba(255,255,255,0.05) 0%,
-              rgba(255,255,255,0.018) 24%,
-              rgba(255,255,255,0) 100%
-            );
-          }
-
-          .rf-card:hover {
-            transform: translateY(-2px);
-            border-color: rgba(255,255,255,0.1);
-            box-shadow:
-              0 18px 38px rgba(0,0,0,0.3),
-              inset 0 1px 0 rgba(255,255,255,0.05);
-          }
-
-          .rf-soft {
-            background: rgba(255,255,255,0.025);
-            border: 1px solid rgba(255,255,255,0.06);
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
-          }
-        `}
-      </style>
-
-      <div className="rf-dark-shell px-5 py-5 md:px-6 md:py-6 lg:px-7 lg:py-7">
-        {/* ════════ Header ════════ */}
-        <motion.div {...fadeUp(0)}>
-          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <div className="min-w-0">
-              <div className="flex items-center gap-3">
-                <div
-                  className="flex h-11 w-11 items-center justify-center rounded-2xl border"
-                  style={{
-                    background: "linear-gradient(180deg, rgba(212,175,55,0.18) 0%, rgba(212,175,55,0.08) 100%)",
-                    borderColor: "rgba(212,175,55,0.14)",
-                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)",
-                  }}
-                >
-                  <GreetingIcon className="h-5 w-5" style={{ color: GOLD }} />
-                </div>
-
-                <div className="min-w-0">
-                  <h1
-                    className="text-[26px] font-semibold leading-tight tracking-[-0.03em]"
-                    style={{ color: TEXT }}
-                  >
-                    {greeting}, <span style={{ color: GOLD }}>{firstName}</span>
-                  </h1>
-                  <p
-                    className="mt-1 text-sm capitalize"
-                    style={{ color: TEXT_SOFT }}
-                  >
-                    {today}
-                  </p>
-                </div>
-              </div>
-
-              <p className="mt-3 pl-[56px] text-xs" style={{ color: TEXT_SOFT }}>
-                Visão geral dos módulos e atalhos disponíveis de acordo com seu acesso.
-              </p>
-            </div>
-
+      {/* ════════ Header ════════ */}
+      <motion.div {...fadeUp(0)}>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-3">
             <div
-              className="rf-soft inline-flex h-10 items-center rounded-full px-4 text-[12px] font-medium"
-              style={{ color: GOLD }}
+              className="h-10 w-10 rounded-2xl flex items-center justify-center"
+              style={{ background: "rgba(250,199,117,0.12)" }}
             >
-              Painel executivo
+              <GreetingIcon className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-semibold text-foreground tracking-tight">
+                {greeting}, <span className="text-primary">{firstName}</span>
+              </h1>
+              <p className="text-sm text-muted-foreground capitalize">{today}</p>
             </div>
           </div>
-        </motion.div>
+          <p className="text-xs text-muted-foreground mt-2 pl-[52px]">
+            Visão geral dos módulos e atalhos disponíveis de acordo com seu acesso.
+          </p>
+        </div>
+      </motion.div>
 
-        {/* ════════ Summary Cards ════════ */}
-        {summaryCards.length > 0 && (
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {summaryCards.map((card, i) => (
-              <motion.div
-                key={card.label}
-                {...fadeUp(0.06 + i * 0.05)}
-                className="rf-card group cursor-default p-5"
-              >
-                <div className="mb-4 flex items-center justify-between">
-                  <div
-                    className="flex h-11 w-11 items-center justify-center rounded-2xl border transition-transform duration-200 group-hover:scale-[1.04]"
-                    style={{
-                      background: `${card.color}14`,
-                      borderColor: `${card.color}24`,
-                    }}
-                  >
-                    <card.icon className="h-[18px] w-[18px]" style={{ color: card.color }} />
-                  </div>
-
-                  {typeof card.value === "number" && card.value > 0 && (
-                    <span
-                      className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold"
-                      style={{
-                        background: "rgba(212,175,55,0.10)",
-                        color: GOLD,
-                        border: "1px solid rgba(212,175,55,0.12)",
-                      }}
-                    >
-                      <TrendingUp className="h-3 w-3" />
-                      ativo
-                    </span>
-                  )}
+      {/* ════════ Summary Cards ════════ */}
+      {summaryCards.length > 0 && (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {summaryCards.map((card, i) => (
+            <motion.div
+              key={card.label}
+              {...fadeUp(0.06 + i * 0.05)}
+              className="group rounded-2xl border border-white/[0.06] p-5 cursor-default transition-all duration-250 ease-out glass-card hover:scale-[1.01] hover:border-white/[0.09]"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div
+                  className="h-10 w-10 rounded-xl flex items-center justify-center transition-transform duration-200 group-hover:scale-105"
+                  style={{ background: `${card.color}18` }}
+                >
+                  <card.icon className="h-[18px] w-[18px]" style={{ color: card.color }} />
                 </div>
+                {typeof card.value === "number" && card.value > 0 && (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-medium rounded-full px-2 py-0.5 bg-primary/10 text-primary">
+                    <TrendingUp className="h-3 w-3" />
+                    ativo
+                  </span>
+                )}
+              </div>
+              <p className="text-[26px] font-bold tracking-tight leading-none text-foreground">
+                {card.value}
+              </p>
+              <p className="text-[12px] text-muted-foreground mt-2 font-medium">{card.label}</p>
+            </motion.div>
+          ))}
+        </div>
+      )}
 
-                <p
-                  className="text-[28px] font-bold leading-none tracking-[-0.04em]"
-                  style={{ color: TEXT }}
-                >
-                  {card.value}
+      {/* ════════ Quick Links ════════ */}
+      {accessibleModules.length > 0 && (
+        <motion.section {...fadeUp(0.25)}>
+          <div className="flex items-center gap-2 mb-4">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <h2 className="text-[15px] font-semibold text-foreground">Atalhos rápidos</h2>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {accessibleModules.map((mod, i) => (
+              <motion.button
+                key={mod.key}
+                type="button"
+                onClick={() => navigate(mod.path)}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.28 + i * 0.04, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                className="group/link text-left rounded-2xl border border-white/[0.06] p-5 active:scale-[0.98] glass-card hover:border-white/[0.09] hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(0,0,0,0.2)]"
+                style={{ transition: "all 0.22s cubic-bezier(0.25,0.46,0.45,0.94)" }}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div
+                    className="h-10 w-10 rounded-xl flex items-center justify-center transition-transform duration-200 group-hover/link:scale-110"
+                    style={{ background: `${mod.color}15` }}
+                  >
+                    <mod.icon className="h-5 w-5" style={{ color: mod.color }} />
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground/30 group-hover/link:text-primary group-hover/link:translate-x-0.5 transition-all duration-200 mt-1" />
+                </div>
+                <h3 className="text-[13px] font-semibold text-foreground group-hover/link:text-primary transition-colors">
+                  {mod.title}
+                </h3>
+                <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed line-clamp-2">
+                  {mod.description}
                 </p>
-                <p
-                  className="mt-2 text-[12px] font-medium"
-                  style={{ color: TEXT_SOFT }}
-                >
-                  {card.label}
-                </p>
-              </motion.div>
+              </motion.button>
             ))}
           </div>
-        )}
+        </motion.section>
+      )}
 
-        {/* ════════ Quick Links ════════ */}
-        {accessibleModules.length > 0 && (
-          <motion.section {...fadeUp(0.25)} className="mt-8">
-            <div className="mb-4 flex items-center gap-2">
-              <Sparkles className="h-4 w-4" style={{ color: GOLD }} />
-              <h2 className="text-[15px] font-semibold" style={{ color: TEXT }}>
-                Atalhos rápidos
-              </h2>
+      {/* ════════ Bottom grid: Modules + Activity ════════ */}
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.5fr)_380px]">
+        {/* ── Seus módulos ── */}
+        <motion.div
+          {...fadeUp(0.35)}
+          className="rounded-2xl border border-white/[0.06] overflow-hidden transition-all duration-250 glass-card"
+        >
+          <div className="px-6 py-5 flex items-center justify-between border-b border-border">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-xl bg-accent flex items-center justify-center">
+                <Layers className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div>
+                <h2 className="text-[15px] font-semibold text-foreground">Seus módulos</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {accessibleModules.length} módulo{accessibleModules.length !== 1 ? "s" : ""} disponíve{accessibleModules.length !== 1 ? "is" : "l"}
+                </p>
+              </div>
             </div>
+          </div>
 
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {accessibleModules.length === 0 ? (
+            <div className="px-6 py-12 text-center">
+              <AlertCircle className="h-8 w-8 text-muted-foreground/40 mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground">Nenhum módulo disponível para sua conta.</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">Entre em contato com o administrador.</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-border/30">
               {accessibleModules.map((mod, i) => (
                 <motion.button
                   key={mod.key}
                   type="button"
                   onClick={() => navigate(mod.path)}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{
-                    delay: 0.28 + i * 0.04,
-                    duration: 0.4,
-                    ease: [0.16, 1, 0.3, 1],
-                  }}
-                  className="rf-card group/link p-5 text-left active:scale-[0.98]"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4 + i * 0.04, duration: 0.4 }}
+                  className="w-full px-6 py-4 text-left transition-all duration-150 hover:bg-accent/50 active:scale-[0.995] group/mod flex items-center gap-4"
                 >
-                  <div className="mb-3 flex items-start justify-between">
-                    <div
-                      className="flex h-11 w-11 items-center justify-center rounded-2xl border transition-transform duration-200 group-hover/link:scale-[1.06]"
-                      style={{
-                        background: `${mod.color}14`,
-                        borderColor: `${mod.color}22`,
-                      }}
-                    >
-                      <mod.icon className="h-5 w-5" style={{ color: mod.color }} />
-                    </div>
-
-                    <ArrowRight
-                      className="mt-1 h-4 w-4 transition-all duration-200 group-hover/link:translate-x-0.5"
-                      style={{ color: "rgba(255,255,255,0.28)" }}
-                    />
+                  <div
+                    className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 group-hover/mod:scale-105"
+                    style={{ background: `${mod.color}15` }}
+                  >
+                    <mod.icon className="h-5 w-5" style={{ color: mod.color }} />
                   </div>
-
-                  <h3
-                    className="text-[13px] font-semibold transition-colors"
-                    style={{ color: TEXT }}
-                  >
-                    {mod.title}
-                  </h3>
-                  <p
-                    className="mt-1 line-clamp-2 text-[11px] leading-relaxed"
-                    style={{ color: TEXT_SOFT }}
-                  >
-                    {mod.description}
-                  </p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-semibold text-foreground group-hover/mod:text-primary transition-colors truncate">
+                      {mod.title}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground/70 mt-0.5 truncate">
+                      {mod.description}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold bg-[hsl(142,40%,40%)]/10 text-[hsl(142,50%,60%)]">
+                      <CheckCircle2 className="h-3 w-3" />
+                      Disponível
+                    </span>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground/30 group-hover/mod:text-primary group-hover/mod:translate-x-0.5 transition-all duration-200" />
+                  </div>
                 </motion.button>
               ))}
             </div>
-          </motion.section>
-        )}
+          )}
+        </motion.div>
 
-        {/* ════════ Bottom grid: Modules + Activity ════════ */}
-        <div className="mt-8 grid gap-5 xl:grid-cols-[minmax(0,1.5fr)_380px]">
-          {/* ── Seus módulos ── */}
-          <motion.div {...fadeUp(0.35)} className="rf-card overflow-hidden">
-            <div
-              className="flex items-center justify-between border-b px-6 py-5"
-              style={{ borderColor: BORDER }}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className="flex h-10 w-10 items-center justify-center rounded-2xl border"
-                  style={{
-                    background: CARD_BG_SOFT,
-                    borderColor: BORDER,
-                  }}
-                >
-                  <Layers className="h-4 w-4" style={{ color: TEXT_SOFT }} />
-                </div>
-
-                <div>
-                  <h2 className="text-[15px] font-semibold" style={{ color: TEXT }}>
-                    Seus módulos
-                  </h2>
-                  <p className="mt-0.5 text-xs" style={{ color: TEXT_SOFT }}>
-                    {accessibleModules.length} módulo
-                    {accessibleModules.length !== 1 ? "s" : ""} disponíve
-                    {accessibleModules.length !== 1 ? "is" : "l"}
-                  </p>
-                </div>
+        {/* ── Activity Feed ── */}
+        <motion.div
+          {...fadeUp(0.4)}
+          className="rounded-2xl border border-white/[0.06] flex flex-col overflow-hidden transition-all duration-250 glass-card"
+        >
+          <div className="px-6 py-5 border-b border-border">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-xl bg-accent flex items-center justify-center">
+                <Activity className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div>
+                <h2 className="text-[15px] font-semibold text-foreground">Atividade recente</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">Últimos processamentos</p>
               </div>
             </div>
+          </div>
 
-            {accessibleModules.length === 0 ? (
-              <div className="px-6 py-12 text-center">
-                <AlertCircle
-                  className="mx-auto mb-3 h-8 w-8"
-                  style={{ color: "rgba(255,255,255,0.25)" }}
-                />
-                <p className="text-sm" style={{ color: TEXT_SOFT }}>
-                  Nenhum módulo disponível para sua conta.
-                </p>
-                <p className="mt-1 text-xs" style={{ color: "rgba(166,166,176,0.72)" }}>
-                  Entre em contato com o administrador.
+          <div className="flex-1 px-5 py-4 space-y-2.5 overflow-y-auto">
+            {recentRecords.length === 0 ? (
+              <div className="py-10 text-center">
+                <Clock className="h-7 w-7 text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground">Nenhuma atividade registrada ainda.</p>
+                <p className="text-xs text-muted-foreground/60 mt-1">
+                  Processamentos aparecerão aqui automaticamente.
                 </p>
               </div>
             ) : (
-              <div style={{ borderTop: "none" }}>
-                {accessibleModules.map((mod, i) => (
-                  <motion.button
-                    key={mod.key}
-                    type="button"
-                    onClick={() => navigate(mod.path)}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.4 + i * 0.04, duration: 0.4 }}
-                    className="group/mod flex w-full items-center gap-4 px-6 py-4 text-left transition-all duration-150 active:scale-[0.995]"
-                    style={{
-                      borderTop: i === 0 ? "none" : `1px solid ${BORDER}`,
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "rgba(255,255,255,0.02)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "transparent";
-                    }}
-                  >
+              recentRecords.map((record, i) => (
+                <motion.div
+                  key={record.id}
+                  initial={{ opacity: 0, x: 8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.5 + i * 0.06, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                  className="rounded-xl border border-border/40 p-3.5 transition-all duration-200 hover:bg-accent/40 hover:border-border/70 cursor-default"
+                >
+                  <div className="flex items-start gap-3">
                     <div
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border transition-transform duration-200 group-hover/mod:scale-[1.04]"
+                      className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
                       style={{
-                        background: `${mod.color}14`,
-                        borderColor: `${mod.color}22`,
+                        background: record.statusConferencia === "confere"
+                          ? "rgba(74,175,96,0.12)"
+                          : "rgba(217,95,95,0.12)",
                       }}
                     >
-                      <mod.icon className="h-5 w-5" style={{ color: mod.color }} />
+                      {record.statusConferencia === "confere" ? (
+                        <CheckCircle2 className="h-4 w-4" style={{ color: "#4AAF60" }} />
+                      ) : (
+                        <AlertCircle className="h-4 w-4" style={{ color: "#D95F5F" }} />
+                      )}
                     </div>
-
                     <div className="min-w-0 flex-1">
-                      <p
-                        className="truncate text-[13px] font-semibold"
-                        style={{ color: TEXT }}
-                      >
-                        {mod.title}
+                      <p className="text-[13px] text-foreground/90 leading-relaxed font-medium">
+                        {record.cliente} — {record.quantidadeDocumentos} documento{record.quantidadeDocumentos !== 1 ? "s" : ""}
                       </p>
-                      <p
-                        className="mt-0.5 truncate text-[11px]"
-                        style={{ color: TEXT_SOFT }}
-                      >
-                        {mod.description}
-                      </p>
-                    </div>
-
-                    <div className="flex shrink-0 items-center gap-2">
-                      <span
-                        className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold"
-                        style={{
-                          background: "rgba(88,177,114,0.10)",
-                          color: "#58B172",
-                          border: "1px solid rgba(88,177,114,0.12)",
-                        }}
-                      >
-                        <CheckCircle2 className="h-3 w-3" />
-                        Disponível
-                      </span>
-
-                      <ArrowRight
-                        className="h-4 w-4 transition-all duration-200 group-hover/mod:translate-x-0.5"
-                        style={{ color: "rgba(255,255,255,0.28)" }}
-                      />
-                    </div>
-                  </motion.button>
-                ))}
-              </div>
-            )}
-          </motion.div>
-
-          {/* ── Activity Feed ── */}
-          <motion.div
-            {...fadeUp(0.4)}
-            className="rf-card flex flex-col overflow-hidden"
-          >
-            <div className="border-b px-6 py-5" style={{ borderColor: BORDER }}>
-              <div className="flex items-center gap-3">
-                <div
-                  className="flex h-10 w-10 items-center justify-center rounded-2xl border"
-                  style={{
-                    background: CARD_BG_SOFT,
-                    borderColor: BORDER,
-                  }}
-                >
-                  <Activity className="h-4 w-4" style={{ color: TEXT_SOFT }} />
-                </div>
-
-                <div>
-                  <h2 className="text-[15px] font-semibold" style={{ color: TEXT }}>
-                    Atividade recente
-                  </h2>
-                  <p className="mt-0.5 text-xs" style={{ color: TEXT_SOFT }}>
-                    Últimos processamentos
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex-1 space-y-2.5 overflow-y-auto px-5 py-4">
-              {recentRecords.length === 0 ? (
-                <div className="py-10 text-center">
-                  <Clock
-                    className="mx-auto mb-3 h-7 w-7"
-                    style={{ color: "rgba(255,255,255,0.24)" }}
-                  />
-                  <p className="text-sm" style={{ color: TEXT_SOFT }}>
-                    Nenhuma atividade registrada ainda.
-                  </p>
-                  <p className="mt-1 text-xs" style={{ color: "rgba(166,166,176,0.72)" }}>
-                    Processamentos aparecerão aqui automaticamente.
-                  </p>
-                </div>
-              ) : (
-                recentRecords.map((record, i) => (
-                  <motion.div
-                    key={record.id}
-                    initial={{ opacity: 0, x: 8 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{
-                      delay: 0.5 + i * 0.06,
-                      duration: 0.4,
-                      ease: [0.16, 1, 0.3, 1],
-                    }}
-                    className="rounded-2xl border p-3.5 transition-all duration-200"
-                    style={{
-                      background: "rgba(255,255,255,0.02)",
-                      borderColor: BORDER,
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "rgba(255,255,255,0.03)";
-                      e.currentTarget.style.borderColor = BORDER_STRONG;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "rgba(255,255,255,0.02)";
-                      e.currentTarget.style.borderColor = BORDER;
-                    }}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div
-                        className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl"
-                        style={{
-                          background:
-                            record.statusConferencia === "confere"
-                              ? "rgba(88,177,114,0.12)"
-                              : "rgba(212,106,106,0.12)",
-                        }}
-                      >
-                        {record.statusConferencia === "confere" ? (
-                          <CheckCircle2 className="h-4 w-4" style={{ color: "#58B172" }} />
-                        ) : (
-                          <AlertCircle className="h-4 w-4" style={{ color: "#D46A6A" }} />
-                        )}
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-                        <p
-                          className="text-[13px] font-medium leading-relaxed"
-                          style={{ color: TEXT }}
-                        >
-                          {record.cliente} — {record.quantidadeDocumentos} documento
-                          {record.quantidadeDocumentos !== 1 ? "s" : ""}
+                      <div className="flex items-center gap-3 mt-1.5">
+                        <p className="text-[11px] text-muted-foreground/60 flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {formatDate(record.dataProcessamento)}
                         </p>
-
-                        <div className="mt-1.5 flex items-center gap-3">
-                          <p
-                            className="flex items-center gap-1 text-[11px]"
-                            style={{ color: TEXT_SOFT }}
-                          >
-                            <Clock className="h-3 w-3" />
-                            {formatDate(record.dataProcessamento)}
-                          </p>
-
-                          <p
-                            className="tabular-nums text-[11px] font-semibold"
-                            style={{ color: GOLD }}
-                          >
-                            {formatCurrency(record.valorTotal)}
-                          </p>
-                        </div>
+                        <p className="text-[11px] font-semibold text-primary tabular-nums">
+                          {formatCurrency(record.valorTotal)}
+                        </p>
                       </div>
                     </div>
-                  </motion.div>
-                ))
-              )}
-            </div>
-
-            {(canView("historico") || isMaster) && recentRecords.length > 0 && (
-              <div className="border-t px-5 py-4" style={{ borderColor: BORDER }}>
-                <button
-                  className="flex h-11 w-full items-center justify-center gap-2 rounded-2xl border text-[13px] font-medium transition-all duration-150 active:scale-[0.97]"
-                  style={{
-                    background: "rgba(255,255,255,0.025)",
-                    color: TEXT_SOFT,
-                    borderColor: BORDER,
-                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "rgba(255,255,255,0.04)";
-                    e.currentTarget.style.color = TEXT;
-                    e.currentTarget.style.borderColor = BORDER_STRONG;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "rgba(255,255,255,0.025)";
-                    e.currentTarget.style.color = TEXT_SOFT;
-                    e.currentTarget.style.borderColor = BORDER;
-                  }}
-                  onClick={() => navigate("/historico")}
-                >
-                  <History className="h-4 w-4" />
-                  Ver histórico completo
-                </button>
-              </div>
+                  </div>
+                </motion.div>
+              ))
             )}
-          </motion.div>
-        </div>
+          </div>
+
+          {(canView("historico") || isMaster) && recentRecords.length > 0 && (
+            <div className="px-5 py-4 border-t border-border">
+              <button
+                className="w-full h-10 rounded-xl text-[13px] font-medium flex items-center justify-center gap-2 transition-all duration-150 bg-accent text-muted-foreground border border-border hover:text-foreground hover:border-border/80 active:scale-[0.97]"
+                onClick={() => navigate("/historico")}
+              >
+                <History className="h-4 w-4" />
+                Ver histórico completo
+              </button>
+            </div>
+          )}
+        </motion.div>
       </div>
     </div>
   );
