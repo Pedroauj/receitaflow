@@ -302,123 +302,48 @@ const Danone = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="card-elevated p-5"
+          className="space-y-5"
         >
-          <p className="text-sm font-semibold mb-5" style={{ color: "#F5F5F0" }}>
-            Resultado do Processamento
-          </p>
-
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-5">
-            <div className="rounded-lg p-4" style={{ background: "#18181A", border: "0.5px solid #2C2C2A" }}>
-              <p className="text-[11px] mb-1" style={{ color: "#5F5E5A" }}>
-                Arquivos processados
-              </p>
-              <p className="text-2xl font-semibold tabular-nums" style={{ color: "#F5F5F0" }}>
-                {result.arquivosProcessados}
-              </p>
+          <SectionContainer title="Resultado do processamento">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <SummaryCard label="Arquivos processados" value={result.arquivosProcessados} index={0} />
+              <SummaryCard label="Total de documentos" value={result.totalDocumentos} index={1} />
+              <SummaryCard label="Total de descontos" value={formatBRL(result.totalDescontos)} index={2} />
+              <SummaryCard label="Valor final" value={formatBRL(result.totalValorFinal)} index={3} />
             </div>
+          </SectionContainer>
 
-            <div className="rounded-lg p-4" style={{ background: "#18181A", border: "0.5px solid #2C2C2A" }}>
-              <p className="text-[11px] mb-1" style={{ color: "#5F5E5A" }}>
-                Total de documentos
-              </p>
-              <p className="text-2xl font-semibold tabular-nums" style={{ color: "#F5F5F0" }}>
-                {result.totalDocumentos}
-              </p>
-            </div>
-
-            <div className="rounded-lg p-4" style={{ background: "#18181A", border: "0.5px solid #2C2C2A" }}>
-              <p className="text-[11px] mb-1" style={{ color: "#5F5E5A" }}>
-                Total de descontos
-              </p>
-              <p className="text-2xl font-semibold tabular-nums" style={{ color: "#FAC775" }}>
-                {formatBRL(result.totalDescontos)}
-              </p>
-            </div>
-
-            <div className="rounded-lg p-4" style={{ background: "#18181A", border: "0.5px solid #2C2C2A" }}>
-              <p className="text-[11px] mb-1" style={{ color: "#5F5E5A" }}>
-                Valor final
-              </p>
-              <p className="text-2xl font-semibold tabular-nums" style={{ color: "#FAC775" }}>
-                {formatBRL(result.totalValorFinal)}
-              </p>
-            </div>
-          </div>
-
-          <div className="rounded-lg p-4 mb-5" style={{ background: "#18181A", border: "0.5px solid #2C2C2A" }}>
-            <p className="text-sm font-medium mb-3" style={{ color: "#F5F5F0" }}>
-              Prévia da planilha final
-            </p>
-
-            <div className="max-h-80 overflow-auto rounded-lg">
-              <table className="w-full">
-                <thead>
-                  <tr style={{ borderBottom: "0.5px solid #2C2C2A" }}>
-                    {["Filial", "Série", "Nº Documento", "Tipo", "Valor original", "Desconto", "Valor final"].map((h) => (
-                      <th
-                        key={h}
-                        className="px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-left"
-                        style={{ color: "#5F5E5A" }}
-                      >
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {result.documents.map((doc, index) => (
-                    <tr key={`${doc.numeroDocumento}_${doc.serie}_${index}`} style={{ borderBottom: "0.5px solid #2C2C2A" }}>
-                      <td className="px-4 py-2 text-sm" style={{ color: "#B4B2A9" }}>{doc.filial}</td>
-                      <td className="px-4 py-2 text-sm" style={{ color: "#B4B2A9" }}>{doc.serie}</td>
-                      <td className="px-4 py-2 font-mono text-sm" style={{ color: "#B4B2A9" }}>{doc.numeroDocumento}</td>
-                      <td className="px-4 py-2 text-sm" style={{ color: "#B4B2A9" }}>{doc.tipoDocumento}</td>
-                      <td className="px-4 py-2 tabular-nums text-sm" style={{ color: "#B4B2A9" }}>{formatBRL(doc.valorOriginal)}</td>
-                      <td className="px-4 py-2 tabular-nums text-sm" style={{ color: "#B4B2A9" }}>{formatBRL(doc.descontoAplicado)}</td>
-                      <td className="px-4 py-2 tabular-nums text-sm" style={{ color: "#F5F5F0" }}>{formatBRL(doc.valorFinal)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <DataTable
+            title="Prévia da planilha final"
+            badge={`${result.documents.length} documento(s)`}
+            columns={[
+              { key: "filial", label: "Filial", width: "80px" },
+              { key: "serie", label: "Série", width: "80px" },
+              { key: "numeroDocumento", label: "Nº Documento", width: "150px", render: (row: any) => <span className="font-mono">{row.numeroDocumento}</span> },
+              { key: "tipoDocumento", label: "Tipo", width: "100px" },
+              { key: "valorOriginal", label: "Valor original", width: "140px", render: (row: any) => formatBRL(row.valorOriginal) },
+              { key: "descontoAplicado", label: "Desconto", width: "140px", render: (row: any) => formatBRL(row.descontoAplicado) },
+              { key: "valorFinal", label: "Valor final", width: "140px", className: "font-semibold", render: (row: any) => formatBRL(row.valorFinal) },
+            ]}
+            data={result.documents}
+            keyExtractor={(row: any, i) => `${row.numeroDocumento}_${row.serie}_${i}`}
+          />
 
           {result.descontosAplicados.length > 0 && (
-            <div className="rounded-lg p-4 mb-5" style={{ background: "#18181A", border: "0.5px solid #2C2C2A" }}>
-              <p className="text-sm font-medium mb-3" style={{ color: "#F5F5F0" }}>
-                Conferência dos descontos aplicados
-              </p>
-
-              <div className="max-h-80 overflow-auto rounded-lg">
-                <table className="w-full">
-                  <thead>
-                    <tr style={{ borderBottom: "0.5px solid #2C2C2A" }}>
-                      {["Arquivo", "Referência do desconto", "Documento alvo", "Série", "Valor descontado", "Saldo restante"].map((h) => (
-                        <th
-                          key={h}
-                          className="px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-left"
-                          style={{ color: "#5F5E5A" }}
-                        >
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {result.descontosAplicados.map((item, index) => (
-                      <tr key={`${item.referenciaOrigem}_${index}`} style={{ borderBottom: "0.5px solid #2C2C2A" }}>
-                        <td className="px-4 py-2 text-sm" style={{ color: "#B4B2A9" }}>{item.arquivoOrigem}</td>
-                        <td className="px-4 py-2 text-sm" style={{ color: "#B4B2A9" }}>{item.referenciaOrigem}</td>
-                        <td className="px-4 py-2 font-mono text-sm" style={{ color: "#B4B2A9" }}>{item.documentoAlvo}</td>
-                        <td className="px-4 py-2 text-sm" style={{ color: "#B4B2A9" }}>{item.serieAlvo}</td>
-                        <td className="px-4 py-2 tabular-nums text-sm" style={{ color: "#B4B2A9" }}>{formatBRL(item.valorDesconto)}</td>
-                        <td className="px-4 py-2 tabular-nums text-sm" style={{ color: "#F5F5F0" }}>{formatBRL(item.saldoRestante)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <DataTable
+              title="Conferência dos descontos aplicados"
+              badge={`${result.descontosAplicados.length} desconto(s)`}
+              columns={[
+                { key: "arquivoOrigem", label: "Arquivo", width: "1fr" },
+                { key: "referenciaOrigem", label: "Referência do desconto", width: "1fr" },
+                { key: "documentoAlvo", label: "Documento alvo", width: "140px", render: (row: any) => <span className="font-mono">{row.documentoAlvo}</span> },
+                { key: "serieAlvo", label: "Série", width: "80px" },
+                { key: "valorDesconto", label: "Valor descontado", width: "140px", render: (row: any) => formatBRL(row.valorDesconto) },
+                { key: "saldoRestante", label: "Saldo restante", width: "140px", className: "font-semibold", render: (row: any) => formatBRL(row.saldoRestante) },
+              ]}
+              data={result.descontosAplicados}
+              keyExtractor={(row: any, i) => `${row.referenciaOrigem}_${i}`}
+            />
           )}
 
           <Button className="gradient-btn border-0 text-xs h-9 px-5" onClick={handleDownload}>

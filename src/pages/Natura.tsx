@@ -213,74 +213,36 @@ const Natura = () => {
 
       {/* Results */}
       {result && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="card-elevated p-5">
-          <p className="text-sm font-semibold mb-5" style={{ color: "#F5F5F0" }}>Resultado do Cruzamento</p>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="space-y-5">
+          <SectionContainer title="Resultado do cruzamento">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <SummaryCard label="Documentos no BOR" value={result.documentosBOR.length} index={0} />
+              <SummaryCard label="Encontrados" value={result.totalEncontrados} index={1} />
+              <SummaryCard label="Não encontrados" value={result.totalNaoEncontrados} index={2} />
+              <SummaryCard label="Valor total" value={formatBRL(result.totalValor)} index={3} />
+            </div>
+          </SectionContainer>
 
-          {/* Summary */}
-          <div className="grid gap-3 sm:grid-cols-4 mb-5">
-            <div className="rounded-lg p-4" style={{ background: "#18181A", border: "0.5px solid #2C2C2A" }}>
-              <p className="text-[11px] mb-1" style={{ color: "#5F5E5A" }}>Documentos no BOR</p>
-              <p className="text-2xl font-semibold tabular-nums" style={{ color: "#F5F5F0" }}>{result.documentosBOR.length}</p>
-            </div>
-            <div className="rounded-lg p-4" style={{ background: "#18181A", border: "0.5px solid #2C2C2A" }}>
-              <p className="text-[11px] mb-1" style={{ color: "#5F5E5A" }}>Encontrados</p>
-              <p className="text-2xl font-semibold tabular-nums" style={{ color: "#34D399" }}>{result.totalEncontrados}</p>
-            </div>
-            <div className="rounded-lg p-4" style={{ background: "#18181A", border: "0.5px solid #2C2C2A" }}>
-              <p className="text-[11px] mb-1" style={{ color: "#5F5E5A" }}>Não encontrados</p>
-              <p className="text-2xl font-semibold tabular-nums" style={{ color: result.totalNaoEncontrados > 0 ? "#F87171" : "#F5F5F0" }}>{result.totalNaoEncontrados}</p>
-            </div>
-            <div className="rounded-lg p-4" style={{ background: "#18181A", border: "0.5px solid #2C2C2A" }}>
-              <p className="text-[11px] mb-1" style={{ color: "#5F5E5A" }}>Valor total</p>
-              <p className="text-2xl font-semibold tabular-nums" style={{ color: "#FAC775" }}>{formatBRL(result.totalValor)}</p>
-            </div>
-          </div>
-
-          {/* Alerts */}
           {result.totalNaoEncontrados > 0 && (
-            <div className="rounded-lg p-3 mb-4 flex items-center gap-2" style={{ background: "rgba(239,68,68,0.08)", border: "0.5px solid rgba(239,68,68,0.2)" }}>
-              <XCircle className="h-4 w-4 text-red-400 shrink-0" />
-              <p className="text-xs text-red-300">{result.totalNaoEncontrados} documento(s) do BOR não encontrado(s) na planilha do sistema.</p>
-            </div>
+            <StatusCard icon={XCircle} title={`${result.totalNaoEncontrados} documento(s) do BOR não encontrado(s) na planilha do sistema.`} variant="error" />
           )}
           {result.totalSemValor > 0 && (
-            <div className="rounded-lg p-3 mb-4 flex items-center gap-2" style={{ background: "rgba(245,158,11,0.08)", border: "0.5px solid rgba(245,158,11,0.2)" }}>
-              <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
-              <p className="text-xs text-amber-300">{result.totalSemValor} documento(s) encontrado(s) sem valor na planilha.</p>
-            </div>
+            <StatusCard icon={AlertTriangle} title={`${result.totalSemValor} documento(s) encontrado(s) sem valor na planilha.`} variant="warning" />
           )}
 
-          {/* Blocos por fatura */}
-          <div className="rounded-lg p-4 mb-5" style={{ background: "#18181A", border: "0.5px solid #2C2C2A" }}>
-            <p className="text-sm font-medium mb-3" style={{ color: "#F5F5F0" }}>Detalhamento por Fatura</p>
-            <div className="max-h-96 overflow-auto rounded-lg">
-              <table className="w-full">
-                <thead>
-                  <tr style={{ borderBottom: "0.5px solid #2C2C2A" }}>
-                    {["Fatura (BOR)", "Documentos encontrados", "Valor total", "Status"].map((h) => (
-                      <th key={h} className="px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-left" style={{ color: "#5F5E5A" }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {result.blocos.map((b, i) => (
-                    <tr key={i} style={{ borderBottom: "0.5px solid #2C2C2A" }}>
-                      <td className="px-4 py-2 font-mono text-sm" style={{ color: "#B4B2A9" }}>{b.fatura}</td>
-                      <td className="px-4 py-2 text-sm" style={{ color: "#B4B2A9" }}>
-                        {b.documentos.length > 0 ? b.documentos.join(", ") : "—"}
-                      </td>
-                      <td className="px-4 py-2 tabular-nums text-sm" style={{ color: b.status === "encontrado" ? "#B4B2A9" : "#5F5E5A" }}>
-                        {b.status === "encontrado" ? formatBRL(b.valor) : "—"}
-                      </td>
-                      <td className="px-4 py-2">{statusBadge(b.status)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <DataTable
+            title="Detalhamento por Fatura"
+            badge={`${result.blocos.length} fatura(s)`}
+            columns={[
+              { key: "fatura", label: "Fatura (BOR)", width: "150px", render: (row: any) => <span className="font-mono">{row.fatura}</span> },
+              { key: "documentos", label: "Documentos encontrados", width: "1fr", render: (row: any) => row.documentos.length > 0 ? row.documentos.join(", ") : "—" },
+              { key: "valor", label: "Valor total", width: "140px", render: (row: any) => row.status === "encontrado" ? formatBRL(row.valor) : "—" },
+              { key: "status", label: "Status", width: "140px", render: (row: any) => statusBadge(row.status) },
+            ]}
+            data={result.blocos}
+            keyExtractor={(_: any, i) => String(i)}
+          />
 
-          {/* Export */}
           {result.totalEncontrados > 0 && (
             <Button className="gradient-btn border-0 text-xs h-9 px-5" onClick={handleDownload}>
               <Download className="mr-2 h-4 w-4" />Exportar planilha de importação
