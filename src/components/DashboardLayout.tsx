@@ -114,18 +114,6 @@ const DashboardLayout = () => {
             -webkit-tap-highlight-color: transparent;
           }
 
-          .rf-shell .rf-top-shell {
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            background: linear-gradient(
-              180deg,
-              rgba(8, 10, 16, 0.94),
-              rgba(7, 9, 15, 0.88)
-            );
-            border: 1px solid rgba(255,255,255,0.07);
-            box-shadow: var(--rf-shadow-lg);
-          }
-
           .rf-shell .rf-top-nav-item {
             height: 34px;
             padding: 0 14px;
@@ -304,10 +292,16 @@ const DashboardLayout = () => {
       </div>
 
       {!isPresentationMode && (
-        <header className="fixed inset-x-0 top-0 z-40 px-5 pt-5 md:px-6 lg:px-8">
-          <div className="mx-auto max-w-[1560px]">
-            <div className="rf-top-shell rounded-[22px] px-4 md:px-5">
-              <div className="flex h-[58px] items-center justify-between gap-4">
+        <header className="fixed inset-x-0 top-0 z-40">
+          <div
+            className="w-full border-b border-white/5 bg-gradient-to-b from-black/60 to-black/20 backdrop-blur-md"
+            style={{
+              backdropFilter: "blur(14px)",
+              WebkitBackdropFilter: "blur(14px)",
+            }}
+          >
+            <div className="mx-auto max-w-[1560px] px-4 md:px-5">
+              <div className="flex h-[64px] items-center justify-between gap-4">
                 <button
                   type="button"
                   onClick={() => navigate("/dashboard")}
@@ -474,7 +468,7 @@ const DashboardLayout = () => {
       <main
         ref={mainRef}
         className={`relative z-10 transition-all duration-500 ease-out ${
-          isPresentationMode ? "" : "pt-[92px] md:pt-[96px]"
+          isPresentationMode ? "" : "pt-[88px] md:pt-[92px]"
         }`}
       >
         <div
