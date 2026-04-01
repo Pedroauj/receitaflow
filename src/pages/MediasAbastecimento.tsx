@@ -2,22 +2,40 @@ import { useState, useMemo } from "react";
 import type { ChangeEvent, DragEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  UploadCloud, FileSpreadsheet, X, TrendingUp, Users, Truck,
-  Droplets, Leaf, DollarSign, Download, FileText, Presentation,
-  Maximize2, Minimize2, Gauge, Percent, Fuel,
+  UploadCloud,
+  FileSpreadsheet,
+  X,
+  TrendingUp,
+  Users,
+  Truck,
+  Droplets,
+  Leaf,
+  DollarSign,
+  Download,
+  FileText,
+  Presentation,
+  Maximize2,
+  Minimize2,
+  Gauge,
+  Fuel,
+  CalendarDays,
+  Filter,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePresentationMode } from "@/contexts/PresentationModeContext";
 
-// Data layer (desacoplada — pronta para futura integração)
 import {
   mockVehicleRecords,
   mockTimeSeries,
-  DIESEL_PRICE_REF,
   computeGlobalKpis,
   computeFleetSummaries,
   filterByFleetType,
@@ -29,7 +47,6 @@ import {
   FLEET_TYPES,
 } from "@/lib/abastecimento";
 
-// Componentes modulares
 import KpiCard from "@/components/abastecimento/KpiCard";
 import FleetComparison from "@/components/abastecimento/FleetComparison";
 import TimeSeriesChart from "@/components/abastecimento/TimeSeriesChart";
@@ -39,12 +56,10 @@ import EfficiencyDonut from "@/components/abastecimento/EfficiencyDonut";
 import GainLossBlock from "@/components/abastecimento/GainLossBlock";
 import DetailedTable from "@/components/abastecimento/DetailedTable";
 
-/* ── Formatters ─────────────────────────────────── */
 const fmtNum = (v: number) => v.toLocaleString("pt-BR");
 const fmtBRL = (v: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
 
-/* ── Component ──────────────────────────────────── */
 const MediasAbastecimento = () => {
   const [file, setFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -58,8 +73,7 @@ const MediasAbastecimento = () => {
   const { isPresentationMode, togglePresentationMode } = usePresentationMode();
   const pm = isPresentationMode;
 
-  /* ── Data processing (desacoplado) ─────────────── */
-  const allRecords = mockVehicleRecords; // Futuro: substituir por dados do banco/API
+  const allRecords = mockVehicleRecords;
 
   const filteredRecords = useMemo(
     () => filterByFleetType(allRecords, activeTab),
@@ -81,11 +95,27 @@ const MediasAbastecimento = () => {
   const worstEfficiency = useMemo(() => rankByEfficiency(filteredRecords, false, 10), [filteredRecords]);
 
   const availableTypes = useMemo(
-    () => ["Geral", ...new Set(allRecords.map(r => r.tipoFrota))],
+    () => ["Geral", ...new Set(allRecords.map((r) => r.tipoFrota))],
     [allRecords]
   );
 
-  /* ── Handlers ──────────────────────────────────── */
+  const executiveSummary = useMemo(() => {
+    return [
+      {
+        label: "Custo total consolidado",
+        value: fmtBRL(globalKpis.custoTotal),
+      },
+      {
+        label: "Eficiência média da operação",
+        value: `${globalKpis.mediaGeral.toFixed(2)} km/l`,
+      },
+      {
+        label: "Ganho total identificado",
+        value: `+${fmtNum(Math.round(globalKpis.ganhoTotal))} L`,
+      },
+    ];
+  }, [globalKpis]);
+
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (f) setFile(f);
@@ -103,11 +133,13 @@ const MediasAbastecimento = () => {
       toast.error("Selecione uma planilha antes de processar.");
       return;
     }
+
     setProcessing(true);
+
     setTimeout(() => {
       setProcessing(false);
       setShowResults(true);
-      toast.success("Planilha processada com sucesso!");
+      toast.success("Painel executivo atualizado com sucesso.");
     }, 1800);
   };
 
@@ -115,188 +147,341 @@ const MediasAbastecimento = () => {
     toast.info(`Exportação ${type} será implementada em breve.`);
   };
 
-  /* ── KPIs ──────────────────────────────────────── */
   const kpis = [
-    { label: "Total de Diesel", value: `${fmtNum(Math.round(globalKpis.totalDiesel))} L`, icon: Droplets, color: "text-cyan-400", highlight: true },
-    { label: "Total de KM", value: fmtNum(Math.round(globalKpis.totalKm)), icon: Truck, color: "text-purple-400" },
-    { label: "Média Geral", value: `${globalKpis.mediaGeral.toFixed(2)} km/l`, icon: TrendingUp, color: "text-primary", highlight: true, subValue: "Ponderada por KM" },
-    { label: "Eficiência Geral", value: `${globalKpis.eficienciaGeral.toFixed(1)}%`, icon: Gauge, color: "text-primary", highlight: true },
-    { label: "Economia Total", value: `+${fmtNum(Math.round(globalKpis.ganhoTotal))} L`, icon: Leaf, color: "text-emerald-400", highlight: true },
-    { label: "Custo Total", value: fmtBRL(globalKpis.custoTotal), icon: DollarSign, color: "text-primary" },
-    { label: "Veículos", value: String(globalKpis.totalVeiculos), icon: Truck, color: "text-blue-400" },
-    { label: "Motoristas", value: String(globalKpis.totalMotoristas), icon: Users, color: "text-blue-400" },
+    {
+      label: "Total de Diesel",
+      value: `${fmtNum(Math.round(globalKpis.totalDiesel))} L`,
+      icon: Droplets,
+      color: "text-cyan-400",
+      highlight: true,
+    },
+    {
+      label: "Total de KM",
+      value: fmtNum(Math.round(globalKpis.totalKm)),
+      icon: Truck,
+      color: "text-purple-400",
+    },
+    {
+      label: "Média Geral",
+      value: `${globalKpis.mediaGeral.toFixed(2)} km/l`,
+      icon: TrendingUp,
+      color: "text-primary",
+      highlight: true,
+      subValue: "Ponderada por KM",
+    },
+    {
+      label: "Eficiência Geral",
+      value: `${globalKpis.eficienciaGeral.toFixed(1)}%`,
+      icon: Gauge,
+      color: "text-primary",
+      highlight: true,
+    },
+    {
+      label: "Economia Total",
+      value: `+${fmtNum(Math.round(globalKpis.ganhoTotal))} L`,
+      icon: Leaf,
+      color: "text-emerald-400",
+      highlight: true,
+    },
+    {
+      label: "Custo Total",
+      value: fmtBRL(globalKpis.custoTotal),
+      icon: DollarSign,
+      color: "text-primary",
+    },
+    {
+      label: "Veículos",
+      value: String(globalKpis.totalVeiculos),
+      icon: Truck,
+      color: "text-blue-400",
+    },
+    {
+      label: "Motoristas",
+      value: String(globalKpis.totalMotoristas),
+      icon: Users,
+      color: "text-blue-400",
+    },
   ];
 
   return (
     <motion.div
-      className={`space-y-6 w-full mx-auto ${pm ? "max-w-[1600px]" : "max-w-[1600px]"}`}
+      className="mx-auto w-full max-w-[1600px] space-y-6"
       initial={false}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.4 }}
+      transition={{ duration: 0.35 }}
     >
-      {/* ── Header ─────────────────────────────── */}
-      <div className="flex items-start justify-between">
-        <AnimatePresence mode="wait">
-          {pm ? (
-            <motion.div
-              key="pm-header"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3 }}
-            >
-              <h1 className="text-2xl lg:text-3xl font-bold text-foreground tracking-tight">
-                Desempenho de Frota
-              </h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                Visão executiva · {activeTab === "Geral" ? "Todas as frotas" : activeTab}
-              </p>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="normal-header"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3 }}
-            >
-              <h1 className="text-xl font-semibold text-foreground">Médias de Abastecimento</h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                Dashboard executivo de consumo de diesel da frota
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+      <div className="relative overflow-hidden rounded-[26px] border border-white/8 bg-[linear-gradient(180deg,rgba(9,13,24,0.92),rgba(6,10,18,0.96))] px-5 py-5 shadow-[0_18px_60px_rgba(0,0,0,0.28)] md:px-7 md:py-6">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -left-16 top-0 h-52 w-52 rounded-full bg-violet-500/10 blur-3xl" />
+          <div className="absolute right-0 top-0 h-44 w-44 rounded-full bg-blue-500/10 blur-3xl" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.05),transparent_28%)]" />
+        </div>
 
-        <button
-          onClick={togglePresentationMode}
-          title={pm ? "Sair do modo apresentação (ESC)" : "Modo apresentação (F)"}
-          className={`
-            flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium
-            transition-all duration-300 shrink-0
-            ${pm
-              ? "border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 shadow-[0_0_20px_-4px_hsl(var(--primary)/0.25)]"
-              : "border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent"
-            }
-          `}
-        >
-          {pm ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-          <span className="hidden sm:inline">{pm ? "Sair" : "Apresentar"}</span>
-        </button>
+        <div className="relative flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+          <div className="min-w-0">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/55">
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              Painel executivo
+            </div>
+
+            <AnimatePresence mode="wait">
+              {pm ? (
+                <motion.div
+                  key="pm-header"
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.22 }}
+                >
+                  <h1 className="max-w-4xl text-2xl font-semibold leading-tight tracking-[-0.04em] text-foreground md:text-4xl">
+                    Desempenho estratégico de abastecimento da frota
+                  </h1>
+                  <p className="mt-2 max-w-3xl text-sm text-white/62 md:text-[15px]">
+                    Leitura consolidada da operação para apresentação executiva, com foco em
+                    eficiência, consumo, custo e oportunidade de economia.
+                  </p>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="normal-header"
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.22 }}
+                >
+                  <h1 className="max-w-4xl text-[26px] font-semibold leading-tight tracking-[-0.04em] text-foreground md:text-[38px]">
+                    Médias de Abastecimento
+                  </h1>
+                  <p className="mt-2 max-w-3xl text-sm text-white/62 md:text-[15px]">
+                    Visão executiva da performance de consumo da frota, estruturada para análise
+                    interna e apresentação para diretoria.
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-2 self-start">
+            <button
+              onClick={togglePresentationMode}
+              title={pm ? "Sair do modo apresentação (ESC)" : "Entrar no modo apresentação (F)"}
+              className={`inline-flex h-11 items-center gap-2 rounded-2xl border px-4 text-sm font-semibold transition-all duration-300 ${
+                pm
+                  ? "border-primary/30 bg-primary/12 text-primary shadow-[0_0_24px_-8px_hsl(var(--primary)/0.45)] hover:bg-primary/18"
+                  : "border-white/10 bg-white/[0.04] text-white/78 hover:border-white/14 hover:bg-white/[0.06] hover:text-foreground"
+              }`}
+            >
+              {pm ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+              <span>{pm ? "Sair da apresentação" : "Modo apresentação"}</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="relative mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
+          {executiveSummary.map((item) => (
+            <div
+              key={item.label}
+              className="rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3 backdrop-blur-sm"
+            >
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/42">
+                {item.label}
+              </p>
+              <p className="mt-1 text-lg font-semibold tracking-[-0.03em] text-foreground md:text-xl">
+                {item.value}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* ── Upload & Filters (hidden in presentation) ── */}
       <AnimatePresence>
         {!pm && (
           <motion.div
             initial={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0, marginBottom: 0, overflow: "hidden" }}
-            transition={{ duration: 0.4, ease: "easeInOut" }}
-            className="rounded-xl border border-border bg-card p-5 space-y-5"
+            transition={{ duration: 0.35, ease: "easeInOut" }}
+            className="rounded-[24px] border border-white/8 bg-[linear-gradient(180deg,rgba(10,14,25,0.88),rgba(8,12,22,0.94))] p-5 shadow-[0_14px_34px_rgba(0,0,0,0.18)]"
           >
+            <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h2 className="text-base font-semibold tracking-[-0.02em] text-foreground">
+                  Atualização do painel
+                </h2>
+                <p className="text-sm text-white/55">
+                  Importe a planilha e refine o recorte da análise antes de apresentar os dados.
+                </p>
+              </div>
+
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/45">
+                <Filter className="h-3.5 w-3.5" />
+                Base operacional
+              </div>
+            </div>
+
             <div
-              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragOver(true);
+              }}
               onDragLeave={() => setDragOver(false)}
               onDrop={handleDrop}
-              className={`relative flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed p-8 transition-colors ${
-                dragOver ? "border-primary bg-primary/5" : "border-border"
+              className={`relative rounded-[20px] border-2 border-dashed p-8 transition-all duration-300 ${
+                dragOver
+                  ? "border-primary/60 bg-primary/6"
+                  : "border-white/10 bg-white/[0.02]"
               }`}
             >
               {file ? (
-                <div className="flex items-center gap-3">
-                  <FileSpreadsheet className="h-8 w-8 text-primary" />
-                  <div className="text-sm">
-                    <p className="font-medium text-foreground">{file.name}</p>
-                    <p className="text-muted-foreground">{(file.size / 1024).toFixed(0)} KB</p>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04]">
+                      <FileSpreadsheet className="h-6 w-6 text-primary" />
+                    </div>
+
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-foreground">{file.name}</p>
+                      <p className="text-xs text-white/48">
+                        {(file.size / 1024).toFixed(0)} KB • pronto para processamento
+                      </p>
+                    </div>
                   </div>
+
                   <button
                     onClick={() => setFile(null)}
-                    className="ml-2 rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                    className="inline-flex h-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] px-3 text-sm font-medium text-white/70 transition-colors hover:bg-white/[0.06] hover:text-foreground"
                   >
                     <X className="h-4 w-4" />
                   </button>
                 </div>
               ) : (
-                <>
-                  <UploadCloud className="h-10 w-10 text-muted-foreground/60" />
-                  <p className="text-sm text-muted-foreground text-center">
-                    Envie a planilha exportada do sistema da empresa
-                  </p>
-                  <label className="cursor-pointer rounded-lg bg-primary/10 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/20 transition-colors">
+                <div className="flex flex-col items-center justify-center gap-3 text-center">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-[20px] border border-white/10 bg-white/[0.04]">
+                    <UploadCloud className="h-8 w-8 text-white/55" />
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      Arraste a planilha ou selecione o arquivo manualmente
+                    </p>
+                    <p className="mt-1 text-sm text-white/48">
+                      Utilize a exportação oficial do sistema para manter a leitura executiva confiável.
+                    </p>
+                  </div>
+
+                  <label className="mt-1 inline-flex h-11 cursor-pointer items-center rounded-xl border border-primary/25 bg-primary/12 px-4 text-sm font-semibold text-primary transition-colors hover:bg-primary/18">
                     Selecionar arquivo
-                    <input type="file" accept=".xlsx,.xls" className="hidden" onChange={handleFileChange} />
+                    <input
+                      type="file"
+                      accept=".xlsx,.xls"
+                      className="hidden"
+                      onChange={handleFileChange}
+                    />
                   </label>
-                  <p className="text-xs text-muted-foreground/50">.xlsx ou .xls</p>
-                </>
+
+                  <p className="text-xs text-white/35">Formatos aceitos: .xlsx e .xls</p>
+                </div>
               )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Data inicial</label>
+            <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div className="space-y-2">
+                <label className="inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-white/42">
+                  <CalendarDays className="h-3.5 w-3.5" />
+                  Data inicial
+                </label>
                 <input
                   type="date"
                   value={periodoInicio}
                   onChange={(e) => setPeriodoInicio(e.target.value)}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
+                  className="h-11 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 text-sm text-foreground outline-none transition-colors placeholder:text-white/22 focus:border-primary/35"
                 />
               </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Data final</label>
+
+              <div className="space-y-2">
+                <label className="inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-white/42">
+                  <CalendarDays className="h-3.5 w-3.5" />
+                  Data final
+                </label>
                 <input
                   type="date"
                   value={periodoFim}
                   onChange={(e) => setPeriodoFim(e.target.value)}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
+                  className="h-11 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 text-sm text-foreground outline-none transition-colors placeholder:text-white/22 focus:border-primary/35"
                 />
               </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Tipo de frota</label>
+
+              <div className="space-y-2">
+                <label className="inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-white/42">
+                  <Filter className="h-3.5 w-3.5" />
+                  Tipo de frota
+                </label>
                 <Select value={tipoFrota} onValueChange={setTipoFrota}>
-                  <SelectTrigger className="w-full"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectTrigger className="h-11 w-full rounded-xl border-white/10 bg-white/[0.03] text-foreground">
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="todos">Todos</SelectItem>
-                    {FLEET_TYPES.map(t => (
-                      <SelectItem key={t} value={t.toLowerCase()}>{t}</SelectItem>
+                    {FLEET_TYPES.map((t) => (
+                      <SelectItem key={t} value={t.toLowerCase()}>
+                        {t}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
-            <button
-              onClick={handleProcess}
-              disabled={processing}
-              className="w-full sm:w-auto rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
-            >
-              {processing ? "Processando…" : "Processar Planilha"}
-            </button>
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              <button
+                onClick={handleProcess}
+                disabled={processing}
+                className="inline-flex h-11 items-center justify-center rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {processing ? "Atualizando painel..." : "Atualizar painel executivo"}
+              </button>
+
+              <p className="text-sm text-white/42">
+                A análise será refletida em todos os indicadores e rankings abaixo.
+              </p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ── Results ─────────────────────────────── */}
       {showResults && (
         <motion.div
           className="space-y-6"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: pm ? 0.15 : 0 }}
+          transition={{ duration: 0.35, delay: pm ? 0.1 : 0 }}
         >
-          {/* Fleet type tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className={`bg-card border border-border ${pm ? "w-full flex-wrap h-auto" : ""}`}>
-              {availableTypes.map(t => (
-                <TabsTrigger key={t} value={t} className="text-xs sm:text-sm">
-                  {t}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold tracking-[-0.02em] text-foreground md:text-xl">
+                Leitura consolidada da operação
+              </h2>
+              <p className="mt-1 text-sm text-white/56">
+                Recorte atual: {activeTab === "Geral" ? "todas as frotas" : activeTab}.
+              </p>
+            </div>
 
-          {/* KPIs */}
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="h-auto flex-wrap rounded-2xl border border-white/8 bg-white/[0.03] p-1">
+                {availableTypes.map((t) => (
+                  <TabsTrigger
+                    key={t}
+                    value={t}
+                    className="rounded-xl px-3 py-2 text-xs font-semibold sm:text-sm"
+                  >
+                    {t}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </div>
+
           <div
-            className={`grid gap-4 transition-all duration-500 ${
+            className={`grid gap-4 ${
               pm
                 ? "grid-cols-2 md:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8"
                 : "grid-cols-2 md:grid-cols-4 lg:grid-cols-8"
@@ -307,13 +492,9 @@ const MediasAbastecimento = () => {
             ))}
           </div>
 
-          {/* Insights */}
           <InsightsPanel insights={insights} pm={pm} />
 
-          {/* Destaques executivos */}
-          <div
-            className={`grid ${pm ? "gap-6" : "gap-4"} grid-cols-1 md:grid-cols-2 xl:grid-cols-3`}
-          >
+          <div className={`grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 ${pm ? "xl:gap-6" : ""}`}>
             {highlights.worstEfficiency && (
               <KpiCard
                 label="Pior Média"
@@ -381,60 +562,68 @@ const MediasAbastecimento = () => {
             )}
           </div>
 
-          {/* Fleet Comparison (only on Geral tab) */}
-          {activeTab === "Geral" && (
-            <FleetComparison summaries={fleetSummaries} pm={pm} />
-          )}
+          {activeTab === "Geral" && <FleetComparison summaries={fleetSummaries} pm={pm} />}
 
-          {/* Main charts row */}
-          <div className={`grid grid-cols-1 lg:grid-cols-3 ${pm ? "gap-6" : "gap-4"}`}>
+          <div className={`grid grid-cols-1 gap-4 lg:grid-cols-3 ${pm ? "lg:gap-6" : ""}`}>
             <div className={`lg:col-span-2 ${pm ? "min-h-[420px]" : ""}`}>
               <TimeSeriesChart data={mockTimeSeries} pm={pm} />
             </div>
             <EfficiencyDonut dist={effDist} pm={pm} />
           </div>
 
-          {/* Gain/Loss */}
           <GainLossBlock records={filteredRecords} pm={pm} />
 
-          {/* Rankings */}
-          <div className={`grid grid-cols-1 lg:grid-cols-3 ${pm ? "gap-6" : "gap-4"}`}>
+          <div className={`grid grid-cols-1 gap-4 lg:grid-cols-3 ${pm ? "lg:gap-6" : ""}`}>
             <RankingChart title="Maior Consumo (L)" items={topConsumption} unit="L" pm={pm} />
             <RankingChart title="Melhores Médias (KM/L)" items={bestEfficiency} unit="km/l" pm={pm} />
-            <RankingChart title="Piores Médias (KM/L)" items={worstEfficiency} unit="km/l" invertColors pm={pm} />
+            <RankingChart
+              title="Piores Médias (KM/L)"
+              items={worstEfficiency}
+              unit="km/l"
+              invertColors
+              pm={pm}
+            />
           </div>
 
-          {/* Detailed Table */}
           <DetailedTable records={filteredRecords} pm={pm} />
 
-          {/* Export (hidden in presentation) */}
           <AnimatePresence>
             {!pm && (
               <motion.div
                 initial={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0, overflow: "hidden" }}
                 transition={{ duration: 0.3 }}
-                className="rounded-xl border border-border bg-card p-5 space-y-4"
+                className="rounded-[24px] border border-white/8 bg-[linear-gradient(180deg,rgba(10,14,25,0.88),rgba(8,12,22,0.94))] p-5"
               >
-                <h3 className="text-sm font-medium text-foreground">Exportar Relatório</h3>
+                <div className="mb-4">
+                  <h3 className="text-base font-semibold tracking-[-0.02em] text-foreground">
+                    Exportação executiva
+                  </h3>
+                  <p className="mt-1 text-sm text-white/52">
+                    Gere materiais de apoio para reunião, acompanhamento ou envio formal.
+                  </p>
+                </div>
+
                 <div className="flex flex-wrap gap-3">
                   <button
                     onClick={() => handleExport("PowerPoint")}
-                    className="flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent transition-colors"
+                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 text-sm font-semibold text-foreground transition-colors hover:bg-white/[0.06]"
                   >
                     <Presentation className="h-4 w-4 text-primary" />
-                    Gerar Apresentação
+                    Gerar apresentação
                   </button>
+
                   <button
                     onClick={() => handleExport("PDF")}
-                    className="flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent transition-colors"
+                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 text-sm font-semibold text-foreground transition-colors hover:bg-white/[0.06]"
                   >
                     <FileText className="h-4 w-4 text-red-400" />
                     Exportar PDF
                   </button>
+
                   <button
                     onClick={() => handleExport("Excel")}
-                    className="flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent transition-colors"
+                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 text-sm font-semibold text-foreground transition-colors hover:bg-white/[0.06]"
                   >
                     <Download className="h-4 w-4 text-emerald-400" />
                     Exportar Excel
