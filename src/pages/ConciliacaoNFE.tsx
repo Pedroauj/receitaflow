@@ -11,6 +11,8 @@ import {
   AlertTriangle,
   Clock3,
   BarChart3,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import {
   compareReports,
@@ -177,6 +179,8 @@ const softCardStyle: React.CSSProperties = {
   backdropFilter: "blur(10px)",
 };
 
+const ROWS_PER_PAGE = 25;
+
 const ConciliacaoNFE = () => {
   const [systemFile, setSystemFile] = useState<File | null>(null);
   const [governmentFile, setGovernmentFile] = useState<File | null>(null);
@@ -190,6 +194,7 @@ const ConciliacaoNFE = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [draggingOver, setDraggingOver] = useState<"system" | "government" | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const canCompare = !!systemFile && !!governmentFile && !isProcessing;
 
@@ -255,12 +260,37 @@ const ConciliacaoNFE = () => {
       ? ((summary.divergencesCount / summary.totalGovernmentNotes) * 100).toFixed(1)
       : "0.0";
 
+  const totalPages = Math.max(1, Math.ceil(searchedResults.length / ROWS_PER_PAGE));
+  const startIndex = (currentPage - 1) * ROWS_PER_PAGE;
+  const endIndex = startIndex + ROWS_PER_PAGE;
+
+  const paginatedResults = useMemo(() => {
+    return searchedResults.slice(startIndex, endIndex);
+  }, [searchedResults, startIndex, endIndex]);
+
+  const visiblePages = useMemo(() => {
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    if (currentPage <= 3) {
+      return [1, 2, 3, 4, 5];
+    }
+
+    if (currentPage >= totalPages - 2) {
+      return [totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    }
+
+    return [currentPage - 2, currentPage - 1, currentPage, currentPage + 1, currentPage + 2];
+  }, [currentPage, totalPages]);
+
   const reset = () => {
     setHasCompared(false);
     setResults([]);
     setSummary(emptySummary);
     setSearchTerm("");
     setErrorMessage("");
+    setCurrentPage(1);
   };
 
   const handleSystemFileChange = (file: File | null) => {
@@ -314,6 +344,7 @@ const ConciliacaoNFE = () => {
       setHasCompared(true);
       setFilter("todos");
       setSearchTerm("");
+      setCurrentPage(1);
     } catch (error) {
       reset();
       setErrorMessage(
@@ -331,6 +362,16 @@ const ConciliacaoNFE = () => {
       setErrorMessage(error instanceof Error ? error.message : "Não foi possível exportar.");
     }
   };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter, searchTerm, results]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   return (
     <div style={{ width: "100%", padding: "4px 0 20px" }}>
@@ -1238,8 +1279,8 @@ const ConciliacaoNFE = () => {
                   </thead>
 
                   <tbody>
-                    {searchedResults.length > 0 ? (
-                      searchedResults.map((row) => {
+                    {paginatedResults.length > 0 ? (
+                      paginatedResults.map((row) => {
                         const badge = typeBadge[row.tipo];
 
                         return (
@@ -1460,6 +1501,166 @@ const ConciliacaoNFE = () => {
                   </tbody>
                 </table>
               </div>
+
+              {searchedResults.length > 0 && (
+                <div
+                  style={{
+                    marginTop: 14,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 14,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 13,
+                      color: "#94A3B8",
+                    }}
+                  >
+                    Exibindo{" "}
+                    <span style={{ color: "#E2E8F0", fontWeight: 700 }}>
+                      {startIndex + 1}
+                    </span>{" "}
+                    até{" "}
+                    <span style={{ color: "#E2E8F0", fontWeight: 700 }}>
+                      {Math.min(endIndex, searchedResults.length)}
+                    </span>{" "}
+                    de{" "}
+                    <span style={{ color: "#E2E8F0", fontWeight: 700 }}>
+                      {searchedResults.length}
+                    </span>{" "}
+                    registros
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      style={{
+                        width: 38,
+                        height: 38,
+                        borderRadius: 12,
+                        border: "1px solid rgba(255,255,255,0.08)",
+                        background: "rgba(255,255,255,0.04)",
+                        color: currentPage === 1 ? "#475569" : "#CBD5E1",
+                        cursor: currentPage === 1 ? "not-allowed" : "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <ChevronLeft style={{ width: 16, height: 16 }} />
+                    </button>
+
+                    {visiblePages[0] > 1 && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setCurrentPage(1)}
+                          style={{
+                            minWidth: 38,
+                            height: 38,
+                            padding: "0 10px",
+                            borderRadius: 12,
+                            border: "1px solid rgba(255,255,255,0.08)",
+                            background: "rgba(255,255,255,0.04)",
+                            color: "#CBD5E1",
+                            fontWeight: 600,
+                            cursor: "pointer",
+                          }}
+                        >
+                          1
+                        </button>
+                        {visiblePages[0] > 2 && (
+                          <span style={{ color: "#64748B", padding: "0 2px" }}>…</span>
+                        )}
+                      </>
+                    )}
+
+                    {visiblePages.map((page) => (
+                      <button
+                        key={page}
+                        type="button"
+                        onClick={() => setCurrentPage(page)}
+                        style={{
+                          minWidth: 38,
+                          height: 38,
+                          padding: "0 10px",
+                          borderRadius: 12,
+                          border:
+                            currentPage === page
+                              ? "1px solid rgba(99,102,241,0.28)"
+                              : "1px solid rgba(255,255,255,0.08)",
+                          background:
+                            currentPage === page
+                              ? "linear-gradient(135deg, rgba(99,102,241,.18) 0%, rgba(59,130,246,.18) 100%)"
+                              : "rgba(255,255,255,0.04)",
+                          color: currentPage === page ? "#F8FAFC" : "#CBD5E1",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                        }}
+                      >
+                        {page}
+                      </button>
+                    ))}
+
+                    {visiblePages[visiblePages.length - 1] < totalPages && (
+                      <>
+                        {visiblePages[visiblePages.length - 1] < totalPages - 1 && (
+                          <span style={{ color: "#64748B", padding: "0 2px" }}>…</span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => setCurrentPage(totalPages)}
+                          style={{
+                            minWidth: 38,
+                            height: 38,
+                            padding: "0 10px",
+                            borderRadius: 12,
+                            border: "1px solid rgba(255,255,255,0.08)",
+                            background: "rgba(255,255,255,0.04)",
+                            color: "#CBD5E1",
+                            fontWeight: 600,
+                            cursor: "pointer",
+                          }}
+                        >
+                          {totalPages}
+                        </button>
+                      </>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      style={{
+                        width: 38,
+                        height: 38,
+                        borderRadius: 12,
+                        border: "1px solid rgba(255,255,255,0.08)",
+                        background: "rgba(255,255,255,0.04)",
+                        color: currentPage === totalPages ? "#475569" : "#CBD5E1",
+                        cursor: currentPage === totalPages ? "not-allowed" : "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <ChevronRight style={{ width: 16, height: 16 }} />
+                    </button>
+                  </div>
+                </div>
+              )}
             </section>
           </>
         )}
@@ -1467,27 +1668,11 @@ const ConciliacaoNFE = () => {
         {!hasCompared && !errorMessage && (
           <div
             style={{
-              ...panelStyle,
-              padding: "42px 22px",
+              marginTop: 56,
               textAlign: "center",
+              padding: "8px 12px 4px",
             }}
           >
-            <div
-              style={{
-                width: 68,
-                height: 68,
-                borderRadius: 22,
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                margin: "0 auto 18px",
-              }}
-            >
-              <Search style={{ width: 24, height: 24, color: "#64748B" }} />
-            </div>
-
             <p
               style={{
                 fontSize: 22,
@@ -1499,7 +1684,14 @@ const ConciliacaoNFE = () => {
             >
               Nenhuma comparação realizada
             </p>
-            <p style={{ fontSize: 14, color: "#94A3B8", margin: "8px 0 0", lineHeight: 1.6 }}>
+            <p
+              style={{
+                fontSize: 14,
+                color: "#94A3B8",
+                margin: "10px 0 0",
+                lineHeight: 1.6,
+              }}
+            >
               Envie as duas planilhas e clique em comparar para visualizar a conciliação.
             </p>
           </div>
