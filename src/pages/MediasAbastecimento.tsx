@@ -99,23 +99,6 @@ const MediasAbastecimento = () => {
     [allRecords]
   );
 
-  const executiveSummary = useMemo(() => {
-    return [
-      {
-        label: "Custo total consolidado",
-        value: fmtBRL(globalKpis.custoTotal),
-      },
-      {
-        label: "Eficiência média da operação",
-        value: `${globalKpis.mediaGeral.toFixed(2)} km/l`,
-      },
-      {
-        label: "Ganho total identificado",
-        value: `+${fmtNum(Math.round(globalKpis.ganhoTotal))} L`,
-      },
-    ];
-  }, [globalKpis]);
-
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (f) setFile(f);
