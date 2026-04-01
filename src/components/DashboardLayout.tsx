@@ -18,6 +18,7 @@ import {
   Search,
   Bell,
   User,
+  BarChart3,
 } from "lucide-react";
 
 type NavModule = {
@@ -33,6 +34,12 @@ const NAV_MODULES: NavModule[] = [
   { key: "historico", label: "Histórico", path: "/historico", icon: History },
   { key: "conciliacao", label: "NF-e / NFS-e", path: "/conciliacao", icon: FileSearch },
   { key: "abastecimento", label: "Abastecimento", path: "/abastecimento", icon: Fuel },
+  {
+    key: "medias_abastecimento",
+    label: "Médias de abastecimento",
+    path: "/medias-abastecimento",
+    icon: BarChart3,
+  },
   { key: "clientes", label: "Clientes", path: "/clientes", icon: Building2 },
 ];
 
@@ -170,6 +177,7 @@ const DashboardLayout = () => {
               border-color 180ms var(--rf-ease),
               color 180ms var(--rf-ease),
               box-shadow 180ms var(--rf-ease);
+            white-space: nowrap;
           }
 
           .rf-shell .rf-top-nav-item:hover {
