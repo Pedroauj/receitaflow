@@ -91,8 +91,14 @@ const MediasAbastecimento = () => {
   );
 
   const topConsumption = useMemo(() => rankByConsumption(filteredRecords, 10), [filteredRecords]);
-  const bestEfficiency = useMemo(() => rankByEfficiency(filteredRecords, true, 10), [filteredRecords]);
-  const worstEfficiency = useMemo(() => rankByEfficiency(filteredRecords, false, 10), [filteredRecords]);
+  const bestEfficiency = useMemo(
+    () => rankByEfficiency(filteredRecords, true, 10),
+    [filteredRecords]
+  );
+  const worstEfficiency = useMemo(
+    () => rankByEfficiency(filteredRecords, false, 10),
+    [filteredRecords]
+  );
 
   const availableTypes = useMemo(
     () => ["Geral", ...new Set(allRecords.map((r) => r.tipoFrota))],
@@ -193,7 +199,7 @@ const MediasAbastecimento = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.35 }}
     >
-      <div className="relative overflow-hidden rounded-[26px] border border-white/8 bg-[linear-gradient(180deg,rgba(9,13,24,0.92),rgba(6,10,18,0.96))] px-5 py-5 shadow-[0_18px_60px_rgba(0,0,0,0.28)] md:px-7 md:py-6"/>
+      <section className="relative overflow-hidden rounded-[26px] border border-white/8 bg-[linear-gradient(180deg,rgba(9,13,24,0.92),rgba(6,10,18,0.96))] px-5 py-5 shadow-[0_18px_60px_rgba(0,0,0,0.28)] md:px-7 md:py-6">
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute -left-16 top-0 h-52 w-52 rounded-full bg-violet-500/10 blur-3xl" />
           <div className="absolute right-0 top-0 h-44 w-44 rounded-full bg-blue-500/10 blur-3xl" />
@@ -232,7 +238,7 @@ const MediasAbastecimento = () => {
                   exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.22 }}
                 >
-                  <h1 className="max-w-4xl text-[26px] font-semibold leading-tight tracking-[-0.04em] text-foreground md:text-[38px]">
+                  <h1 className="max-w-4xl text-[28px] font-semibold leading-tight tracking-[-0.04em] text-foreground md:text-[40px]">
                     Médias de Abastecimento
                   </h1>
                   <p className="mt-2 max-w-3xl text-sm text-white/62 md:text-[15px]">
@@ -259,10 +265,11 @@ const MediasAbastecimento = () => {
             </button>
           </div>
         </div>
+      </section>
 
       <AnimatePresence>
         {!pm && (
-          <motion.div
+          <motion.section
             initial={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0, marginBottom: 0, overflow: "hidden" }}
             transition={{ duration: 0.35, ease: "easeInOut" }}
@@ -330,7 +337,8 @@ const MediasAbastecimento = () => {
                       Arraste a planilha ou selecione o arquivo manualmente
                     </p>
                     <p className="mt-1 text-sm text-white/48">
-                      Utilize a exportação oficial do sistema para manter a leitura executiva confiável.
+                      Utilize a exportação oficial do sistema para manter a leitura executiva
+                      confiável.
                     </p>
                   </div>
 
@@ -401,7 +409,7 @@ const MediasAbastecimento = () => {
               <button
                 onClick={handleProcess}
                 disabled={processing}
-                className="inline-flex h-11 items-center justify-center rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex h-11 items-center justify-center rounded-xl border border-[#f3b633]/40 bg-[linear-gradient(180deg,#f3b633,#d89614)] px-5 text-sm font-semibold text-[#18120a] shadow-[0_12px_30px_-12px_rgba(243,182,51,0.75)] transition-all duration-300 hover:brightness-105 hover:shadow-[0_16px_36px_-12px_rgba(243,182,51,0.85)] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {processing ? "Atualizando painel..." : "Atualizar painel executivo"}
               </button>
@@ -410,7 +418,7 @@ const MediasAbastecimento = () => {
                 A análise será refletida em todos os indicadores e rankings abaixo.
               </p>
             </div>
-          </motion.div>
+          </motion.section>
         )}
       </AnimatePresence>
 
@@ -460,7 +468,9 @@ const MediasAbastecimento = () => {
 
           <InsightsPanel insights={insights} pm={pm} />
 
-          <div className={`grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 ${pm ? "xl:gap-6" : ""}`}>
+          <div
+            className={`grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 ${pm ? "xl:gap-6" : ""}`}
+          >
             {highlights.worstEfficiency && (
               <KpiCard
                 label="Pior Média"
@@ -541,7 +551,12 @@ const MediasAbastecimento = () => {
 
           <div className={`grid grid-cols-1 gap-4 lg:grid-cols-3 ${pm ? "lg:gap-6" : ""}`}>
             <RankingChart title="Maior Consumo (L)" items={topConsumption} unit="L" pm={pm} />
-            <RankingChart title="Melhores Médias (KM/L)" items={bestEfficiency} unit="km/l" pm={pm} />
+            <RankingChart
+              title="Melhores Médias (KM/L)"
+              items={bestEfficiency}
+              unit="km/l"
+              pm={pm}
+            />
             <RankingChart
               title="Piores Médias (KM/L)"
               items={worstEfficiency}
@@ -555,7 +570,7 @@ const MediasAbastecimento = () => {
 
           <AnimatePresence>
             {!pm && (
-              <motion.div
+              <motion.section
                 initial={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0, overflow: "hidden" }}
                 transition={{ duration: 0.3 }}
@@ -595,7 +610,7 @@ const MediasAbastecimento = () => {
                     Exportar Excel
                   </button>
                 </div>
-              </motion.div>
+              </motion.section>
             )}
           </AnimatePresence>
         </motion.div>
