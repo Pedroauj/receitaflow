@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { usePresentationMode } from "@/contexts/PresentationModeContext";
 import { useModulePermissions } from "@/hooks/useModulePermissions";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import {
   ChevronDown,
   HelpCircle,
@@ -16,7 +17,6 @@ import {
   LogOut,
   Search,
   Bell,
-  Repeat,
   User,
 } from "lucide-react";
 
@@ -38,6 +38,7 @@ const NAV_MODULES: NavModule[] = [
 
 const DashboardLayout = () => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const mainRef = useRef<HTMLElement | null>(null);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
 
@@ -94,6 +95,43 @@ const DashboardLayout = () => {
       return location.pathname === "/dashboard" || location.pathname === "/inicio";
     }
     return location.pathname.startsWith(path);
+  };
+
+  const handleOpenProfile = () => {
+    setUserMenuOpen(false);
+    navigate("/configuracoes");
+  };
+
+  const handleOpenSettings = () => {
+    setUserMenuOpen(false);
+    navigate("/configuracoes");
+  };
+
+  const handleOpenSupport = () => {
+    setUserMenuOpen(false);
+    navigate("/configuracoes");
+  };
+
+  const handleSignOut = async () => {
+    if (isSigningOut) return;
+
+    try {
+      setIsSigningOut(true);
+      setUserMenuOpen(false);
+
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        console.error("Erro ao sair:", error);
+        return;
+      }
+
+      navigate("/login", { replace: true });
+    } catch (error) {
+      console.error("Erro inesperado ao sair:", error);
+    } finally {
+      setIsSigningOut(false);
+    }
   };
 
   return (
@@ -397,7 +435,11 @@ const DashboardLayout = () => {
                             </div>
                           </div>
 
-                          <button type="button" className="rf-dropdown-item w-full text-left">
+                          <button
+                            type="button"
+                            className="rf-dropdown-item w-full text-left"
+                            onClick={handleOpenProfile}
+                          >
                             <User className="h-4 w-4 text-white/68" />
                             Perfil
                           </button>
@@ -405,21 +447,17 @@ const DashboardLayout = () => {
                           <button
                             type="button"
                             className="rf-dropdown-item w-full text-left"
-                            onClick={() => {
-                              setUserMenuOpen(false);
-                              navigate("/configuracoes");
-                            }}
+                            onClick={handleOpenSettings}
                           >
                             <Settings className="h-4 w-4 text-white/68" />
                             Configurações
                           </button>
 
-                          <button type="button" className="rf-dropdown-item w-full text-left">
-                            <Repeat className="h-4 w-4 text-white/68" />
-                            Trocar empresa
-                          </button>
-
-                          <button type="button" className="rf-dropdown-item w-full text-left">
+                          <button
+                            type="button"
+                            className="rf-dropdown-item w-full text-left"
+                            onClick={handleOpenSupport}
+                          >
                             <HelpCircle className="h-4 w-4 text-white/68" />
                             Ajuda e suporte
                           </button>
@@ -429,9 +467,11 @@ const DashboardLayout = () => {
                           <button
                             type="button"
                             className="rf-dropdown-item w-full text-left text-[#ffb3b3]"
+                            onClick={handleSignOut}
+                            disabled={isSigningOut}
                           >
                             <LogOut className="h-4 w-4 text-[#ff9d9d]" />
-                            Sair
+                            {isSigningOut ? "Saindo..." : "Sair"}
                           </button>
                         </motion.div>
                       )}
