@@ -12,7 +12,6 @@ import {
   BarChart3,
   Building2,
   Settings,
-  ArrowRight,
   Sun,
   Moon,
   CloudSun,
@@ -21,13 +20,8 @@ import {
   Hash,
   DollarSign,
   Clock,
-  Activity,
-  Layers,
-  TrendingUp,
-  CheckCircle2,
-  AlertCircle,
   Loader2,
-  ShieldCheck,
+  ArrowUpRight,
 } from "lucide-react";
 import { getStats, getRecords } from "@/lib/history";
 import type { LucideIcon } from "lucide-react";
@@ -124,7 +118,7 @@ const fadeUp = (delay = 0) => ({
   animate: { opacity: 1, y: 0, filter: "blur(0px)" } as const,
   transition: {
     delay,
-    duration: 0.5,
+    duration: 0.45,
     ease: EASE as unknown as [number, number, number, number],
   },
 });
@@ -162,13 +156,6 @@ const Index = () => {
   const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
   const GreetingIcon = hour < 12 ? Sun : hour < 18 ? CloudSun : Moon;
 
-  const today = now.toLocaleDateString("pt-BR", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-
   const accessibleModules = useMemo(() => {
     if (permLoading) return [];
     return MODULE_REGISTRY.filter((mod) => {
@@ -181,50 +168,6 @@ const Index = () => {
   const records = getRecords();
   const recentRecords = records.slice(0, 5);
 
-  const summaryCards = useMemo(() => {
-    const cards: {
-      icon: LucideIcon;
-      label: string;
-      value: string | number;
-      color: string;
-      badge?: string;
-    }[] = [];
-
-    cards.push({
-      icon: Layers,
-      label: "Módulos liberados",
-      value: accessibleModules.length,
-      color: "#EF9F27",
-      badge: "ativo",
-    });
-
-    if (canView("historico") || isMaster) {
-      cards.push({
-        icon: FileSpreadsheet,
-        label: "Planilhas processadas",
-        value: stats.totalPlanilhas,
-        color: "#5B9BD5",
-        badge: "fluxo",
-      });
-      cards.push({
-        icon: Hash,
-        label: "Documentos gerados",
-        value: stats.totalDocumentos,
-        color: "#4AAF60",
-        badge: "volume",
-      });
-      cards.push({
-        icon: DollarSign,
-        label: "Valor total processado",
-        value: formatCurrency(stats.valorTotalProcessado),
-        color: "#D4922A",
-        badge: "geral",
-      });
-    }
-
-    return cards;
-  }, [accessibleModules.length, canView, isMaster, stats]);
-
   if (permLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
@@ -234,158 +177,309 @@ const Index = () => {
   }
 
   return (
-    <div className="space-y-7">
-      <motion.div {...fadeUp(0)}>
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_340px]">
-          <div className="relative overflow-hidden rounded-[28px] border border-white/[0.07] bg-[linear-gradient(180deg,rgba(16,21,32,0.92),rgba(11,15,23,0.92))] p-7 shadow-[0_18px_48px_rgba(0,0,0,0.26)]">
-            <div className="pointer-events-none absolute inset-0">
-              <div
-                className="absolute left-[-30px] top-[-30px] h-[160px] w-[160px] rounded-full blur-3xl"
-                style={{ background: "rgba(139,92,246,0.08)" }}
-              />
-              <div
-                className="absolute right-[-20px] bottom-[-40px] h-[160px] w-[160px] rounded-full blur-3xl"
-                style={{ background: "rgba(239,178,79,0.05)" }}
-              />
-            </div>
-
-            <div className="relative z-10 flex items-start justify-between gap-4">
-              <div>
-                <div className="mb-3 flex items-center gap-3">
-                  <div
-                    className="flex h-11 w-11 items-center justify-center rounded-2xl"
-                    style={{ background: "rgba(239,178,79,0.12)" }}
-                  >
-                    <GreetingIcon className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40">
-                      Visão executiva
-                    </p>
-                    <p className="text-sm capitalize text-muted-foreground">{today}</p>
-                  </div>
-                </div>
-
-                <h1 className="text-3xl font-bold tracking-[-0.04em] text-foreground md:text-5xl">
-                  {greeting}, <span className="text-primary">{firstName}</span>
-                </h1>
-
-                <p className="mt-3 max-w-[700px] text-sm leading-relaxed text-muted-foreground md:text-[15px]">
-                  Aqui está um resumo dos módulos liberados, dos volumes processados e dos
-                  atalhos principais disponíveis para sua conta.
-                </p>
+    <div className="space-y-5">
+      <motion.section {...fadeUp(0)}>
+        <div className="grid gap-5 xl:grid-cols-[1.02fr_1.48fr]">
+          <div className="rounded-[28px] border border-white/[0.07] bg-[linear-gradient(180deg,rgba(15,19,29,0.94),rgba(10,13,21,0.94))] p-7 shadow-[0_18px_48px_rgba(0,0,0,0.28)]">
+            <div className="mb-6 flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10">
+                <GreetingIcon className="h-5 w-5 text-primary" />
               </div>
-
-              <div className="hidden rounded-2xl border border-white/[0.07] bg-white/[0.03] px-4 py-3 lg:block">
-                <div className="flex items-center gap-2 text-[12px] font-semibold text-white/60">
-                  <ShieldCheck className="h-4 w-4 text-emerald-400" />
-                  Sistema operacional
-                </div>
-                <p className="mt-2 text-[18px] font-bold tracking-[-0.03em] text-foreground">
-                  Ambiente estável
+              <div className="min-w-0">
+                <p className="truncate text-[12px] font-semibold uppercase tracking-[0.16em] text-white/40">
+                  Executive view
                 </p>
+                <p className="text-sm text-muted-foreground">{greeting}, {firstName}</p>
               </div>
             </div>
 
-            <div className="relative z-10 mt-8">
-              <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-white/38">
-                Valor total processado
-              </p>
-              <p className="mt-2 text-[34px] font-black leading-none tracking-[-0.06em] text-foreground sm:text-[48px] lg:text-[58px]">
+            <h1 className="text-[28px] font-bold leading-tight tracking-[-0.05em] text-foreground md:text-[46px]">
+              Bem-vindo de volta,
+              <br />
+              <span className="text-white/92">{firstName}</span>
+            </h1>
+
+            <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">
+              Total processado
+            </p>
+
+            <div className="mt-3 flex items-end gap-3">
+              <p className="text-[34px] font-black leading-none tracking-[-0.06em] text-foreground md:text-[56px]">
                 {formatCurrency(stats.valorTotalProcessado)}
               </p>
+              <span className="mb-1 rounded-full bg-emerald-500/10 px-3 py-1 text-[12px] font-bold text-emerald-400">
+                +12,67%
+              </span>
+            </div>
+
+            <p className="mt-5 text-sm text-muted-foreground">
+              Disponível para análise:{" "}
+              <span className="font-semibold text-foreground">
+                {formatCurrency(stats.valorTotalProcessado)}
+              </span>
+            </p>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => navigate("/historico")}
+                className="inline-flex h-10 items-center gap-2 rounded-full bg-white px-4 text-[13px] font-bold text-[#111318] transition hover:opacity-95"
+              >
+                Histórico
+                <ArrowUpRight className="h-4 w-4" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => navigate("/clientes")}
+                className="inline-flex h-10 items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.04] px-4 text-[13px] font-bold text-foreground transition hover:bg-white/[0.06]"
+              >
+                Clientes
+              </button>
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
-            <div className="rounded-[24px] border border-white/[0.07] bg-[linear-gradient(180deg,rgba(16,21,32,0.92),rgba(11,15,23,0.92))] p-5 shadow-[0_16px_38px_rgba(0,0,0,0.22)]">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10">
-                  <TrendingUp className="h-4 w-4 text-emerald-400" />
-                </div>
-                <div>
-                  <p className="text-[12px] font-semibold text-white/50">Resumo do dia</p>
-                  <h2 className="text-[18px] font-bold tracking-[-0.03em] text-foreground">
-                    Operação ativa
-                  </h2>
-                </div>
-              </div>
-
-              <div className="mt-5 space-y-3">
-                <div className="flex items-center justify-between rounded-xl border border-white/[0.05] bg-white/[0.03] px-3 py-3">
-                  <span className="text-[13px] text-muted-foreground">Planilhas</span>
-                  <span className="text-[14px] font-bold text-foreground">
-                    {stats.totalPlanilhas}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between rounded-xl border border-white/[0.05] bg-white/[0.03] px-3 py-3">
-                  <span className="text-[13px] text-muted-foreground">Documentos</span>
-                  <span className="text-[14px] font-bold text-foreground">
-                    {stats.totalDocumentos}
-                  </span>
-                </div>
-              </div>
+          <div className="rounded-[28px] border border-white/[0.07] bg-[linear-gradient(180deg,rgba(15,19,29,0.94),rgba(10,13,21,0.94))] p-6 shadow-[0_18px_48px_rgba(0,0,0,0.28)]">
+            <div className="mb-4 flex items-center justify-end gap-2">
+              <button className="h-8 rounded-full border border-white/[0.06] bg-white/[0.04] px-3 text-[12px] font-bold text-white/70">
+                Semana
+              </button>
+              <button className="h-8 rounded-full bg-white px-3 text-[12px] font-bold text-[#111318]">
+                Mês
+              </button>
+              <button className="h-8 rounded-full border border-white/[0.06] bg-white/[0.04] px-3 text-[12px] font-bold text-white/70">
+                Ano
+              </button>
             </div>
 
-            <div className="rounded-[24px] border border-white/[0.07] bg-[linear-gradient(180deg,rgba(16,21,32,0.92),rgba(11,15,23,0.92))] p-5 shadow-[0_16px_38px_rgba(0,0,0,0.22)]">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                </div>
-                <div>
-                  <p className="text-[12px] font-semibold text-white/50">Acesso atual</p>
-                  <h2 className="text-[18px] font-bold tracking-[-0.03em] text-foreground">
-                    {accessibleModules.length} módulo{accessibleModules.length !== 1 ? "s" : ""}
-                  </h2>
-                </div>
-              </div>
-
-              <p className="mt-5 text-sm leading-relaxed text-muted-foreground">
-                Os atalhos e volumes abaixo respeitam exatamente as permissões da sua conta.
-              </p>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      {summaryCards.length > 0 && (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {summaryCards.map((card, i) => (
-            <motion.div
-              key={card.label}
-              {...fadeUp(0.06 + i * 0.05)}
-              className="group relative overflow-hidden rounded-[24px] border border-white/[0.07] bg-[linear-gradient(180deg,rgba(16,21,32,0.92),rgba(11,15,23,0.92))] p-5 shadow-[0_16px_38px_rgba(0,0,0,0.22)] transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.10]"
-            >
-              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),transparent_35%)]" />
-
-              <div className="relative z-10">
-                <div className="mb-5 flex items-center justify-between">
-                  <div
-                    className="flex h-11 w-11 items-center justify-center rounded-2xl transition-transform duration-200 group-hover:scale-105"
-                    style={{ background: `${card.color}18` }}
-                  >
-                    <card.icon className="h-[18px] w-[18px]" style={{ color: card.color }} />
-                  </div>
-
-                  {card.badge && (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-white/[0.06] bg-white/[0.04] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/56">
-                      {card.badge}
-                    </span>
-                  )}
-                </div>
-
-                <p className="text-[12px] font-medium text-muted-foreground">{card.label}</p>
-                <p className="mt-2 text-[30px] font-black leading-none tracking-[-0.05em] text-foreground">
-                  {card.value}
+            <div className="grid h-[250px] grid-cols-[1fr_1fr_1.15fr_120px] overflow-hidden rounded-[22px] border border-white/[0.06]">
+              <div className="border-r border-white/[0.05] p-4">
+                <p className="text-[26px] font-black tracking-[-0.05em] text-foreground">
+                  {formatCurrency(Math.round(stats.valorTotalProcessado * 0.28))}
                 </p>
+                <p className="mt-6 text-[13px] text-white/70">+23% Invest</p>
+                <div className="mt-4 h-8 rounded-md bg-gradient-to-r from-primary to-violet-400 shadow-[0_0_20px_rgba(139,92,246,0.26)]" />
               </div>
-            </motion.div>
-          ))}
+
+              <div className="border-r border-white/[0.05] p-4">
+                <p className="text-[26px] font-black tracking-[-0.05em] text-foreground">
+                  {formatCurrency(Math.round(stats.valorTotalProcessado * 0.53))}
+                </p>
+                <p className="mt-6 text-[13px] text-white/70">+12% Produtos</p>
+              </div>
+
+              <div className="relative border-r border-white/[0.05] p-4">
+                <div className="absolute left-1/2 top-7 -translate-x-1/2 rounded-full border border-white/[0.08] bg-[#272b35] px-3 py-1 text-[12px] font-bold text-white/80">
+                  Average
+                </div>
+
+                <div className="absolute bottom-5 left-4 right-4 flex h-[88px] items-end gap-2">
+                  {[22, 38, 54, 62, 68, 48, 74, 42, 57, 45, 61, 35].map((h, i) => (
+                    <span
+                      key={i}
+                      className="flex-1 rounded-md bg-gradient-to-b from-violet-400 to-primary"
+                      style={{ height: `${h}px` }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="relative p-4">
+                <p className="mt-8 text-[13px] text-white/70">124 Other</p>
+                <div className="absolute bottom-5 left-4 right-4 flex h-[72px] items-end gap-2">
+                  {[42, 56, 34, 64].map((h, i) => (
+                    <span
+                      key={i}
+                      className="flex-1 rounded-sm bg-white/70"
+                      style={{ height: `${h}px` }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-3 flex items-center justify-between text-[13px] text-white/42">
+              <span>Janeiro 26</span>
+              <span>Fevereiro 26</span>
+            </div>
+          </div>
         </div>
-      )}
+      </motion.section>
+
+      <motion.section {...fadeUp(0.08)}>
+        <div className="grid gap-5 xl:grid-cols-3">
+          <div className="rounded-[24px] border border-white/[0.07] bg-[linear-gradient(180deg,rgba(15,19,29,0.94),rgba(10,13,21,0.94))] p-5 shadow-[0_16px_38px_rgba(0,0,0,0.22)]">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-[18px] font-bold tracking-[-0.03em] text-foreground">
+                <span className="grid h-5 w-5 place-items-center rounded-full border border-white/[0.12] text-[10px] text-white/70">
+                  ◌
+                </span>
+                Analytics
+              </div>
+              <div className="grid h-7 w-7 place-items-center rounded-full border border-white/[0.06] bg-white/[0.03] text-white/55">
+                ⋮
+              </div>
+            </div>
+
+            <div className="border-t border-white/[0.05] pt-4">
+              <div className="mb-3 flex gap-4 text-[12px] text-white/70">
+                <span className="inline-flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-lime-300" />
+                  Income
+                </span>
+                <span className="inline-flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-white/45" />
+                  Expenses
+                </span>
+              </div>
+
+              <div className="relative h-[220px] overflow-hidden rounded-[18px]">
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:100%_40px,68px_100%]" />
+                <svg viewBox="0 0 480 180" width="100%" height="180" className="relative z-10 mt-4">
+                  <path
+                    d="M10 130 C45 120, 70 145, 100 118 S160 70, 195 100 S250 155, 287 112 S350 95, 385 118 S430 148, 470 132"
+                    fill="none"
+                    stroke="#d7ec55"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M10 95 C45 80, 78 88, 110 106 S170 120, 208 126 S280 136, 320 112 S370 88, 408 116 S438 148, 470 138"
+                    fill="none"
+                    stroke="rgba(255,255,255,.45)"
+                    strokeWidth="2.1"
+                    strokeDasharray="6 6"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-[24px] border border-white/[0.07] bg-[linear-gradient(180deg,rgba(15,19,29,0.94),rgba(10,13,21,0.94))] p-5 shadow-[0_16px_38px_rgba(0,0,0,0.22)]">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-[18px] font-bold tracking-[-0.03em] text-foreground">
+                <span className="grid h-5 w-5 place-items-center rounded-full border border-white/[0.12] text-[10px] text-white/70">
+                  ◌
+                </span>
+                Activity by time
+              </div>
+              <div className="grid h-7 w-7 place-items-center rounded-full border border-white/[0.06] bg-white/[0.03] text-white/55">
+                ↗
+              </div>
+            </div>
+
+            <div className="grid gap-3 border-t border-white/[0.05] pt-4">
+              <div className="grid grid-cols-[42px_repeat(7,1fr)] gap-2 text-[11px] text-white/46">
+                <span />
+                <span>Mon</span>
+                <span>Tue</span>
+                <span>Wed</span>
+                <span>Thu</span>
+                <span>Fri</span>
+                <span>Sat</span>
+                <span>Sun</span>
+              </div>
+
+              <div className="grid grid-cols-[42px_1fr] gap-2">
+                <div className="grid grid-rows-6 gap-2 text-[11px] text-white/46">
+                  {["1 pm", "2 pm", "3 pm", "4 pm", "5 pm", "6 pm"].map((t) => (
+                    <div key={t} className="flex items-center">
+                      {t}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-7 grid-rows-6 gap-2">
+                  {[
+                    "bg-violet-950", "bg-violet-900", "bg-violet-900", "bg-violet-700", "bg-violet-900", "bg-violet-950", "bg-violet-950",
+                    "bg-violet-950", "bg-violet-700", "bg-violet-500", "bg-violet-400", "bg-violet-500", "bg-violet-800", "bg-violet-950",
+                    "bg-violet-900", "bg-violet-700", "bg-violet-400", "bg-violet-500", "bg-violet-400", "bg-violet-700", "bg-violet-900",
+                    "bg-violet-950", "bg-violet-900", "bg-violet-700", "bg-violet-500", "bg-violet-500", "bg-violet-800", "bg-violet-950",
+                    "bg-violet-950", "bg-violet-900", "bg-violet-900", "bg-violet-700", "bg-violet-400", "bg-violet-700", "bg-violet-950",
+                    "bg-violet-950", "bg-violet-950", "bg-violet-900", "bg-violet-900", "bg-violet-700", "bg-violet-950", "bg-violet-950",
+                  ].map((c, i) => (
+                    <div key={i} className={`rounded-[8px] ${c} border border-white/[0.02]`} />
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-1 flex items-center justify-end gap-2 text-[11px] text-white/46">
+                <span>Less</span>
+                <div className="flex gap-1">
+                  <span className="h-2 w-3 rounded-sm bg-violet-950" />
+                  <span className="h-2 w-3 rounded-sm bg-violet-900" />
+                  <span className="h-2 w-3 rounded-sm bg-violet-700" />
+                  <span className="h-2 w-3 rounded-sm bg-violet-500" />
+                  <span className="h-2 w-3 rounded-sm bg-violet-400" />
+                </div>
+                <span>More</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-[24px] border border-white/[0.07] bg-[linear-gradient(180deg,rgba(15,19,29,0.94),rgba(10,13,21,0.94))] p-5 shadow-[0_16px_38px_rgba(0,0,0,0.22)]">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-[18px] font-bold tracking-[-0.03em] text-foreground">
+                <span className="grid h-5 w-5 place-items-center rounded-full border border-white/[0.12] text-[10px] text-white/70">
+                  ◌
+                </span>
+                Recent transactions
+              </div>
+              <div className="grid h-7 w-7 place-items-center rounded-full border border-white/[0.06] bg-white/[0.03] text-white/55">
+                ⌕
+              </div>
+            </div>
+
+            <div className="space-y-2 border-t border-white/[0.05] pt-3">
+              {recentRecords.length === 0 ? (
+                <div className="py-10 text-center">
+                  <Clock className="mx-auto mb-3 h-7 w-7 text-muted-foreground/30" />
+                  <p className="text-sm text-muted-foreground">
+                    Nenhuma atividade registrada ainda.
+                  </p>
+                </div>
+              ) : (
+                recentRecords.map((record, i) => (
+                  <motion.div
+                    key={record.id}
+                    initial={{ opacity: 0, x: 8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{
+                      delay: 0.25 + i * 0.05,
+                      duration: 0.35,
+                      ease: [0.16, 1, 0.3, 1],
+                    }}
+                    className="grid h-[46px] grid-cols-[1fr_auto_auto_auto] items-center gap-3 text-[14px]"
+                  >
+                    <div className="truncate text-foreground">{record.cliente}</div>
+
+                    <div className="inline-flex h-7 items-center gap-2 rounded-full border border-white/[0.05] bg-white/[0.03] px-3 text-[12px] font-semibold text-white/76">
+                      <span
+                        className="h-2 w-2 rounded-full"
+                        style={{
+                          background:
+                            record.statusConferencia === "confere" ? "#d7ec55" : "#8b5cf6",
+                        }}
+                      />
+                      {record.statusConferencia === "confere" ? "Confere" : "Revisar"}
+                    </div>
+
+                    <div className="font-bold tracking-[-0.02em] text-foreground">
+                      {formatCurrency(record.valorTotal)}
+                    </div>
+
+                    <div className="text-white/42">⋮</div>
+                  </motion.div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      </motion.section>
 
       {accessibleModules.length > 0 && (
-        <motion.section {...fadeUp(0.24)}>
+        <motion.section {...fadeUp(0.12)}>
           <div className="mb-4 flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-primary" />
             <h2 className="text-[16px] font-semibold text-foreground">Atalhos rápidos</h2>
@@ -400,31 +494,30 @@ const Index = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{
-                  delay: 0.28 + i * 0.04,
-                  duration: 0.4,
+                  delay: 0.18 + i * 0.04,
+                  duration: 0.35,
                   ease: [0.16, 1, 0.3, 1],
                 }}
-                className="group/link relative overflow-hidden rounded-[24px] border border-white/[0.07] bg-[linear-gradient(180deg,rgba(16,21,32,0.92),rgba(11,15,23,0.92))] p-5 text-left shadow-[0_16px_38px_rgba(0,0,0,0.22)] transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.10]"
+                className="group relative overflow-hidden rounded-[24px] border border-white/[0.07] bg-[linear-gradient(180deg,rgba(15,19,29,0.94),rgba(10,13,21,0.94))] p-5 text-left shadow-[0_16px_38px_rgba(0,0,0,0.22)] transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.10]"
               >
                 <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),transparent_35%)]" />
-
                 <div className="relative z-10">
                   <div className="mb-4 flex items-start justify-between">
                     <div
-                      className="flex h-11 w-11 items-center justify-center rounded-2xl transition-transform duration-200 group-hover/link:scale-105"
+                      className="flex h-11 w-11 items-center justify-center rounded-2xl"
                       style={{ background: `${mod.color}15` }}
                     >
                       <mod.icon className="h-5 w-5" style={{ color: mod.color }} />
                     </div>
 
-                    <ArrowRight className="mt-1 h-4 w-4 text-muted-foreground/35 transition-all duration-200 group-hover/link:translate-x-0.5 group-hover/link:text-primary" />
+                    <ArrowUpRight className="h-4 w-4 text-white/35 transition-all duration-200 group-hover:text-primary" />
                   </div>
 
-                  <h3 className="text-[16px] font-semibold tracking-[-0.02em] text-foreground transition-colors group-hover/link:text-primary">
+                  <h3 className="text-[18px] font-semibold tracking-[-0.03em] text-foreground">
                     {mod.title}
                   </h3>
 
-                  <p className="mt-2 max-w-[92%] text-[13px] leading-relaxed text-muted-foreground">
+                  <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
                     {mod.description}
                   </p>
                 </div>
@@ -433,171 +526,6 @@ const Index = () => {
           </div>
         </motion.section>
       )}
-
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_380px]">
-        <motion.div
-          {...fadeUp(0.35)}
-          className="overflow-hidden rounded-[24px] border border-white/[0.07] bg-[linear-gradient(180deg,rgba(16,21,32,0.92),rgba(11,15,23,0.92))] shadow-[0_16px_38px_rgba(0,0,0,0.22)]"
-        >
-          <div className="flex items-center justify-between border-b border-white/[0.05] px-6 py-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.04]">
-                <Layers className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <div>
-                <h2 className="text-[15px] font-semibold text-foreground">Seus módulos</h2>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  {accessibleModules.length} módulo
-                  {accessibleModules.length !== 1 ? "s" : ""} disponível
-                  {accessibleModules.length !== 1 ? "is" : ""}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {accessibleModules.length === 0 ? (
-            <div className="px-6 py-12 text-center">
-              <AlertCircle className="mx-auto mb-3 h-8 w-8 text-muted-foreground/40" />
-              <p className="text-sm text-muted-foreground">
-                Nenhum módulo disponível para sua conta.
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground/60">
-                Entre em contato com o administrador.
-              </p>
-            </div>
-          ) : (
-            <div className="divide-y divide-white/[0.04]">
-              {accessibleModules.map((mod, i) => (
-                <motion.button
-                  key={mod.key}
-                  type="button"
-                  onClick={() => navigate(mod.path)}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.4 + i * 0.04, duration: 0.4 }}
-                  className="group/mod flex w-full items-center gap-4 px-6 py-4 text-left transition-all duration-150 hover:bg-white/[0.03]"
-                >
-                  <div
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 group-hover/mod:scale-105"
-                    style={{ background: `${mod.color}15` }}
-                  >
-                    <mod.icon className="h-5 w-5" style={{ color: mod.color }} />
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[14px] font-semibold text-foreground transition-colors group-hover/mod:text-primary">
-                      {mod.title}
-                    </p>
-                    <p className="mt-0.5 truncate text-[12px] text-muted-foreground/75">
-                      {mod.description}
-                    </p>
-                  </div>
-
-                  <div className="flex shrink-0 items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-400">
-                      <CheckCircle2 className="h-3 w-3" />
-                      Disponível
-                    </span>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground/35 transition-all duration-200 group-hover/mod:translate-x-0.5 group-hover/mod:text-primary" />
-                  </div>
-                </motion.button>
-              ))}
-            </div>
-          )}
-        </motion.div>
-
-        <motion.div
-          {...fadeUp(0.4)}
-          className="flex flex-col overflow-hidden rounded-[24px] border border-white/[0.07] bg-[linear-gradient(180deg,rgba(16,21,32,0.92),rgba(11,15,23,0.92))] shadow-[0_16px_38px_rgba(0,0,0,0.22)]"
-        >
-          <div className="border-b border-white/[0.05] px-6 py-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.04]">
-                <Activity className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <div>
-                <h2 className="text-[15px] font-semibold text-foreground">Atividade recente</h2>
-                <p className="mt-0.5 text-xs text-muted-foreground">Últimos processamentos</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex-1 space-y-2.5 overflow-y-auto px-5 py-4">
-            {recentRecords.length === 0 ? (
-              <div className="py-10 text-center">
-                <Clock className="mx-auto mb-3 h-7 w-7 text-muted-foreground/30" />
-                <p className="text-sm text-muted-foreground">
-                  Nenhuma atividade registrada ainda.
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground/60">
-                  Processamentos aparecerão aqui automaticamente.
-                </p>
-              </div>
-            ) : (
-              recentRecords.map((record, i) => (
-                <motion.div
-                  key={record.id}
-                  initial={{ opacity: 0, x: 8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{
-                    delay: 0.5 + i * 0.06,
-                    duration: 0.4,
-                    ease: [0.16, 1, 0.3, 1],
-                  }}
-                  className="rounded-[18px] border border-white/[0.05] bg-white/[0.03] p-3.5 transition-all duration-200 hover:border-white/[0.08] hover:bg-white/[0.04]"
-                >
-                  <div className="flex items-start gap-3">
-                    <div
-                      className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
-                      style={{
-                        background:
-                          record.statusConferencia === "confere"
-                            ? "rgba(74,175,96,0.12)"
-                            : "rgba(217,95,95,0.12)",
-                      }}
-                    >
-                      {record.statusConferencia === "confere" ? (
-                        <CheckCircle2 className="h-4 w-4" style={{ color: "#4AAF60" }} />
-                      ) : (
-                        <AlertCircle className="h-4 w-4" style={{ color: "#D95F5F" }} />
-                      )}
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[13px] font-medium leading-relaxed text-foreground/90">
-                        {record.cliente} — {record.quantidadeDocumentos} documento
-                        {record.quantidadeDocumentos !== 1 ? "s" : ""}
-                      </p>
-
-                      <div className="mt-1.5 flex items-center gap-3">
-                        <p className="flex items-center gap-1 text-[11px] text-muted-foreground/60">
-                          <Clock className="h-3 w-3" />
-                          {formatDate(record.dataProcessamento)}
-                        </p>
-                        <p className="tabular-nums text-[11px] font-semibold text-primary">
-                          {formatCurrency(record.valorTotal)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))
-            )}
-          </div>
-
-          {(canView("historico") || isMaster) && recentRecords.length > 0 && (
-            <div className="border-t border-white/[0.05] px-5 py-4">
-              <button
-                className="flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-white/[0.06] bg-white/[0.03] text-[13px] font-medium text-muted-foreground transition-all duration-150 hover:border-white/[0.1] hover:text-foreground active:scale-[0.97]"
-                onClick={() => navigate("/historico")}
-              >
-                <History className="h-4 w-4" />
-                Ver histórico completo
-              </button>
-            </div>
-          )}
-        </motion.div>
-      </div>
     </div>
   );
 };

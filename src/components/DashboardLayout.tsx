@@ -101,12 +101,13 @@ const DashboardLayout = () => {
       <style>
         {`
           .rf-shell {
+            --rf-ease: cubic-bezier(0.22, 1, 0.36, 1);
             --rf-line: rgba(255,255,255,0.08);
             --rf-line-soft: rgba(255,255,255,0.05);
-            --rf-shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.32);
+            --rf-bg-soft: rgba(255,255,255,0.035);
+            --rf-shadow-lg: 0 22px 50px rgba(0, 0, 0, 0.34);
             --rf-shadow-md: 0 12px 28px rgba(0, 0, 0, 0.22);
-            --rf-shadow-sm: 0 8px 20px rgba(0, 0, 0, 0.16);
-            --rf-ease: cubic-bezier(0.22, 1, 0.36, 1);
+            --rf-shadow-sm: 0 8px 18px rgba(0, 0, 0, 0.14);
           }
 
           .rf-shell * {
@@ -118,23 +119,25 @@ const DashboardLayout = () => {
             -webkit-backdrop-filter: blur(16px);
             background: linear-gradient(
               180deg,
-              rgba(10, 13, 20, 0.9),
-              rgba(8, 11, 18, 0.8)
+              rgba(8, 10, 16, 0.94),
+              rgba(7, 9, 15, 0.88)
             );
             border: 1px solid rgba(255,255,255,0.07);
             box-shadow: var(--rf-shadow-lg);
           }
 
           .rf-shell .rf-top-nav-item {
-            position: relative;
-            height: 36px;
+            height: 34px;
             padding: 0 14px;
             border-radius: 999px;
             border: 1px solid transparent;
-            background: rgba(255,255,255,0.035);
-            color: rgba(255,255,255,0.8);
+            background: rgba(255,255,255,0.045);
+            color: rgba(255,255,255,0.82);
             font-size: 13px;
             font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
             transition:
               transform 180ms var(--rf-ease),
               background-color 180ms var(--rf-ease),
@@ -144,31 +147,31 @@ const DashboardLayout = () => {
           }
 
           .rf-shell .rf-top-nav-item:hover {
-            background: rgba(255,255,255,0.05);
-            border-color: rgba(255,255,255,0.06);
-            color: rgba(255,255,255,0.95);
             transform: translateY(-1px);
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.06);
+            color: rgba(255,255,255,0.96);
           }
 
           .rf-shell .rf-top-nav-item.is-active {
             background: #fbfbfd;
             color: #111318;
-            border-color: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.10);
             box-shadow:
               0 8px 18px rgba(255,255,255,0.06),
-              inset 0 1px 0 rgba(255,255,255,0.4);
+              inset 0 1px 0 rgba(255,255,255,0.45);
           }
 
           .rf-shell .rf-icon-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 999px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 36px;
-            height: 36px;
-            border-radius: 999px;
             background: rgba(255,255,255,0.04);
             border: 1px solid var(--rf-line-soft);
-            color: rgba(255,255,255,0.82);
+            color: rgba(255,255,255,0.84);
             transition:
               transform 180ms var(--rf-ease),
               background-color 180ms var(--rf-ease),
@@ -177,19 +180,19 @@ const DashboardLayout = () => {
           }
 
           .rf-shell .rf-icon-btn:hover {
+            transform: translateY(-1px);
             background: rgba(255,255,255,0.06);
             border-color: rgba(255,255,255,0.09);
             box-shadow: var(--rf-shadow-sm);
-            transform: translateY(-1px);
           }
 
           .rf-shell .rf-user-trigger {
-            height: 38px;
+            height: 36px;
             padding: 0 10px 0 4px;
             border-radius: 999px;
             display: inline-flex;
             align-items: center;
-            gap: 10px;
+            gap: 9px;
             background: rgba(255,255,255,0.04);
             border: 1px solid var(--rf-line-soft);
             color: rgba(255,255,255,0.92);
@@ -201,15 +204,15 @@ const DashboardLayout = () => {
           }
 
           .rf-shell .rf-user-trigger:hover {
-            background: rgba(255,255,255,0.06);
-            border-color: rgba(255,255,255,0.1);
-            box-shadow: var(--rf-shadow-sm);
             transform: translateY(-1px);
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.09);
+            box-shadow: var(--rf-shadow-sm);
           }
 
           .rf-shell .rf-user-avatar {
-            width: 28px;
-            height: 28px;
+            width: 26px;
+            height: 26px;
             border-radius: 999px;
             display: inline-flex;
             align-items: center;
@@ -219,17 +222,17 @@ const DashboardLayout = () => {
             color: #171717;
             background: linear-gradient(135deg, #f1d29f, #a5693f);
             border: 1px solid rgba(255,255,255,0.14);
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
           }
 
           .rf-shell .rf-dropdown {
             background: linear-gradient(
               180deg,
-              rgba(18, 22, 33, 0.97),
-              rgba(13, 16, 25, 0.97)
+              rgba(18, 22, 33, 0.98),
+              rgba(13, 16, 25, 0.98)
             );
             border: 1px solid rgba(255,255,255,0.08);
-            box-shadow: 0 22px 56px rgba(0,0,0,0.42);
+            box-shadow: 0 24px 56px rgba(0,0,0,0.42);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
           }
@@ -280,32 +283,32 @@ const DashboardLayout = () => {
 
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <div
-          className="absolute left-[-80px] top-[-80px] h-[220px] w-[220px] rounded-full blur-3xl"
+          className="absolute left-[-120px] top-[-80px] h-[220px] w-[220px] rounded-full blur-3xl"
           style={{ background: "rgba(139, 92, 246, 0.08)" }}
         />
         <div
-          className="absolute right-[-60px] bottom-[-80px] h-[240px] w-[240px] rounded-full blur-3xl"
-          style={{ background: "rgba(139, 92, 246, 0.06)" }}
+          className="absolute right-[-120px] bottom-[-100px] h-[240px] w-[240px] rounded-full blur-3xl"
+          style={{ background: "rgba(139, 92, 246, 0.05)" }}
         />
+        <div className="absolute inset-0 bg-grid-pattern opacity-[0.11]" />
         <div
-          className="absolute left-0 right-0 top-0 h-[180px]"
+          className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0))",
+              "linear-gradient(180deg, rgba(255,255,255,0.018), rgba(255,255,255,0))",
           }}
         />
-        <div className="absolute inset-0 bg-grid-pattern opacity-[0.12]" />
       </div>
 
       {!isPresentationMode && (
-        <header className="fixed inset-x-0 top-0 z-40 px-4 pt-4 md:px-6 lg:px-8">
-          <div className="mx-auto max-w-[1680px]">
-            <div className="rf-top-shell rounded-[24px]">
-              <div className="grid h-[58px] grid-cols-[minmax(170px,240px)_1fr_auto] items-center gap-3 px-4 md:px-5">
+        <header className="fixed inset-x-0 top-0 z-40 px-5 pt-5 md:px-6 lg:px-8">
+          <div className="mx-auto max-w-[1560px]">
+            <div className="rf-top-shell rounded-[22px] px-4 md:px-5">
+              <div className="flex h-[58px] items-center justify-between gap-4">
                 <button
                   type="button"
                   onClick={() => navigate("/dashboard")}
-                  className="group flex min-w-0 items-center gap-3 text-left"
+                  className="flex min-w-0 items-center gap-3 text-left"
                 >
                   <div
                     className="h-7 w-7 shrink-0 rounded-full"
@@ -316,16 +319,16 @@ const DashboardLayout = () => {
                     }}
                   />
                   <div className="min-w-0">
-                    <p className="truncate text-[15px] font-extrabold tracking-[-0.04em] text-foreground">
+                    <p className="truncate text-[14px] font-extrabold tracking-[-0.04em] text-foreground">
                       ReceitaFlow
                     </p>
-                    <p className="truncate text-[10px] font-semibold uppercase tracking-[0.18em] text-white/40">
+                    <p className="truncate text-[10px] font-semibold uppercase tracking-[0.16em] text-white/40">
                       Control Center
                     </p>
                   </div>
                 </button>
 
-                <nav className="hidden min-w-0 items-center justify-center gap-2 lg:flex">
+                <nav className="hidden flex-1 items-center justify-center gap-2 lg:flex">
                   {visibleModules.map((mod) => {
                     const Icon = mod.icon;
                     const active = isRouteActive(mod.path);
@@ -335,9 +338,7 @@ const DashboardLayout = () => {
                         key={mod.key}
                         type="button"
                         onClick={() => navigate(mod.path)}
-                        className={`rf-top-nav-item inline-flex items-center gap-2 ${
-                          active ? "is-active" : ""
-                        }`}
+                        className={`rf-top-nav-item ${active ? "is-active" : ""}`}
                       >
                         <Icon className="h-3.5 w-3.5" />
                         <span>{mod.label}</span>
@@ -346,7 +347,7 @@ const DashboardLayout = () => {
                   })}
                 </nav>
 
-                <div className="flex items-center justify-end gap-2">
+                <div className="flex items-center gap-2">
                   <button type="button" className="rf-icon-btn hidden sm:inline-flex">
                     <Search className="h-4 w-4" />
                   </button>
@@ -364,7 +365,7 @@ const DashboardLayout = () => {
                       aria-haspopup="menu"
                     >
                       <span className="rf-user-avatar">{userInitial}</span>
-                      <span className="hidden max-w-[110px] truncate text-[13px] font-bold sm:inline-block">
+                      <span className="hidden max-w-[100px] truncate text-[13px] font-bold sm:inline-block">
                         {firstName}
                       </span>
                       <ChevronDown
@@ -381,7 +382,7 @@ const DashboardLayout = () => {
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 6, scale: 0.985 }}
                           transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-                          className="rf-dropdown absolute right-0 top-[46px] z-50 w-[290px] rounded-[20px] p-3"
+                          className="rf-dropdown absolute right-0 top-[46px] z-[999] w-[286px] rounded-[18px] p-3"
                         >
                           <div className="mb-2 rounded-[14px] border border-white/5 bg-white/[0.03] p-3">
                             <div className="flex items-center gap-3">
@@ -443,7 +444,7 @@ const DashboardLayout = () => {
               </div>
 
               {visibleModules.length > 0 && (
-                <div className="flex items-center gap-2 overflow-x-auto px-4 pb-3 lg:hidden">
+                <div className="flex items-center gap-2 overflow-x-auto pb-3 lg:hidden">
                   {visibleModules.map((mod) => {
                     const Icon = mod.icon;
                     const active = isRouteActive(mod.path);
@@ -453,9 +454,7 @@ const DashboardLayout = () => {
                         key={`mobile-${mod.key}`}
                         type="button"
                         onClick={() => navigate(mod.path)}
-                        className={`rf-top-nav-item inline-flex shrink-0 items-center gap-2 ${
-                          active ? "is-active" : ""
-                        }`}
+                        className={`rf-top-nav-item shrink-0 ${active ? "is-active" : ""}`}
                       >
                         <Icon className="h-3.5 w-3.5" />
                         <span>{mod.label}</span>
@@ -472,14 +471,14 @@ const DashboardLayout = () => {
       <main
         ref={mainRef}
         className={`relative z-10 transition-all duration-500 ease-out ${
-          isPresentationMode ? "" : "pt-[84px] md:pt-[88px]"
+          isPresentationMode ? "" : "pt-[92px] md:pt-[96px]"
         }`}
       >
         <div
           className={`mx-auto transition-all duration-500 ease-out ${
             isPresentationMode
               ? "max-w-[1920px] p-6 lg:p-10"
-              : "max-w-[1680px] px-4 pb-6 md:px-6 md:pb-8 lg:px-8 lg:pb-10"
+              : "max-w-[1560px] px-5 pb-6 md:px-6 md:pb-8 lg:px-8 lg:pb-10"
           }`}
         >
           <AnimatePresence mode="wait">
