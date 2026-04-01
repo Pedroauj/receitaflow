@@ -283,21 +283,24 @@ const DashboardLayout = () => {
 
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <div
-          className="absolute left-[-120px] top-[-80px] h-[220px] w-[220px] rounded-full blur-3xl"
-          style={{ background: "rgba(139, 92, 246, 0.08)" }}
+          className="absolute inset-0"
+          style={{
+            background: `
+              radial-gradient(circle at 8% 10%, rgba(99,102,241,0.11), transparent 20%),
+              radial-gradient(circle at 92% 88%, rgba(139,92,246,0.08), transparent 22%),
+              radial-gradient(circle at 50% 0%, rgba(59,130,246,0.05), transparent 26%),
+              linear-gradient(180deg, #060912 0%, #070b14 42%, #060912 100%)
+            `,
+          }}
         />
-        <div
-          className="absolute right-[-120px] bottom-[-100px] h-[240px] w-[240px] rounded-full blur-3xl"
-          style={{ background: "rgba(139, 92, 246, 0.05)" }}
-        />
-        <div className="absolute inset-0 bg-grid-pattern opacity-[0.11]" />
         <div
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(180deg, rgba(255,255,255,0.018), rgba(255,255,255,0))",
+              "linear-gradient(180deg, rgba(255,255,255,0.014), rgba(255,255,255,0))",
           }}
         />
+        <div className="absolute inset-0 bg-grid-pattern opacity-[0.06]" />
       </div>
 
       {!isPresentationMode && (
@@ -478,7 +481,7 @@ const DashboardLayout = () => {
           className={`mx-auto transition-all duration-500 ease-out ${
             isPresentationMode
               ? "max-w-[1920px] p-6 lg:p-10"
-              : "max-w-[1560px] px-5 pb-6 md:px-6 md:pb-8 lg:px-8 lg:pb-10"
+              : "max-w-[1720px] px-4 pb-6 md:px-5 md:pb-8 lg:px-6 lg:pb-10"
           }`}
         >
           <AnimatePresence mode="wait">
