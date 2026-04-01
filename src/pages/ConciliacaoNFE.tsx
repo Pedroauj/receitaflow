@@ -1,6 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
-import { Download, Search, UploadCloud, FileSpreadsheet, X } from "lucide-react";
+import {
+  Download,
+  Search,
+  UploadCloud,
+  FileSpreadsheet,
+  X,
+  Sparkles,
+  ShieldCheck,
+  AlertTriangle,
+  Clock3,
+  BarChart3,
+} from "lucide-react";
 import {
   compareReports,
   exportFilteredToExcel,
@@ -44,39 +55,39 @@ const typeBadge: Record<DivergenceType, { variant: BadgeVariant; label: string }
 
 const badgeStyles: Record<BadgeVariant, React.CSSProperties> = {
   green: {
-    background: "rgba(99,153,34,.14)",
-    color: "#A5D56A",
-    border: "1px solid rgba(99,153,34,.28)",
+    background: "rgba(16, 185, 129, 0.12)",
+    color: "#86EFAC",
+    border: "1px solid rgba(16, 185, 129, 0.22)",
   },
   red: {
-    background: "rgba(226,75,74,.14)",
-    color: "#FFAAAA",
-    border: "1px solid rgba(226,75,74,.28)",
+    background: "rgba(239, 68, 68, 0.12)",
+    color: "#FCA5A5",
+    border: "1px solid rgba(239, 68, 68, 0.22)",
   },
   amber: {
-    background: "rgba(239,159,39,.12)",
-    color: "#FFD089",
-    border: "1px solid rgba(239,159,39,.28)",
+    background: "rgba(245, 158, 11, 0.12)",
+    color: "#FCD34D",
+    border: "1px solid rgba(245, 158, 11, 0.22)",
   },
   yellow: {
-    background: "rgba(234,220,100,.12)",
-    color: "#F2E487",
-    border: "1px solid rgba(234,220,100,.28)",
+    background: "rgba(234, 179, 8, 0.12)",
+    color: "#FDE68A",
+    border: "1px solid rgba(234, 179, 8, 0.22)",
   },
   blue: {
-    background: "rgba(55,138,221,.12)",
-    color: "#9CC8F7",
-    border: "1px solid rgba(55,138,221,.28)",
+    background: "rgba(59, 130, 246, 0.12)",
+    color: "#93C5FD",
+    border: "1px solid rgba(59, 130, 246, 0.22)",
   },
   cyan: {
-    background: "rgba(29,158,117,.12)",
-    color: "#7ADBB9",
-    border: "1px solid rgba(29,158,117,.28)",
+    background: "rgba(34, 211, 238, 0.12)",
+    color: "#A5F3FC",
+    border: "1px solid rgba(34, 211, 238, 0.22)",
   },
   purple: {
-    background: "rgba(127,119,221,.12)",
-    color: "#C0BBFA",
-    border: "1px solid rgba(127,119,221,.28)",
+    background: "rgba(139, 92, 246, 0.12)",
+    color: "#C4B5FD",
+    border: "1px solid rgba(139, 92, 246, 0.22)",
   },
 };
 
@@ -100,7 +111,7 @@ function DonutChart({
     if (!ctx) return;
 
     const dpr = window.devicePixelRatio || 1;
-    const size = 92;
+    const size = 96;
     canvas.width = size * dpr;
     canvas.height = size * dpr;
     canvas.style.width = `${size}px`;
@@ -109,16 +120,16 @@ function DonutChart({
 
     const cx = size / 2;
     const cy = size / 2;
-    const radius = 32;
+    const radius = 33;
     const lineW = 10;
-    const gap = 0.035;
+    const gap = 0.04;
 
     ctx.clearRect(0, 0, size, size);
 
     const segments = [
-      { value: reconciled, color: "#639922" },
-      { value: notLaunched, color: "#E24B4A" },
-      { value: divergences, color: "#EF9F27" },
+      { value: reconciled, color: "#10B981" },
+      { value: notLaunched, color: "#EF4444" },
+      { value: divergences, color: "#F59E0B" },
     ];
 
     let start = -Math.PI / 2;
@@ -128,13 +139,13 @@ function DonutChart({
       ctx.arc(cx, cy, radius, start, start + sweep);
       ctx.strokeStyle = color;
       ctx.lineWidth = lineW;
-      ctx.lineCap = "butt";
+      ctx.lineCap = "round";
       ctx.stroke();
       start += sweep + gap;
     }
 
     const pct = Math.round((reconciled / total) * 100);
-    ctx.fillStyle = "#F5F5F0";
+    ctx.fillStyle = "#F8FAFC";
     ctx.font = `600 14px sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -151,11 +162,19 @@ const filterLabels: Record<string, string> = {
   "ativo-imobilizado": "Ativo imob.",
 };
 
-const sectionCardStyle: React.CSSProperties = {
-  background: "linear-gradient(180deg, #18191D 0%, #15161A 100%)",
-  border: "1px solid #22242A",
-  borderRadius: 16,
-  boxShadow: "0 8px 24px rgba(0,0,0,.16)",
+const panelStyle: React.CSSProperties = {
+  background: "linear-gradient(180deg, rgba(17,24,39,0.96) 0%, rgba(10,15,27,0.98) 100%)",
+  border: "1px solid rgba(255,255,255,0.08)",
+  borderRadius: 24,
+  boxShadow: "0 18px 48px rgba(0,0,0,.28)",
+  backdropFilter: "blur(14px)",
+};
+
+const softCardStyle: React.CSSProperties = {
+  background: "rgba(255,255,255,0.035)",
+  border: "1px solid rgba(255,255,255,0.08)",
+  borderRadius: 20,
+  backdropFilter: "blur(10px)",
 };
 
 const ConciliacaoNFE = () => {
@@ -296,8 +315,8 @@ const ConciliacaoNFE = () => {
       setFilter("todos");
       setSearchTerm("");
     } catch (error) {
-     reset();
-     setErrorMessage(
+      reset();
+      setErrorMessage(
         error instanceof Error ? error.message : "Erro ao processar as planilhas.",
       );
     } finally {
@@ -314,632 +333,931 @@ const ConciliacaoNFE = () => {
   };
 
   return (
-    <div style={{ width: "100%" }}>
+    <div style={{ width: "100%", padding: "4px 0 20px" }}>
       <div
         style={{
+          width: "100%",
+          maxWidth: 1480,
+          margin: "0 auto",
           display: "flex",
-          alignItems: "flex-end",
-          justifyContent: "space-between",
-          gap: 20,
-          flexWrap: "wrap",
-          marginBottom: 18,
+          flexDirection: "column",
+          gap: 18,
         }}
       >
-        <div>
-          <p
-            style={{
-              fontSize: 12,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              color: "#D7922B",
-              fontWeight: 700,
-              margin: 0,
-            }}
-          >
-            NFE · Notas de itens
-          </p>
-
-          <p
-            style={{
-              fontSize: 14,
-              color: "#8D8D96",
-              margin: "8px 0 0",
-            }}
-          >
-            Compare planilhas do sistema e do SIEG com prioridade máxima pela chave de acesso.
-          </p>
-
-          {hasCompared && (
-            <p style={{ fontSize: 14, color: "#6E6E76", margin: "10px 0 0" }}>
-              {summary.totalGovernmentNotes} notas no SIEG · {summary.totalSystemNotes} no sistema
-            </p>
-          )}
-        </div>
-
-        <button
-          type="button"
-          onClick={handleCompare}
-          disabled={!canCompare}
+        <section
           style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            background: canCompare ? "#D7922B" : "#222226",
-            color: canCompare ? "#111113" : "#5A5A62",
-            border: "none",
-            borderRadius: 12,
-            padding: "12px 20px",
-            fontSize: 15,
-            fontWeight: 700,
-            cursor: canCompare ? "pointer" : "not-allowed",
-            minWidth: 212,
-            justifyContent: "center",
-            boxShadow: canCompare ? "0 8px 18px rgba(215,146,43,.14)" : "none",
+            ...panelStyle,
+            position: "relative",
+            overflow: "hidden",
+            padding: "24px 24px 22px",
+            background:
+              "linear-gradient(135deg, rgba(17,24,39,0.98) 0%, rgba(10,15,27,0.99) 45%, rgba(6,10,20,1) 100%)",
           }}
         >
-          <Search style={{ width: 17, height: 17 }} />
-          {isProcessing ? "Processando…" : "Comparar relatórios"}
-        </button>
-      </div>
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              pointerEvents: "none",
+              background:
+                "radial-gradient(circle at top left, rgba(99,102,241,.18), transparent 30%), radial-gradient(circle at bottom right, rgba(59,130,246,.12), transparent 26%)",
+            }}
+          />
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-        {([
-          {
-            label: "Planilha do sistema",
-            desc: "Clique ou arraste o arquivo aqui",
-            file: systemFile,
-            onChange: handleSystemFileChange,
-            dragKey: "system" as const,
-          },
-          {
-            label: "Planilha do SIEG",
-            desc: "Clique ou arraste o arquivo aqui",
-            file: governmentFile,
-            onChange: handleGovernmentFileChange,
-            dragKey: "government" as const,
-          },
-        ]).map(({ label, desc, file, onChange, dragKey }) => {
-          const isDragging = draggingOver === dragKey;
-
-          return (
-            <label
-              key={label}
-              onDrop={(e) => handleDrop(e, onChange, dragKey)}
-              onDragOver={(e) => handleDragOver(e, dragKey)}
-              onDragLeave={handleDragLeave}
-              style={{
-                ...sectionCardStyle,
-                display: "flex",
-                alignItems: "center",
-                gap: 16,
-                background: isDragging
-                  ? "#1E1A14"
-                  : file
-                    ? "linear-gradient(180deg, #1F1710 0%, #1A140F 100%)"
-                    : "linear-gradient(180deg, #18191D 0%, #15161A 100%)",
-                border: `1.5px dashed ${isDragging ? "#D7922B" : file ? "#7A4A12" : "#2D2F36"}`,
-                padding: "18px 18px",
-                cursor: "pointer",
-                transition: "background .15s, border-color .15s, transform .15s",
-              }}
-            >
-              <input
-                type="file"
-                accept=".xlsx,.xls,.csv"
-                style={{ display: "none" }}
-                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                  onChange(e.target.files?.[0] || null)
-                }
-              />
-
+          <div
+            style={{
+              position: "relative",
+              display: "grid",
+              gridTemplateColumns: "minmax(0, 1.2fr) minmax(300px, 380px)",
+              gap: 18,
+              alignItems: "stretch",
+            }}
+          >
+            <div>
               <div
                 style={{
-                  width: 46,
-                  height: 46,
-                  borderRadius: 12,
-                  flexShrink: 0,
-                  background: isDragging ? "#302006" : file ? "#322008" : "#202026",
-                  display: "flex",
+                  display: "inline-flex",
                   alignItems: "center",
-                  justifyContent: "center",
+                  gap: 8,
+                  borderRadius: 999,
+                  padding: "7px 12px",
+                  border: "1px solid rgba(99,102,241,.22)",
+                  background: "rgba(99,102,241,.12)",
+                  color: "#A5B4FC",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
                 }}
               >
-                {file ? (
-                  <FileSpreadsheet style={{ width: 20, height: 20, color: "#FFD089" }} />
-                ) : (
-                  <UploadCloud
-                    style={{
-                      width: 20,
-                      height: 20,
-                      color: isDragging ? "#D7922B" : "#84848B",
-                    }}
-                  />
-                )}
+                <Sparkles style={{ width: 14, height: 14 }} />
+                NF-e / NFS-e · Conciliação
               </div>
 
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 15, fontWeight: 700, color: "#F5F5F0", margin: 0 }}>
-                  {label}
-                </p>
-
-                {file ? (
-                  <p
-                    style={{
-                      fontSize: 13,
-                      color: "#FFD089",
-                      margin: "5px 0 0",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {file.name}
-                  </p>
-                ) : (
-                  <p
-                    style={{
-                      fontSize: 13,
-                      color: isDragging ? "#D7922B" : "#71717A",
-                      margin: "5px 0 0",
-                    }}
-                  >
-                    {isDragging ? "Solte para carregar" : desc}
-                  </p>
-                )}
-              </div>
-
-              {file && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onChange(null);
-                  }}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    padding: 4,
-                    color: "#7A7A82",
-                    display: "flex",
-                  }}
-                >
-                  <X style={{ width: 17, height: 17 }} />
-                </button>
-              )}
-            </label>
-          );
-        })}
-      </div>
-
-      {!!errorMessage && (
-        <div
-          style={{
-            marginTop: 16,
-            background: "#231111",
-            border: "1px solid #6A3232",
-            borderRadius: 12,
-            padding: "12px 16px",
-            fontSize: 14,
-            color: "#FFB4B4",
-          }}
-        >
-          {errorMessage}
-        </div>
-      )}
-
-      {hasCompared && (
-        <>
-          <div
-            style={{
-              marginTop: 22,
-              display: "grid",
-              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-              gap: 14,
-            }}
-          >
-            {[
-              {
-                label: "Conciliadas",
-                value: summary.reconciled,
-                color: "#A5D56A",
-                subtitle: "Notas encontradas por chave e validadas com sucesso",
-              },
-              {
-                label: "Não lançadas",
-                value: summary.notLaunchedCount,
-                color: "#FFAAAA",
-                subtitle: "Notas do SIEG sem localização correspondente no sistema",
-              },
-              {
-                label: "Divergências",
-                value: summary.divergencesCount,
-                color: "#FFD089",
-                subtitle: "Notas com diferença de valor, data, CNPJ ou múltiplos campos",
-              },
-            ].map(({ label, value, color, subtitle }) => (
-              <div
-                key={label}
+              <h1
                 style={{
-                  ...sectionCardStyle,
-                  padding: "18px 18px 16px",
-                  minHeight: 112,
+                  fontSize: 32,
+                  lineHeight: 1.05,
+                  fontWeight: 700,
+                  color: "#F8FAFC",
+                  margin: "16px 0 0",
+                  letterSpacing: "-0.03em",
                 }}
               >
-                <p style={{ fontSize: 14, color: "#8D8D96", margin: 0 }}>{label}</p>
-                <p style={{ fontSize: 30, fontWeight: 700, color, margin: "10px 0 8px" }}>
-                  {value}
-                </p>
-                <p style={{ fontSize: 13, color: "#66666F", margin: 0, lineHeight: 1.45 }}>
-                  {subtitle}
-                </p>
-              </div>
-            ))}
-          </div>
+                Comparação de notas
+              </h1>
 
-          <div
-            style={{
-              marginTop: 14,
-              display: "grid",
-              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-              gap: 14,
-            }}
-          >
-            {[
-              {
-                label: "Valor não lançado",
-                value: formatCurrencyShort(summary.notLaunchedValue),
-                accent: "#E24B4A",
-                full: formatCurrency(summary.notLaunchedValue),
-              },
-              {
-                label: "Valor com divergência",
-                value: formatCurrencyShort(summary.divergencesValue),
-                accent: "#EF9F27",
-                full: formatCurrency(summary.divergencesValue),
-              },
-              {
-                label: "Taxa de conciliação",
-                value: `${reconciliationRate}%`,
-                accent: "#7F77DD",
-                full: `${summary.reconciled} de ${summary.totalGovernmentNotes} notas`,
-              },
-            ].map(({ label, value, accent, full }) => (
-              <div
-                key={label}
-                title={full}
+              <p
                 style={{
-                  ...sectionCardStyle,
-                  padding: "18px 18px",
-                  borderLeft: `4px solid ${accent}`,
+                  fontSize: 14,
+                  color: "#94A3B8",
+                  margin: "10px 0 0",
+                  maxWidth: 760,
+                  lineHeight: 1.65,
                 }}
               >
-                <p style={{ fontSize: 14, color: "#8D8D96", margin: 0 }}>{label}</p>
-                <p style={{ fontSize: 22, fontWeight: 700, color: accent, margin: "8px 0 0" }}>
-                  {value}
-                </p>
-              </div>
-            ))}
-          </div>
+                Compare os arquivos do sistema com os relatórios do SIEG em uma visão mais
+                limpa no topo e mais robusta no conteúdo analítico. A prioridade continua
+                sendo a chave de acesso, exatamente como já funciona hoje.
+              </p>
 
-          <div
-            style={{
-              ...sectionCardStyle,
-              marginTop: 14,
-              padding: "18px 22px",
-              display: "flex",
-              alignItems: "center",
-              gap: 24,
-              flexWrap: "wrap",
-            }}
-          >
-            <DonutChart
-              reconciled={summary.reconciled}
-              notLaunched={summary.notLaunchedCount}
-              divergences={summary.divergencesCount}
-            />
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, minWidth: 280 }}>
-              {[
-                {
-                  color: "#639922",
-                  label: `${summary.reconciled} conciliadas`,
-                  pct: `${reconciliationRate}%`,
-                },
-                {
-                  color: "#E24B4A",
-                  label: `${summary.notLaunchedCount} não lançadas`,
-                  pct: `${notLaunchedRate}%`,
-                },
-                {
-                  color: "#EF9F27",
-                  label: `${summary.divergencesCount} divergências`,
-                  pct: `${divergencesRate}%`,
-                },
-              ].map(({ color, label, pct }) => (
+              {hasCompared && (
                 <div
-                  key={label}
                   style={{
-                    display: "flex",
+                    marginTop: 16,
+                    display: "inline-flex",
                     alignItems: "center",
                     gap: 10,
-                    fontSize: 14,
-                    color: "#D2D2D7",
+                    flexWrap: "wrap",
+                    padding: "10px 14px",
+                    borderRadius: 14,
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    color: "#CBD5E1",
+                    fontSize: 13,
                   }}
                 >
-                  <div
-                    style={{
-                      width: 9,
-                      height: 9,
-                      borderRadius: "50%",
-                      background: color,
-                      flexShrink: 0,
-                    }}
-                  />
-                  <span>{label}</span>
-                  <span style={{ color: "#7B7B84", marginLeft: "auto", paddingLeft: 16 }}>
-                    {pct}
-                  </span>
+                  <span>{summary.totalGovernmentNotes} notas no SIEG</span>
+                  <span style={{ opacity: 0.35 }}>•</span>
+                  <span>{summary.totalSystemNotes} notas no sistema</span>
+                  <span style={{ opacity: 0.35 }}>•</span>
+                  <span>{results.length} registros analisados</span>
                 </div>
-              ))}
+              )}
             </div>
-          </div>
 
-          <div style={{ marginTop: 24 }}>
             <div
               style={{
+                ...softCardStyle,
+                padding: 18,
                 display: "flex",
-                alignItems: "center",
+                flexDirection: "column",
                 justifyContent: "space-between",
-                gap: 16,
-                marginBottom: 14,
-                flexWrap: "wrap",
+                minHeight: 170,
               }}
             >
               <div>
                 <p
                   style={{
-                    fontSize: 24,
-                    lineHeight: 1.1,
-                    fontWeight: 700,
-                    color: "#F5F5F0",
                     margin: 0,
+                    fontSize: 13,
+                    color: "#E2E8F0",
+                    fontWeight: 700,
                   }}
                 >
-                  Pendências encontradas
+                  Ação principal
                 </p>
-                <p style={{ fontSize: 14, color: "#7A7A82", margin: "4px 0 0" }}>
-                  {searchedResults.length} registros no filtro atual
+                <p
+                  style={{
+                    margin: "6px 0 0",
+                    fontSize: 12,
+                    color: "#94A3B8",
+                    lineHeight: 1.6,
+                  }}
+                >
+                  Envie os dois arquivos e inicie a comparação mantendo toda a regra atual.
                 </p>
               </div>
 
-              <div
+              <button
+                type="button"
+                onClick={handleCompare}
+                disabled={!canCompare}
                 style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  marginTop: 18,
+                  width: "100%",
+                  height: 46,
+                  borderRadius: 16,
+                  border: "1px solid transparent",
+                  background: canCompare
+                    ? "linear-gradient(135deg, #6366F1 0%, #3B82F6 100%)"
+                    : "rgba(255,255,255,0.06)",
+                  color: canCompare ? "#F8FAFC" : "#64748B",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: canCompare ? "pointer" : "not-allowed",
+                  boxShadow: canCompare ? "0 14px 28px rgba(59,130,246,.22)" : "none",
+                }}
+              >
+                <Search style={{ width: 16, height: 16 }} />
+                {isProcessing ? "Processando…" : "Comparar relatórios"}
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 16,
+          }}
+        >
+          {([
+            {
+              label: "Planilha do sistema",
+              desc: "Clique ou arraste o arquivo aqui",
+              file: systemFile,
+              onChange: handleSystemFileChange,
+              dragKey: "system" as const,
+            },
+            {
+              label: "Planilha do SIEG",
+              desc: "Clique ou arraste o arquivo aqui",
+              file: governmentFile,
+              onChange: handleGovernmentFileChange,
+              dragKey: "government" as const,
+            },
+          ]).map(({ label, desc, file, onChange, dragKey }) => {
+            const isDragging = draggingOver === dragKey;
+
+            return (
+              <label
+                key={label}
+                onDrop={(e) => handleDrop(e, onChange, dragKey)}
+                onDragOver={(e) => handleDragOver(e, dragKey)}
+                onDragLeave={handleDragLeave}
+                style={{
+                  ...panelStyle,
+                  padding: 18,
                   display: "flex",
                   alignItems: "center",
-                  gap: 10,
-                  flexWrap: "wrap",
-                  justifyContent: "flex-end",
-                  flex: 1,
+                  gap: 16,
+                  cursor: "pointer",
+                  transition: "transform .16s ease, border-color .16s ease, background .16s ease",
+                  border: `1px solid ${
+                    isDragging
+                      ? "rgba(99,102,241,.45)"
+                      : file
+                        ? "rgba(59,130,246,.22)"
+                        : "rgba(255,255,255,.08)"
+                  }`,
+                  background: isDragging
+                    ? "linear-gradient(180deg, rgba(30,41,59,0.98) 0%, rgba(15,23,42,0.99) 100%)"
+                    : file
+                      ? "linear-gradient(180deg, rgba(15,23,42,0.98) 0%, rgba(9,14,26,0.99) 100%)"
+                      : "linear-gradient(180deg, rgba(17,24,39,0.96) 0%, rgba(10,15,27,0.98) 100%)",
+                }}
+              >
+                <input
+                  type="file"
+                  accept=".xlsx,.xls,.csv"
+                  style={{ display: "none" }}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    onChange(e.target.files?.[0] || null)
+                  }
+                />
+
+                <div
+                  style={{
+                    width: 50,
+                    height: 50,
+                    borderRadius: 16,
+                    flexShrink: 0,
+                    background: file
+                      ? "rgba(59,130,246,.14)"
+                      : isDragging
+                        ? "rgba(99,102,241,.18)"
+                        : "rgba(255,255,255,.05)",
+                    border: "1px solid rgba(255,255,255,.08)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {file ? (
+                    <FileSpreadsheet style={{ width: 21, height: 21, color: "#93C5FD" }} />
+                  ) : (
+                    <UploadCloud
+                      style={{
+                        width: 21,
+                        height: 21,
+                        color: isDragging ? "#A5B4FC" : "#94A3B8",
+                      }}
+                    />
+                  )}
+                </div>
+
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: 15, fontWeight: 700, color: "#F8FAFC", margin: 0 }}>
+                    {label}
+                  </p>
+
+                  {file ? (
+                    <p
+                      style={{
+                        fontSize: 13,
+                        color: "#93C5FD",
+                        margin: "6px 0 0",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {file.name}
+                    </p>
+                  ) : (
+                    <p
+                      style={{
+                        fontSize: 13,
+                        color: isDragging ? "#C7D2FE" : "#94A3B8",
+                        margin: "6px 0 0",
+                      }}
+                    >
+                      {isDragging ? "Solte para carregar" : desc}
+                    </p>
+                  )}
+                </div>
+
+                {file && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onChange(null);
+                    }}
+                    style={{
+                      background: "rgba(255,255,255,0.04)",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      cursor: "pointer",
+                      padding: 7,
+                      borderRadius: 12,
+                      color: "#94A3B8",
+                      display: "flex",
+                    }}
+                  >
+                    <X style={{ width: 16, height: 16 }} />
+                  </button>
+                )}
+              </label>
+            );
+          })}
+        </section>
+
+        {!!errorMessage && (
+          <div
+            style={{
+              background: "rgba(127, 29, 29, 0.32)",
+              border: "1px solid rgba(239,68,68,.28)",
+              borderRadius: 18,
+              padding: "14px 16px",
+              fontSize: 14,
+              color: "#FCA5A5",
+            }}
+          >
+            {errorMessage}
+          </div>
+        )}
+
+        {hasCompared && (
+          <>
+            <section
+              style={{
+                display: "grid",
+                gridTemplateColumns: "minmax(0, 1.2fr) minmax(320px, 0.8fr)",
+                gap: 16,
+              }}
+            >
+              <div
+                style={{
+                  ...panelStyle,
+                  padding: 18,
                 }}
               >
                 <div
                   style={{
-                    position: "relative",
-                    width: 300,
-                    minWidth: 240,
+                    display: "grid",
+                    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                    gap: 14,
                   }}
                 >
-                  <Search
+                  {[
+                    {
+                      label: "Conciliadas",
+                      value: summary.reconciled,
+                      color: "#86EFAC",
+                      subtitle: "Notas localizadas e validadas com sucesso",
+                      icon: ShieldCheck,
+                      bg: "rgba(16,185,129,.10)",
+                      border: "rgba(16,185,129,.18)",
+                    },
+                    {
+                      label: "Não lançadas",
+                      value: summary.notLaunchedCount,
+                      color: "#FCA5A5",
+                      subtitle: "Notas do SIEG sem vínculo encontrado",
+                      icon: Clock3,
+                      bg: "rgba(239,68,68,.10)",
+                      border: "rgba(239,68,68,.18)",
+                    },
+                    {
+                      label: "Divergências",
+                      value: summary.divergencesCount,
+                      color: "#FCD34D",
+                      subtitle: "Diferenças de valor, data, CNPJ ou outros campos",
+                      icon: AlertTriangle,
+                      bg: "rgba(245,158,11,.10)",
+                      border: "rgba(245,158,11,.18)",
+                    },
+                  ].map(({ label, value, color, subtitle, icon: Icon, bg, border }) => (
+                    <div
+                      key={label}
+                      style={{
+                        ...softCardStyle,
+                        padding: 16,
+                        background: bg,
+                        border: `1px solid ${border}`,
+                        minHeight: 134,
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: 10,
+                        }}
+                      >
+                        <span style={{ fontSize: 13, color: "#CBD5E1", fontWeight: 600 }}>
+                          {label}
+                        </span>
+                        <div
+                          style={{
+                            width: 34,
+                            height: 34,
+                            borderRadius: 12,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            background: "rgba(255,255,255,.06)",
+                            border: "1px solid rgba(255,255,255,.08)",
+                          }}
+                        >
+                          <Icon style={{ width: 16, height: 16, color }} />
+                        </div>
+                      </div>
+
+                      <p
+                        style={{
+                          fontSize: 34,
+                          lineHeight: 1,
+                          fontWeight: 700,
+                          color,
+                          margin: "16px 0 10px",
+                          letterSpacing: "-0.03em",
+                        }}
+                      >
+                        {value}
+                      </p>
+
+                      <p
+                        style={{
+                          fontSize: 12,
+                          color: "#94A3B8",
+                          margin: 0,
+                          lineHeight: 1.55,
+                        }}
+                      >
+                        {subtitle}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 14,
+                    display: "grid",
+                    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                    gap: 14,
+                  }}
+                >
+                  {[
+                    {
+                      label: "Valor não lançado",
+                      value: formatCurrencyShort(summary.notLaunchedValue),
+                      accent: "#F87171",
+                      full: formatCurrency(summary.notLaunchedValue),
+                    },
+                    {
+                      label: "Valor com divergência",
+                      value: formatCurrencyShort(summary.divergencesValue),
+                      accent: "#FBBF24",
+                      full: formatCurrency(summary.divergencesValue),
+                    },
+                    {
+                      label: "Taxa de conciliação",
+                      value: `${reconciliationRate}%`,
+                      accent: "#A5B4FC",
+                      full: `${summary.reconciled} de ${summary.totalGovernmentNotes} notas`,
+                    },
+                  ].map(({ label, value, accent, full }) => (
+                    <div
+                      key={label}
+                      title={full}
+                      style={{
+                        ...softCardStyle,
+                        padding: "16px 16px 15px",
+                        borderLeft: `4px solid ${accent}`,
+                      }}
+                    >
+                      <p style={{ fontSize: 13, color: "#94A3B8", margin: 0 }}>{label}</p>
+                      <p
+                        style={{
+                          fontSize: 24,
+                          fontWeight: 700,
+                          color: accent,
+                          margin: "10px 0 0",
+                          letterSpacing: "-0.02em",
+                        }}
+                      >
+                        {value}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  ...panelStyle,
+                  padding: 18,
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  gap: 16,
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                  }}
+                >
+                  <div
                     style={{
-                      width: 15,
-                      height: 15,
-                      color: "#6F6F78",
-                      position: "absolute",
-                      left: 12,
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      pointerEvents: "none",
+                      width: 36,
+                      height: 36,
+                      borderRadius: 14,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: "rgba(99,102,241,.12)",
+                      border: "1px solid rgba(99,102,241,.18)",
                     }}
+                  >
+                    <BarChart3 style={{ width: 16, height: 16, color: "#A5B4FC" }} />
+                  </div>
+                  <div>
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: 14,
+                        fontWeight: 700,
+                        color: "#F8FAFC",
+                      }}
+                    >
+                      Distribuição da conciliação
+                    </p>
+                    <p
+                      style={{
+                        margin: "4px 0 0",
+                        fontSize: 12,
+                        color: "#94A3B8",
+                      }}
+                    >
+                      Visão executiva da qualidade do cruzamento
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    ...softCardStyle,
+                    padding: "18px 18px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 20,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <DonutChart
+                    reconciled={summary.reconciled}
+                    notLaunched={summary.notLaunchedCount}
+                    divergences={summary.divergencesCount}
                   />
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Buscar chave, nota, CNPJ, fornecedor..."
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10, minWidth: 220, flex: 1 }}>
+                    {[
+                      {
+                        color: "#10B981",
+                        label: `${summary.reconciled} conciliadas`,
+                        pct: `${reconciliationRate}%`,
+                      },
+                      {
+                        color: "#EF4444",
+                        label: `${summary.notLaunchedCount} não lançadas`,
+                        pct: `${notLaunchedRate}%`,
+                      },
+                      {
+                        color: "#F59E0B",
+                        label: `${summary.divergencesCount} divergências`,
+                        pct: `${divergencesRate}%`,
+                      },
+                    ].map(({ color, label, pct }) => (
+                      <div
+                        key={label}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                          fontSize: 13,
+                          color: "#CBD5E1",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: 10,
+                            height: 10,
+                            borderRadius: "50%",
+                            background: color,
+                            flexShrink: 0,
+                          }}
+                        />
+                        <span>{label}</span>
+                        <span style={{ color: "#94A3B8", marginLeft: "auto", paddingLeft: 14 }}>
+                          {pct}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr",
+                    gap: 10,
+                  }}
+                >
+                  {[
+                    {
+                      label: "Notas no SIEG",
+                      value: summary.totalGovernmentNotes,
+                    },
+                    {
+                      label: "Notas no sistema",
+                      value: summary.totalSystemNotes,
+                    },
+                    {
+                      label: "Registros no resultado",
+                      value: results.length,
+                    },
+                  ].map((item) => (
+                    <div
+                      key={item.label}
+                      style={{
+                        ...softCardStyle,
+                        padding: "14px 14px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: 14,
+                      }}
+                    >
+                      <span style={{ fontSize: 13, color: "#CBD5E1" }}>{item.label}</span>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: "#F8FAFC" }}>
+                        {item.value}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            <section
+              style={{
+                ...panelStyle,
+                padding: 18,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  justifyContent: "space-between",
+                  gap: 16,
+                  flexWrap: "wrap",
+                  marginBottom: 16,
+                }}
+              >
+                <div>
+                  <p
                     style={{
-                      width: "100%",
-                      height: 40,
-                      padding: "0 14px 0 36px",
-                      background: "#18181A",
-                      border: "1px solid #2C2C30",
-                      borderRadius: 11,
-                      color: "#F5F5F0",
-                      fontSize: 13,
-                      outline: "none",
+                      fontSize: 26,
+                      lineHeight: 1.05,
+                      fontWeight: 700,
+                      color: "#F8FAFC",
+                      margin: 0,
+                      letterSpacing: "-0.03em",
                     }}
-                  />
+                  >
+                    Pendências encontradas
+                  </p>
+                  <p style={{ fontSize: 14, color: "#94A3B8", margin: "8px 0 0" }}>
+                    {searchedResults.length} registros no filtro atual
+                  </p>
                 </div>
 
                 <div
                   style={{
                     display: "flex",
-                    background: "#18181A",
-                    border: "1px solid #2C2C30",
-                    borderRadius: 13,
-                    padding: 4,
-                    gap: 4,
+                    alignItems: "center",
+                    gap: 10,
                     flexWrap: "wrap",
+                    justifyContent: "flex-end",
+                    flex: 1,
                   }}
                 >
-                  {(["todos", "nao-lancadas", "divergencias", "ativo-imobilizado"] as const).map(
-                    (f) => (
-                      <button
-                        key={f}
-                        type="button"
-                        onClick={() => setFilter(f)}
-                        style={{
-                          fontSize: 13,
-                          fontWeight: 600,
-                          width: f === "ativo-imobilizado" ? 160 : 148,
-                          height: 40,
-                          borderRadius: 9,
-                          border: "none",
-                          cursor: "pointer",
-                          background: filter === f ? "#2B2B30" : "transparent",
-                          color: filter === f ? "#F5F5F0" : "#84848B",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: 7,
-                        }}
-                      >
-                        {filterLabels[f]}
-                        <span
+                  <div
+                    style={{
+                      position: "relative",
+                      width: 320,
+                      minWidth: 240,
+                    }}
+                  >
+                    <Search
+                      style={{
+                        width: 15,
+                        height: 15,
+                        color: "#64748B",
+                        position: "absolute",
+                        left: 14,
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        pointerEvents: "none",
+                      }}
+                    />
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Buscar chave, nota, CNPJ, fornecedor..."
+                      style={{
+                        width: "100%",
+                        height: 44,
+                        padding: "0 14px 0 39px",
+                        background: "rgba(255,255,255,0.04)",
+                        border: "1px solid rgba(255,255,255,0.08)",
+                        borderRadius: 14,
+                        color: "#F8FAFC",
+                        fontSize: 13,
+                        outline: "none",
+                      }}
+                    />
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      background: "rgba(255,255,255,0.035)",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      borderRadius: 16,
+                      padding: 4,
+                      gap: 4,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    {(["todos", "nao-lancadas", "divergencias", "ativo-imobilizado"] as const).map(
+                      (f) => (
+                        <button
+                          key={f}
+                          type="button"
+                          onClick={() => setFilter(f)}
                           style={{
-                            fontSize: 11,
-                            fontWeight: 700,
-                            padding: "3px 8px",
-                            borderRadius: 999,
-                            background: filter === f ? "#3A3A40" : "#1E1E22",
-                            color: filter === f ? "#D8D8DD" : "#66666F",
-                            minWidth: 30,
-                            textAlign: "center",
+                            fontSize: 13,
+                            fontWeight: 600,
+                            width: f === "ativo-imobilizado" ? 166 : 150,
+                            height: 42,
+                            borderRadius: 12,
+                            border: "none",
+                            cursor: "pointer",
+                            background:
+                              filter === f
+                                ? "linear-gradient(135deg, rgba(99,102,241,.18) 0%, rgba(59,130,246,.18) 100%)"
+                                : "transparent",
+                            color: filter === f ? "#F8FAFC" : "#94A3B8",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 8,
                           }}
                         >
-                          {tabCounts[f]}
-                        </span>
-                      </button>
-                    ),
-                  )}
+                          {filterLabels[f]}
+                          <span
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 700,
+                              padding: "3px 8px",
+                              borderRadius: 999,
+                              background:
+                                filter === f ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.05)",
+                              color: filter === f ? "#E2E8F0" : "#64748B",
+                              minWidth: 30,
+                              textAlign: "center",
+                            }}
+                          >
+                            {tabCounts[f]}
+                          </span>
+                        </button>
+                      ),
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleExport}
+                    disabled={searchedResults.length === 0}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 8,
+                      fontSize: 13,
+                      fontWeight: 700,
+                      width: 122,
+                      height: 44,
+                      justifyContent: "center",
+                      color: searchedResults.length > 0 ? "#BFDBFE" : "#64748B",
+                      background:
+                        searchedResults.length > 0
+                          ? "rgba(59,130,246,0.10)"
+                          : "rgba(255,255,255,0.04)",
+                      border: `1px solid ${
+                        searchedResults.length > 0
+                          ? "rgba(59,130,246,0.20)"
+                          : "rgba(255,255,255,0.08)"
+                      }`,
+                      borderRadius: 14,
+                      cursor: searchedResults.length > 0 ? "pointer" : "not-allowed",
+                    }}
+                  >
+                    <Download style={{ width: 14, height: 14 }} />
+                    Exportar
+                  </button>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={handleExport}
-                  disabled={searchedResults.length === 0}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 7,
-                    fontSize: 13,
-                    fontWeight: 700,
-                    width: 118,
-                    height: 40,
-                    justifyContent: "center",
-                    color: searchedResults.length > 0 ? "#FFD089" : "#5A5A62",
-                    background: searchedResults.length > 0 ? "#1A1208" : "#1A1A1E",
-                    border: `1px solid ${
-                      searchedResults.length > 0 ? "#6E4714" : "#2C2C30"
-                    }`,
-                    borderRadius: 11,
-                    cursor: searchedResults.length > 0 ? "pointer" : "not-allowed",
-                  }}
-                >
-                  <Download style={{ width: 14, height: 14 }} />
-                  Exportar
-                </button>
               </div>
-            </div>
 
-            <div
-              style={{
-                ...sectionCardStyle,
-                overflowX: "auto",
-                borderRadius: 16,
-              }}
-            >
-              <table
+              <div
                 style={{
-                  width: "100%",
-                  borderCollapse: "collapse",
-                  tableLayout: "fixed",
-                  minWidth: 1680,
+                  ...softCardStyle,
+                  overflowX: "auto",
+                  borderRadius: 20,
                 }}
               >
-                <colgroup>
-                  <col style={{ width: 140 }} />
-                  <col style={{ width: 280 }} />
-                  <col style={{ width: 140 }} />
-                  <col style={{ width: 110 }} />
-                  <col style={{ width: 180 }} />
-                  <col style={{ width: 230 }} />
-                  <col style={{ width: 210 }} />
-                  <col style={{ width: 140 }} />
-                  <col style={{ width: 140 }} />
-                  <col />
-                </colgroup>
+                <table
+                  style={{
+                    width: "100%",
+                    borderCollapse: "collapse",
+                    tableLayout: "fixed",
+                    minWidth: 1680,
+                  }}
+                >
+                  <colgroup>
+                    <col style={{ width: 148 }} />
+                    <col style={{ width: 280 }} />
+                    <col style={{ width: 140 }} />
+                    <col style={{ width: 110 }} />
+                    <col style={{ width: 180 }} />
+                    <col style={{ width: 230 }} />
+                    <col style={{ width: 210 }} />
+                    <col style={{ width: 140 }} />
+                    <col style={{ width: 140 }} />
+                    <col />
+                  </colgroup>
 
-                <thead>
-                  <tr style={{ background: "#141519" }}>
-                    {[
-                      "Tipo",
-                      "Chave",
-                      "NF",
-                      "Data",
-                      "CNPJ",
-                      "Fornecedor",
-                      "Tags",
-                      "Valor SIEG",
-                      "Valor sist.",
-                      "Observação",
-                    ].map((h) => (
-                      <th
-                        key={h}
-                        style={{
-                          fontSize: 11,
-                          color: "#7A7A82",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.08em",
-                          padding: "15px 14px",
-                          textAlign: "left",
-                          fontWeight: 700,
-                          borderBottom: "1px solid #25252B",
-                        }}
-                      >
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {searchedResults.length > 0 ? (
-                    searchedResults.map((row) => {
-                      const badge = typeBadge[row.tipo];
-
-                      return (
-                        <tr
-                          key={row.id}
+                  <thead>
+                    <tr
+                      style={{
+                        background: "rgba(255,255,255,0.03)",
+                      }}
+                    >
+                      {[
+                        "Tipo",
+                        "Chave",
+                        "NF",
+                        "Data",
+                        "CNPJ",
+                        "Fornecedor",
+                        "Tags",
+                        "Valor SIEG",
+                        "Valor sist.",
+                        "Observação",
+                      ].map((h) => (
+                        <th
+                          key={h}
                           style={{
-                            borderBottom: "1px solid #202026",
-                            transition: "background .12s",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = "#1B1C21";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = "transparent";
+                            fontSize: 11,
+                            color: "#64748B",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.1em",
+                            padding: "16px 14px",
+                            textAlign: "left",
+                            fontWeight: 700,
+                            borderBottom: "1px solid rgba(255,255,255,0.08)",
                           }}
                         >
-                          <td style={{ padding: "15px 14px", verticalAlign: "middle" }}>
-                            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                              <span
-                                style={{
-                                  display: "inline-block",
-                                  width: "fit-content",
-                                  fontSize: 11,
-                                  fontWeight: 700,
-                                  padding: "5px 11px",
-                                  borderRadius: 999,
-                                  whiteSpace: "nowrap",
-                                  ...badgeStyles[badge.variant],
-                                }}
-                              >
-                                {badge.label}
-                              </span>
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
 
-                              {row.ativoImobilizado && (
+                  <tbody>
+                    {searchedResults.length > 0 ? (
+                      searchedResults.map((row) => {
+                        const badge = typeBadge[row.tipo];
+
+                        return (
+                          <tr
+                            key={row.id}
+                            style={{
+                              borderBottom: "1px solid rgba(255,255,255,0.06)",
+                              transition: "background .12s ease",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = "rgba(255,255,255,0.03)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = "transparent";
+                            }}
+                          >
+                            <td style={{ padding: "16px 14px", verticalAlign: "middle" }}>
+                              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                                 <span
                                   style={{
                                     display: "inline-block",
@@ -949,214 +1267,244 @@ const ConciliacaoNFE = () => {
                                     padding: "5px 11px",
                                     borderRadius: 999,
                                     whiteSpace: "nowrap",
-                                    background: "rgba(55,138,221,.12)",
-                                    color: "#9CC8F7",
-                                    border: "1px solid rgba(55,138,221,.28)",
+                                    ...badgeStyles[badge.variant],
                                   }}
                                 >
-                                  Ativo imobilizado
+                                  {badge.label}
                                 </span>
-                              )}
-                            </div>
-                          </td>
 
-                          <td
-                            style={{
-                              fontSize: 13,
-                              color: "#E2E2E7",
-                              padding: "15px 14px",
-                              verticalAlign: "middle",
-                              fontWeight: 600,
-                              lineHeight: 1.35,
-                              wordBreak: "break-all",
-                              overflowWrap: "anywhere",
-                            }}
-                            title={row.chave}
-                          >
-                            {row.chave || "—"}
-                          </td>
+                                {row.ativoImobilizado && (
+                                  <span
+                                    style={{
+                                      display: "inline-block",
+                                      width: "fit-content",
+                                      fontSize: 11,
+                                      fontWeight: 700,
+                                      padding: "5px 11px",
+                                      borderRadius: 999,
+                                      whiteSpace: "nowrap",
+                                      background: "rgba(59,130,246,.12)",
+                                      color: "#93C5FD",
+                                      border: "1px solid rgba(59,130,246,.22)",
+                                    }}
+                                  >
+                                    Ativo imobilizado
+                                  </span>
+                                )}
+                              </div>
+                            </td>
 
-                          <td
-                            style={{
-                              fontSize: 14,
-                              color: "#E2E2E7",
-                              padding: "15px 14px",
-                              verticalAlign: "middle",
-                              fontWeight: 600,
-                              lineHeight: 1.2,
-                              wordBreak: "break-all",
-                              overflowWrap: "anywhere",
-                            }}
-                            title={row.numeroNF}
-                          >
-                            {row.numeroNF || "—"}
-                          </td>
+                            <td
+                              style={{
+                                fontSize: 13,
+                                color: "#E2E8F0",
+                                padding: "16px 14px",
+                                verticalAlign: "middle",
+                                fontWeight: 600,
+                                lineHeight: 1.35,
+                                wordBreak: "break-all",
+                                overflowWrap: "anywhere",
+                              }}
+                              title={row.chave}
+                            >
+                              {row.chave || "—"}
+                            </td>
 
-                          <td
-                            style={{
-                              fontSize: 14,
-                              color: "#E2E2E7",
-                              padding: "15px 14px",
-                              whiteSpace: "nowrap",
-                              verticalAlign: "middle",
-                              fontWeight: 600,
-                            }}
-                          >
-                            {row.dataEmissao || "—"}
-                          </td>
-
-                          <td
-                            style={{
-                              fontSize: 14,
-                              color: "#E2E2E7",
-                              padding: "15px 14px",
-                              verticalAlign: "middle",
-                              fontWeight: 600,
-                              lineHeight: 1.35,
-                              wordBreak: "break-all",
-                              overflowWrap: "anywhere",
-                            }}
-                          >
-                            {row.cnpjEmitente || "—"}
-                          </td>
-
-                          <td style={{ padding: "15px 14px", verticalAlign: "middle" }}>
-                            <div
+                            <td
                               style={{
                                 fontSize: 14,
-                                color: "#F0F0F2",
-                                lineHeight: 1.35,
+                                color: "#E2E8F0",
+                                padding: "16px 14px",
+                                verticalAlign: "middle",
                                 fontWeight: 600,
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
+                                lineHeight: 1.2,
+                                wordBreak: "break-all",
+                                overflowWrap: "anywhere",
+                              }}
+                              title={row.numeroNF}
+                            >
+                              {row.numeroNF || "—"}
+                            </td>
+
+                            <td
+                              style={{
+                                fontSize: 14,
+                                color: "#E2E8F0",
+                                padding: "16px 14px",
                                 whiteSpace: "nowrap",
+                                verticalAlign: "middle",
+                                fontWeight: 600,
                               }}
                             >
-                              {row.nomeFornecedor || "Fornecedor não informado"}
-                            </div>
-                          </td>
+                              {row.dataEmissao || "—"}
+                            </td>
 
-                          <td style={{ padding: "15px 14px", verticalAlign: "middle" }}>
-                            <div
+                            <td
                               style={{
-                                fontSize: 13,
-                                color: "#A1A1AA",
-                                lineHeight: 1.5,
-                                overflow: "hidden",
-                                display: "-webkit-box",
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: "vertical",
+                                fontSize: 14,
+                                color: "#E2E8F0",
+                                padding: "16px 14px",
+                                verticalAlign: "middle",
+                                fontWeight: 600,
+                                lineHeight: 1.35,
+                                wordBreak: "break-all",
+                                overflowWrap: "anywhere",
                               }}
-                              title={row.tags || ""}
                             >
-                              {row.tags || "—"}
-                            </div>
-                          </td>
+                              {row.cnpjEmitente || "—"}
+                            </td>
 
-                          <td
-                            style={{
-                              fontSize: 14,
-                              color: "#E2E2E7",
-                              padding: "15px 14px",
-                              whiteSpace: "nowrap",
-                              verticalAlign: "middle",
-                              fontWeight: 600,
-                            }}
-                          >
-                            {formatCurrency(Number(row.valor ?? 0))}
-                          </td>
+                            <td style={{ padding: "16px 14px", verticalAlign: "middle" }}>
+                              <div
+                                style={{
+                                  fontSize: 14,
+                                  color: "#F8FAFC",
+                                  lineHeight: 1.35,
+                                  fontWeight: 600,
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                {row.nomeFornecedor || "Fornecedor não informado"}
+                              </div>
+                            </td>
 
-                          <td
-                            style={{
-                              fontSize: 14,
-                              padding: "15px 14px",
-                              whiteSpace: "nowrap",
-                              verticalAlign: "middle",
-                              fontWeight: 600,
-                              color:
-                                row.valorSistema !== null && row.valorSistema !== row.valor
-                                  ? "#FFD089"
-                                  : "#B0B0B8",
-                            }}
-                          >
-                            {row.valorSistema !== null && row.valorSistema !== undefined ? (
-                              formatCurrency(Number(row.valorSistema))
-                            ) : (
-                              <span style={{ color: "#43434A" }}>—</span>
-                            )}
-                          </td>
+                            <td style={{ padding: "16px 14px", verticalAlign: "middle" }}>
+                              <div
+                                style={{
+                                  fontSize: 13,
+                                  color: "#A1A1AA",
+                                  lineHeight: 1.5,
+                                  overflow: "hidden",
+                                  display: "-webkit-box",
+                                  WebkitLineClamp: 2,
+                                  WebkitBoxOrient: "vertical",
+                                }}
+                                title={row.tags || ""}
+                              >
+                                {row.tags || "—"}
+                              </div>
+                            </td>
 
-                          <td style={{ padding: "15px 14px", verticalAlign: "middle" }}>
-                            <p
+                            <td
                               style={{
-                                fontSize: 13,
-                                color: "#A1A1AA",
-                                margin: 0,
-                                lineHeight: 1.5,
-                                overflow: "hidden",
-                                display: "-webkit-box",
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: "vertical",
+                                fontSize: 14,
+                                color: "#E2E8F0",
+                                padding: "16px 14px",
+                                whiteSpace: "nowrap",
+                                verticalAlign: "middle",
+                                fontWeight: 600,
                               }}
-                              title={row.observacao}
                             >
-                              {row.observacao}
-                            </p>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan={10}
-                        style={{
-                          padding: "48px 14px",
-                          textAlign: "center",
-                          fontSize: 14,
-                          color: "#6E6E76",
-                        }}
-                      >
-                        {searchTerm.trim()
-                          ? "Nenhuma nota encontrada para a busca informada."
-                          : "Nenhum item encontrado para o filtro selecionado."}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </>
-      )}
+                              {formatCurrency(Number(row.valor ?? 0))}
+                            </td>
 
-      {!hasCompared && !errorMessage && (
-        <div style={{ marginTop: 68, textAlign: "center" }}>
+                            <td
+                              style={{
+                                fontSize: 14,
+                                padding: "16px 14px",
+                                whiteSpace: "nowrap",
+                                verticalAlign: "middle",
+                                fontWeight: 600,
+                                color:
+                                  row.valorSistema !== null && row.valorSistema !== row.valor
+                                    ? "#FCD34D"
+                                    : "#CBD5E1",
+                              }}
+                            >
+                              {row.valorSistema !== null && row.valorSistema !== undefined ? (
+                                formatCurrency(Number(row.valorSistema))
+                              ) : (
+                                <span style={{ color: "#475569" }}>—</span>
+                              )}
+                            </td>
+
+                            <td style={{ padding: "16px 14px", verticalAlign: "middle" }}>
+                              <p
+                                style={{
+                                  fontSize: 13,
+                                  color: "#A1A1AA",
+                                  margin: 0,
+                                  lineHeight: 1.5,
+                                  overflow: "hidden",
+                                  display: "-webkit-box",
+                                  WebkitLineClamp: 2,
+                                  WebkitBoxOrient: "vertical",
+                                }}
+                                title={row.observacao}
+                              >
+                                {row.observacao}
+                              </p>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan={10}
+                          style={{
+                            padding: "52px 14px",
+                            textAlign: "center",
+                            fontSize: 14,
+                            color: "#94A3B8",
+                          }}
+                        >
+                          {searchTerm.trim()
+                            ? "Nenhuma nota encontrada para a busca informada."
+                            : "Nenhum item encontrado para o filtro selecionado."}
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </>
+        )}
+
+        {!hasCompared && !errorMessage && (
           <div
             style={{
-              width: 62,
-              height: 62,
-              borderRadius: 18,
-              background: "#1A1A1E",
-              border: "1px solid #232329",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              margin: "0 auto 16px",
-              boxShadow: "0 8px 20px rgba(0,0,0,.14)",
+              ...panelStyle,
+              padding: "42px 22px",
+              textAlign: "center",
             }}
           >
-            <Search style={{ width: 24, height: 24, color: "#4B4B52" }} />
-          </div>
+            <div
+              style={{
+                width: 68,
+                height: 68,
+                borderRadius: 22,
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto 18px",
+              }}
+            >
+              <Search style={{ width: 24, height: 24, color: "#64748B" }} />
+            </div>
 
-          <p style={{ fontSize: 20, fontWeight: 700, color: "#D0D0D6", margin: 0 }}>
-            Nenhuma comparação realizada
-          </p>
-          <p style={{ fontSize: 14, color: "#6B6B73", margin: "8px 0 0" }}>
-            Envie as duas planilhas e clique em comparar para visualizar a conciliação.
-          </p>
-        </div>
-      )}
+            <p
+              style={{
+                fontSize: 22,
+                fontWeight: 700,
+                color: "#E2E8F0",
+                margin: 0,
+                letterSpacing: "-0.02em",
+              }}
+            >
+              Nenhuma comparação realizada
+            </p>
+            <p style={{ fontSize: 14, color: "#94A3B8", margin: "8px 0 0", lineHeight: 1.6 }}>
+              Envie as duas planilhas e clique em comparar para visualizar a conciliação.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
