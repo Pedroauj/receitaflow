@@ -18,24 +18,30 @@ const features = [
   {
     icon: FileSpreadsheet,
     title: "Operação multi-clientes",
-    desc: "Centralize layouts diferentes de planilhas em um fluxo único, padronizado e confiável.",
+    desc: "Centralize layouts diferentes de planilhas em um único fluxo padronizado, com mais clareza operacional.",
   },
   {
     icon: Zap,
     title: "Processamento inteligente",
-    desc: "Automatize validações, reduza retrabalho manual e acelere a rotina de baixas financeiras.",
+    desc: "Automatize etapas repetitivas e reduza o esforço manual nas rotinas financeiras do dia a dia.",
   },
   {
     icon: Shield,
     title: "Conferência com segurança",
-    desc: "Cruze informações, valide valores e tenha mais controle antes de concluir cada processamento.",
+    desc: "Valide informações com mais controle antes de concluir cada processamento e reduzir inconsistências.",
   },
 ];
 
 const stats = [
   { label: "Layouts suportados", value: "+20" },
   { label: "Tempo operacional", value: "-80%" },
-  { label: "Conferência manual", value: "Menos erros" },
+  { label: "Processos mais seguros", value: "Menos erros" },
+];
+
+const highlights = [
+  "Módulos organizados por permissão",
+  "Visão operacional mais clara",
+  "Processos financeiros padronizados",
 ];
 
 const Landing = () => {
@@ -47,373 +53,419 @@ const Landing = () => {
   }, [user, loading, navigate]);
 
   return (
-    <div className="min-h-screen overflow-hidden relative" style={{ background: "#18181A" }}>
-      {/* Background effects */}
+    <div
+      className="min-h-screen relative overflow-hidden"
+      style={{ background: "#0F1012" }}
+    >
+      {/* Background */}
       <div className="pointer-events-none absolute inset-0">
-        <div
-          className="absolute left-1/2 top-[-120px] h-[320px] w-[320px] -translate-x-1/2 rounded-full blur-3xl"
-          style={{ background: "rgba(186, 117, 23, 0.10)" }}
-        />
-        <div
-          className="absolute left-[12%] top-[180px] h-[180px] w-[180px] rounded-full blur-3xl"
-          style={{ background: "rgba(250, 199, 117, 0.06)" }}
-        />
-        <div
-          className="absolute bottom-[80px] right-[10%] h-[220px] w-[220px] rounded-full blur-3xl"
-          style={{ background: "rgba(239, 159, 39, 0.06)" }}
-        />
         <div
           className="absolute inset-0"
           style={{
+            background:
+              "radial-gradient(circle at top center, rgba(250,199,117,0.08) 0%, rgba(250,199,117,0.02) 22%, rgba(15,16,18,0) 48%)",
+          }}
+        />
+        <div
+          className="absolute left-[8%] top-[140px] h-[260px] w-[260px] rounded-full blur-3xl"
+          style={{ background: "rgba(186, 117, 23, 0.08)" }}
+        />
+        <div
+          className="absolute right-[8%] bottom-[120px] h-[240px] w-[240px] rounded-full blur-3xl"
+          style={{ background: "rgba(250, 199, 117, 0.05)" }}
+        />
+        <div
+          className="absolute inset-0 opacity-[0.35]"
+          style={{
             backgroundImage:
-              "linear-gradient(rgba(250,199,117,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(250,199,117,0.03) 1px, transparent 1px)",
-            backgroundSize: "38px 38px",
+              "linear-gradient(rgba(250,199,117,0.028) 1px, transparent 1px), linear-gradient(90deg, rgba(250,199,117,0.028) 1px, transparent 1px)",
+            backgroundSize: "36px 36px",
+            maskImage:
+              "linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0.45), transparent)",
           }}
         />
       </div>
 
       {/* Header */}
-      <header className="relative z-10 px-6 md:px-8 py-5 flex items-center justify-between max-w-7xl mx-auto w-full">
-        <div className="flex items-center gap-3">
-          <div
-            className="h-10 w-10 rounded-2xl flex items-center justify-center border"
-            style={{
-              background: "#412402",
-              borderColor: "#633806",
-              boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
-            }}
-          >
-            <Hexagon className="h-5 w-5" style={{ color: "#BA7517" }} />
-          </div>
-
-          <div>
-            <p
-              className="text-[11px] uppercase tracking-[0.28em] m-0"
-              style={{ color: "#888780" }}
-            >
-              plataforma financeira
-            </p>
-            <h1 className="text-lg font-semibold m-0" style={{ color: "#F5F5F0" }}>
-              Receita<span style={{ color: "#FAC775" }}>Flow</span>
-            </h1>
-          </div>
-        </div>
-
-        <div className="hidden md:flex items-center gap-3">
-          <button
-            className="rounded-xl px-4 py-2 text-sm transition"
-            style={{
-              border: "1px solid #2A2A2D",
-              background: "#1C1C1F",
-              color: "#C9C7BE",
-            }}
-          >
-            Ver demonstração
-          </button>
-
-          <Button
-            className="border-0 text-sm h-10 px-5 font-semibold"
-            style={{
-              background: "linear-gradient(135deg, #FAC775 0%, #EF9F27 100%)",
-              color: "#241300",
-              boxShadow: "0 10px 24px rgba(239,159,39,0.22)",
-            }}
-            onClick={() => navigate("/login")}
-          >
-            Entrar
-          </Button>
-        </div>
-      </header>
-
-      {/* Hero */}
-      <main className="relative z-10 max-w-7xl mx-auto w-full px-6 md:px-8 pt-6 md:pt-10 pb-14 md:pb-20 grid md:grid-cols-[1.1fr_0.9fr] gap-12 items-center min-h-[calc(100vh-84px)]">
-        <motion.section
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="max-w-2xl"
+      <header className="relative z-10 w-full px-6 md:px-8 pt-6">
+        <div
+          className="mx-auto flex items-center justify-between rounded-[28px] px-5 md:px-6 py-4"
+          style={{
+            maxWidth: 1560,
+            border: "1px solid rgba(255,255,255,0.06)",
+            background: "rgba(20,21,24,0.72)",
+            backdropFilter: "blur(18px)",
+            boxShadow: "0 12px 40px rgba(0,0,0,0.22)",
+          }}
         >
-          <div
-            className="inline-flex items-center gap-2 rounded-full px-4 py-2 mb-6"
-            style={{
-              background: "rgba(65,36,2,0.8)",
-              border: "1px solid #633806",
-              backdropFilter: "blur(8px)",
-            }}
-          >
-            <Sparkles className="h-4 w-4" style={{ color: "#FAC775" }} />
-            <span
-              className="text-xs font-medium"
-              style={{ color: "#FAC775", letterSpacing: "0.02em" }}
+          <div className="flex items-center gap-3">
+            <div
+              className="h-11 w-11 rounded-2xl flex items-center justify-center shrink-0"
+              style={{
+                background: "linear-gradient(180deg, #3B2203 0%, #2A1802 100%)",
+                border: "1px solid rgba(250,199,117,0.18)",
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
+              }}
             >
-              Automação financeira com o mesmo padrão visual da sua plataforma
-            </span>
+              <Hexagon className="h-5 w-5" style={{ color: "#FAC775" }} />
+            </div>
+
+            <div>
+              <p
+                className="text-[11px] uppercase tracking-[0.24em] m-0"
+                style={{ color: "#7C7A74" }}
+              >
+                plataforma financeira
+              </p>
+              <h1 className="text-lg font-semibold leading-none mt-1 m-0">
+                <span style={{ color: "#F5F5F0" }}>Receita</span>
+                <span style={{ color: "#FAC775" }}>Flow</span>
+              </h1>
+            </div>
           </div>
 
-          <h2
-            className="text-4xl md:text-6xl font-bold leading-[1.02] tracking-[-0.04em]"
-            style={{ color: "#F5F5F0" }}
-          >
-            Transforme planilhas operacionais em um fluxo mais visual, rápido e confiável.
-          </h2>
+          <div className="hidden md:flex items-center gap-3">
+            <button
+              className="h-11 px-5 rounded-2xl text-sm font-medium transition-all duration-200"
+              style={{
+                border: "1px solid rgba(255,255,255,0.08)",
+                background: "rgba(255,255,255,0.02)",
+                color: "#C9C7BE",
+              }}
+            >
+              Ver demonstração
+            </button>
 
-          <p
-            className="mt-6 text-base md:text-lg leading-7 max-w-xl"
-            style={{ color: "#A3A19A" }}
-          >
-            Uma landing mais forte para posicionar o ReceitaFlow como uma plataforma premium:
-            clareza na proposta, estética mais madura e uma vitrine visual do que o sistema
-            entrega no dia a dia.
-          </p>
-
-          <div className="mt-8 flex flex-col sm:flex-row gap-3">
             <Button
-              className="border-0 h-12 px-6 text-sm font-semibold rounded-2xl"
+              className="h-11 px-5 rounded-2xl border-0 text-sm font-semibold"
               style={{
                 background: "linear-gradient(135deg, #FAC775 0%, #EF9F27 100%)",
                 color: "#241300",
-                boxShadow: "0 12px 28px rgba(239,159,39,0.22)",
+                boxShadow: "0 10px 24px rgba(239,159,39,0.22)",
               }}
               onClick={() => navigate("/login")}
             >
-              Acessar plataforma
-              <ArrowRight className="h-4 w-4 ml-2" />
+              Entrar
             </Button>
-
-            <button
-              className="h-12 px-6 text-sm font-medium rounded-2xl transition"
-              style={{
-                border: "1px solid #2A2A2D",
-                background: "rgba(27,27,30,0.8)",
-                color: "#D6D3CB",
-              }}
-            >
-              Conhecer módulos
-            </button>
           </div>
+        </div>
+      </header>
 
-          <div className="mt-10 grid gap-4 sm:grid-cols-3">
-            {stats.map((item) => (
-              <div
-                key={item.label}
-                className="rounded-2xl p-4"
-                style={{
-                  border: "1px solid #26262A",
-                  background: "linear-gradient(180deg, #1D1D20 0%, #17171A 100%)",
-                  boxShadow: "0 10px 30px rgba(0,0,0,0.18)",
-                }}
-              >
-                <p className="text-2xl font-semibold m-0" style={{ color: "#F5F5F0" }}>
-                  {item.value}
-                </p>
-                <p className="mt-1 text-xs leading-5 m-0" style={{ color: "#8F8C84" }}>
-                  {item.label}
-                </p>
-              </div>
-            ))}
-          </div>
-        </motion.section>
-
-        {/* Visual mockup */}
-        <motion.section
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15, duration: 0.55 }}
-          className="relative"
+      {/* Main */}
+      <main className="relative z-10 w-full px-6 md:px-8 pt-8 md:pt-10 pb-10 md:pb-14">
+        <div
+          className="mx-auto grid items-center gap-8 xl:gap-10"
+          style={{ maxWidth: 1560, gridTemplateColumns: "minmax(0,1.08fr) minmax(420px,0.92fr)" }}
         >
-          <div
-            className="rounded-[28px] p-4 md:p-5"
-            style={{
-              border: "1px solid #2B2B30",
-              background:
-                "linear-gradient(180deg, rgba(29,29,32,0.95) 0%, rgba(20,20,22,0.96) 100%)",
-              boxShadow: "0 30px 80px rgba(0,0,0,0.34)",
-              backdropFilter: "blur(20px)",
-            }}
+          {/* Left */}
+          <motion.section
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45 }}
+            className="min-w-0"
           >
             <div
-              className="rounded-[24px] p-4 md:p-5"
+              className="inline-flex items-center gap-2 rounded-full px-4 py-2 mb-6"
               style={{
-                border: "1px solid #2F2F34",
-                background: "#121214",
+                border: "1px solid rgba(250,199,117,0.14)",
+                background: "rgba(65,36,2,0.38)",
+                color: "#FAC775",
+                backdropFilter: "blur(10px)",
+              }}
+            >
+              <Sparkles className="h-4 w-4" />
+              <span className="text-xs font-medium tracking-[0.01em]">
+                Mesmo padrão visual do restante da plataforma
+              </span>
+            </div>
+
+            <h2
+              className="text-4xl md:text-5xl xl:text-6xl font-bold tracking-[-0.04em] leading-[1.02] max-w-4xl"
+              style={{ color: "#F5F5F0" }}
+            >
+              Uma entrada mais sólida, elegante e coerente com o visual premium do sistema.
+            </h2>
+
+            <p
+              className="mt-6 max-w-2xl text-base md:text-lg leading-7"
+              style={{ color: "#A4A098" }}
+            >
+              O ReceitaFlow organiza rotinas financeiras, padroniza fluxos operacionais e entrega
+              uma experiência mais profissional desde o primeiro contato, sem quebrar a identidade
+              visual do restante do site.
+            </p>
+
+            <div className="mt-8 flex flex-col sm:flex-row gap-3">
+              <Button
+                className="h-12 px-6 rounded-2xl border-0 text-sm font-semibold"
+                style={{
+                  background: "linear-gradient(135deg, #FAC775 0%, #EF9F27 100%)",
+                  color: "#241300",
+                  boxShadow: "0 12px 28px rgba(239,159,39,0.22)",
+                }}
+                onClick={() => navigate("/login")}
+              >
+                Acessar plataforma
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+
+              <button
+                className="h-12 px-6 rounded-2xl text-sm font-medium transition-all duration-200"
+                style={{
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  background: "rgba(255,255,255,0.02)",
+                  color: "#D6D3CB",
+                }}
+              >
+                Conhecer módulos
+              </button>
+            </div>
+
+            <div className="mt-10 grid gap-4 sm:grid-cols-3">
+              {stats.map((item) => (
+                <div
+                  key={item.label}
+                  className="rounded-[24px] p-5"
+                  style={{
+                    border: "1px solid rgba(255,255,255,0.06)",
+                    background: "linear-gradient(180deg, #191A1D 0%, #141518 100%)",
+                    boxShadow: "0 14px 34px rgba(0,0,0,0.18)",
+                  }}
+                >
+                  <p className="text-2xl md:text-[28px] font-semibold m-0" style={{ color: "#F5F5F0" }}>
+                    {item.value}
+                  </p>
+                  <p className="mt-2 text-xs leading-5 m-0" style={{ color: "#88867F" }}>
+                    {item.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </motion.section>
+
+          {/* Right */}
+          <motion.section
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.08, duration: 0.5 }}
+            className="min-w-0"
+          >
+            <div
+              className="rounded-[32px] p-4 md:p-5"
+              style={{
+                border: "1px solid rgba(255,255,255,0.06)",
+                background: "rgba(18,19,22,0.86)",
+                backdropFilter: "blur(18px)",
+                boxShadow: "0 26px 70px rgba(0,0,0,0.34)",
               }}
             >
               <div
-                className="mb-4 flex items-center justify-between rounded-2xl px-4 py-3"
+                className="rounded-[26px] p-4 md:p-5"
                 style={{
-                  border: "1px solid #26262A",
-                  background: "#18181B",
+                  border: "1px solid rgba(255,255,255,0.05)",
+                  background: "linear-gradient(180deg, #141518 0%, #101114 100%)",
                 }}
               >
-                <div>
-                  <p
-                    className="text-xs uppercase tracking-[0.24em] m-0"
-                    style={{ color: "#7F7C75" }}
-                  >
-                    visão operacional
-                  </p>
-                  <h3 className="mt-1 text-sm font-semibold m-0" style={{ color: "#F5F5F0" }}>
-                    Dashboard financeiro
-                  </h3>
-                </div>
-
                 <div
-                  className="rounded-full px-3 py-1 text-[11px] font-medium"
+                  className="rounded-[22px] p-4 mb-4"
                   style={{
-                    border: "1px solid #633806",
-                    background: "#412402",
-                    color: "#FAC775",
+                    border: "1px solid rgba(255,255,255,0.05)",
+                    background: "linear-gradient(180deg, #1A1B1F 0%, #15161A 100%)",
                   }}
                 >
-                  ReceitaFlow Core
-                </div>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-[1.05fr_0.95fr]">
-                <div
-                  className="rounded-2xl p-4"
-                  style={{
-                    border: "1px solid #26262A",
-                    background: "linear-gradient(180deg, #1B1B1E 0%, #151518 100%)",
-                  }}
-                >
-                  <div className="mb-4 flex items-center justify-between">
+                  <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs m-0" style={{ color: "#86837C" }}>
-                        Processamentos do dia
+                      <p
+                        className="text-[11px] uppercase tracking-[0.22em] m-0"
+                        style={{ color: "#7E7B74" }}
+                      >
+                        visão geral
                       </p>
-                      <p className="text-2xl font-semibold m-0" style={{ color: "#F5F5F0" }}>
-                        128 arquivos
+                      <h3
+                        className="text-base md:text-lg font-semibold mt-2 m-0"
+                        style={{ color: "#F5F5F0" }}
+                      >
+                        Plataforma operacional unificada
+                      </h3>
+                      <p
+                        className="mt-2 text-sm leading-6 m-0 max-w-md"
+                        style={{ color: "#96928A" }}
+                      >
+                        Uma apresentação inicial mais consistente com o dashboard, mantendo a mesma
+                        linguagem visual do sistema.
                       </p>
                     </div>
 
                     <div
-                      className="h-10 w-10 rounded-xl flex items-center justify-center"
-                      style={{ background: "#412402" }}
+                      className="h-11 w-11 rounded-2xl flex items-center justify-center shrink-0"
+                      style={{
+                        background: "linear-gradient(180deg, #3B2203 0%, #2A1802 100%)",
+                        border: "1px solid rgba(250,199,117,0.18)",
+                      }}
                     >
                       <BarChart3 className="h-5 w-5" style={{ color: "#FAC775" }} />
                     </div>
                   </div>
-
-                  <div className="space-y-3">
-                    {[68, 86, 52, 94, 74].map((h, index) => (
-                      <div key={index} className="flex items-end gap-2">
-                        <div className="w-14 text-[11px]" style={{ color: "#75726B" }}>
-                          P{index + 1}
-                        </div>
-                        <div
-                          className="h-2 flex-1 rounded-full"
-                          style={{ background: "#232327" }}
-                        >
-                          <div
-                            className="h-2 rounded-full"
-                            style={{
-                              width: `${h}%`,
-                              background: "linear-gradient(90deg, #BA7517 0%, #FAC775 100%)",
-                            }}
-                          />
-                        </div>
-                        <div
-                          className="w-10 text-right text-[11px]"
-                          style={{ color: "#A09D95" }}
-                        >
-                          {h}%
-                        </div>
-                      </div>
-                    ))}
-                  </div>
                 </div>
 
-                <div className="space-y-4">
+                <div className="grid gap-4">
                   <div
-                    className="rounded-2xl p-4"
+                    className="rounded-[22px] p-4"
                     style={{
-                      border: "1px solid #26262A",
-                      background: "linear-gradient(180deg, #1B1B1E 0%, #151518 100%)",
+                      border: "1px solid rgba(255,255,255,0.05)",
+                      background: "linear-gradient(180deg, #1A1B1F 0%, #15161A 100%)",
                     }}
                   >
-                    <div className="mb-3 flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4" style={{ color: "#FAC775" }} />
-                      <p className="text-sm font-semibold m-0" style={{ color: "#F5F5F0" }}>
-                        Resumo rápido
-                      </p>
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <p className="text-xs m-0" style={{ color: "#827F78" }}>
+                          Eficiência operacional
+                        </p>
+                        <p className="text-2xl font-semibold mt-1 m-0" style={{ color: "#F5F5F0" }}>
+                          128 arquivos
+                        </p>
+                      </div>
+
+                      <div
+                        className="rounded-full px-3 py-1 text-[11px] font-medium"
+                        style={{
+                          border: "1px solid rgba(250,199,117,0.18)",
+                          background: "rgba(65,36,2,0.35)",
+                          color: "#FAC775",
+                        }}
+                      >
+                        Processados hoje
+                      </div>
                     </div>
 
-                    <div className="space-y-3 text-sm">
-                      {[
-                        "Layouts validados automaticamente",
-                        "Conferência de valores por cliente",
-                        "Fluxo preparado para módulos por permissão",
-                      ].map((item) => (
-                        <div key={item} className="flex items-center gap-2" style={{ color: "#B8B5AD" }}>
+                    <div className="space-y-3">
+                      {[72, 88, 64, 92, 79].map((value, index) => (
+                        <div key={index} className="flex items-center gap-3">
+                          <div className="w-8 text-[11px]" style={{ color: "#75716A" }}>
+                            P{index + 1}
+                          </div>
+
                           <div
-                            className="h-1.5 w-1.5 rounded-full"
-                            style={{ background: "#FAC775" }}
-                          />
-                          <span>{item}</span>
+                            className="h-2 flex-1 rounded-full overflow-hidden"
+                            style={{ background: "#232428" }}
+                          >
+                            <div
+                              className="h-full rounded-full"
+                              style={{
+                                width: `${value}%`,
+                                background:
+                                  "linear-gradient(90deg, #BA7517 0%, #FAC775 100%)",
+                              }}
+                            />
+                          </div>
+
+                          <div
+                            className="w-10 text-right text-[11px]"
+                            style={{ color: "#A09D96" }}
+                          >
+                            {value}%
+                          </div>
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  <div
-                    className="rounded-2xl p-4"
-                    style={{
-                      border: "1px solid rgba(99,56,6,0.5)",
-                      background:
-                        "linear-gradient(180deg, rgba(65,36,2,0.55) 0%, rgba(32,20,4,0.5) 100%)",
-                    }}
-                  >
-                    <p
-                      className="text-xs uppercase tracking-[0.22em] m-0"
-                      style={{ color: "#D4A14E" }}
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div
+                      className="rounded-[22px] p-4"
+                      style={{
+                        border: "1px solid rgba(255,255,255,0.05)",
+                        background: "linear-gradient(180deg, #1A1B1F 0%, #15161A 100%)",
+                      }}
                     >
-                      diferencial
-                    </p>
-                    <p className="mt-2 text-sm leading-6 m-0" style={{ color: "#F0E4CF" }}>
-                      A nova landing comunica mais valor, mais robustez e deixa o produto com cara
-                      de SaaS B2B premium.
-                    </p>
+                      <div className="flex items-center gap-2 mb-3">
+                        <CheckCircle2 className="h-4 w-4" style={{ color: "#FAC775" }} />
+                        <p className="text-sm font-semibold m-0" style={{ color: "#F5F5F0" }}>
+                          Pontos fortes
+                        </p>
+                      </div>
+
+                      <div className="space-y-3">
+                        {highlights.map((item) => (
+                          <div key={item} className="flex items-start gap-2">
+                            <div
+                              className="mt-1 h-1.5 w-1.5 rounded-full shrink-0"
+                              style={{ background: "#FAC775" }}
+                            />
+                            <span className="text-sm leading-6" style={{ color: "#B9B6AE" }}>
+                              {item}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div
+                      className="rounded-[22px] p-4"
+                      style={{
+                        border: "1px solid rgba(250,199,117,0.12)",
+                        background:
+                          "linear-gradient(180deg, rgba(65,36,2,0.42) 0%, rgba(33,22,6,0.3) 100%)",
+                      }}
+                    >
+                      <p
+                        className="text-[11px] uppercase tracking-[0.22em] m-0"
+                        style={{ color: "#D8A44D" }}
+                      >
+                        diferencial visual
+                      </p>
+                      <p
+                        className="mt-3 text-sm leading-6 m-0"
+                        style={{ color: "#F1E4CF" }}
+                      >
+                        A landing deixa de parecer uma página separada e passa a funcionar como uma
+                        continuação natural da experiência do produto.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </motion.section>
+          </motion.section>
+        </div>
       </main>
 
       {/* Features */}
-      <section className="relative z-10 max-w-7xl mx-auto w-full px-6 md:px-8 pb-16 md:pb-20">
-        <div className="grid gap-5 md:grid-cols-3">
+      <section className="relative z-10 w-full px-6 md:px-8 pb-12 md:pb-16">
+        <div
+          className="mx-auto grid gap-5 md:grid-cols-3"
+          style={{ maxWidth: 1560 }}
+        >
           {features.map((feature, index) => {
             const Icon = feature.icon;
 
             return (
               <motion.div
                 key={feature.title}
-                initial={{ opacity: 0, y: 18 }}
+                initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.24 + index * 0.06, duration: 0.45 }}
-                className="rounded-[24px] p-6"
+                transition={{ delay: 0.18 + index * 0.06, duration: 0.42 }}
+                className="rounded-[28px] p-6"
                 style={{
-                  border: "1px solid #29292D",
-                  background: "linear-gradient(180deg, #1C1C20 0%, #161619 100%)",
-                  boxShadow: "0 16px 40px rgba(0,0,0,0.2)",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                  background: "linear-gradient(180deg, #191A1D 0%, #141518 100%)",
+                  boxShadow: "0 16px 40px rgba(0,0,0,0.18)",
                 }}
               >
                 <div
-                  className="h-11 w-11 rounded-2xl flex items-center justify-center mb-4"
+                  className="h-12 w-12 rounded-2xl flex items-center justify-center mb-4"
                   style={{
-                    border: "1px solid #633806",
-                    background: "#412402",
+                    background: "linear-gradient(180deg, #3B2203 0%, #2A1802 100%)",
+                    border: "1px solid rgba(250,199,117,0.16)",
                   }}
                 >
-                  <Icon className="h-5 w-5" style={{ color: "#EF9F27" }} />
+                  <Icon className="h-5 w-5" style={{ color: "#FAC775" }} />
                 </div>
 
                 <h3 className="text-base font-semibold m-0" style={{ color: "#F5F5F0" }}>
                   {feature.title}
                 </h3>
+
                 <p className="mt-2 text-sm leading-6 m-0" style={{ color: "#8E8B84" }}>
                   {feature.desc}
                 </p>
@@ -423,11 +475,35 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Mobile CTA */}
+      <div className="relative z-10 md:hidden px-6 pb-8">
+        <Button
+          className="w-full h-12 rounded-2xl border-0 text-sm font-semibold"
+          style={{
+            background: "linear-gradient(135deg, #FAC775 0%, #EF9F27 100%)",
+            color: "#241300",
+            boxShadow: "0 12px 28px rgba(239,159,39,0.22)",
+          }}
+          onClick={() => navigate("/login")}
+        >
+          Entrar na plataforma
+        </Button>
+      </div>
+
       {/* Footer */}
-      <footer className="relative z-10 px-6 md:px-8 py-5 text-center">
-        <p className="text-[11px]" style={{ color: "#5F5E5A" }}>
-          © {new Date().getFullYear()} ReceitaFlow. Todos os direitos reservados.
-        </p>
+      <footer className="relative z-10 px-6 md:px-8 pb-6">
+        <div
+          className="mx-auto rounded-[22px] px-5 py-4 text-center"
+          style={{
+            maxWidth: 1560,
+            border: "1px solid rgba(255,255,255,0.05)",
+            background: "rgba(255,255,255,0.015)",
+          }}
+        >
+          <p className="text-[11px] m-0" style={{ color: "#5F5E5A" }}>
+            © {new Date().getFullYear()} ReceitaFlow. Todos os direitos reservados.
+          </p>
+        </div>
       </footer>
     </div>
   );
