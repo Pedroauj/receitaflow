@@ -11,6 +11,14 @@ import {
 import { useState } from "react";
 import type { TimeSeriesPoint } from "@/lib/abastecimento/types";
 
+const RLineChart = LineChart as any;
+const RLine = Line as any;
+const RXAxis = XAxis as any;
+const RYAxis = YAxis as any;
+const RCartesianGrid = CartesianGrid as any;
+const RTooltip = Tooltip as any;
+const RResponsiveContainer = ResponsiveContainer as any;
+
 const tooltipStyle = {
   background: "rgba(10, 14, 25, 0.96)",
   border: "1px solid rgba(255,255,255,0.08)",
@@ -38,6 +46,7 @@ const TimeSeriesChart = ({ data, pm }: Props) => {
   const [metric, setMetric] = useState<Metric>("kmL");
 
   const chartH = pm ? 360 : 290;
+
   const tick = {
     fontSize: pm ? 12 : 11,
     fill: "rgba(255,255,255,0.42)",
@@ -68,7 +77,11 @@ const TimeSeriesChart = ({ data, pm }: Props) => {
       <div className={pm ? "p-6 lg:p-8" : "p-5"}>
         <div className="mb-5 flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
           <div>
-            <h3 className={`font-semibold tracking-[-0.02em] text-foreground ${pm ? "text-lg lg:text-xl" : "text-base"}`}>
+            <h3
+              className={`font-semibold tracking-[-0.02em] text-foreground ${
+                pm ? "text-lg lg:text-xl" : "text-base"
+              }`}
+            >
               Evolução ao longo do tempo
             </h3>
             <p className="mt-1 text-sm text-white/52">
@@ -97,34 +110,38 @@ const TimeSeriesChart = ({ data, pm }: Props) => {
           className="rounded-[20px] border border-white/6 bg-black/10 p-3 md:p-4"
           style={{ height: chartH }}
         >
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart
+          <RResponsiveContainer width="100%" height="100%">
+            <RLineChart
               data={formatted}
               margin={{ top: 8, right: 8, left: -8, bottom: 0 }}
             >
-              <CartesianGrid
+              <RCartesianGrid
                 strokeDasharray="3 3"
                 stroke="rgba(255,255,255,0.06)"
                 vertical={false}
               />
-              <XAxis
+
+              <RXAxis
                 dataKey="periodo"
                 tick={tick}
                 axisLine={false}
                 tickLine={false}
               />
-              <YAxis
+
+              <RYAxis
                 tick={tick}
                 axisLine={false}
                 tickLine={false}
               />
-              <Tooltip
+
+              <RTooltip
                 contentStyle={tooltipStyle}
                 cursor={{ stroke: "rgba(255,255,255,0.08)" }}
                 formatter={(v: number) => [formatVal(v), METRIC_LABELS[metric].label]}
                 labelStyle={{ color: "rgba(255,255,255,0.58)", marginBottom: 6 }}
               />
-              <Line
+
+              <RLine
                 type="monotone"
                 dataKey="value"
                 name={METRIC_LABELS[metric].label}
@@ -142,8 +159,8 @@ const TimeSeriesChart = ({ data, pm }: Props) => {
                   strokeWidth: 2,
                 }}
               />
-            </LineChart>
-          </ResponsiveContainer>
+            </RLineChart>
+          </RResponsiveContainer>
         </div>
       </div>
     </motion.div>
