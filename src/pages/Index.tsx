@@ -196,7 +196,9 @@ const Index = () => {
             <h1 className="text-[28px] font-bold leading-tight tracking-[-0.05em] text-foreground md:text-[46px]">
               Bem-vindo de volta,
               <br />
-              <span className="text-white/92">{firstName}</span>
+              <span className="bg-gradient-to-r from-violet-300 via-indigo-400 to-blue-400 bg-clip-text text-transparent">
+                {firstName}
+              </span>
             </h1>
 
             <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">
