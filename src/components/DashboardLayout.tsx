@@ -1,32 +1,67 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import DashboardSidebar from "@/components/DashboardSidebar";
-import DashboardTopbar from "@/components/DashboardTopbar";
+import { AnimatePresence, motion } from "framer-motion";
 import { usePresentationMode } from "@/contexts/PresentationModeContext";
+import { useModulePermissions } from "@/hooks/useModulePermissions";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  ChevronDown,
+  HelpCircle,
+  LayoutDashboard,
+  History,
+  FileSearch,
+  Fuel,
+  Building2,
+  Settings,
+  LogOut,
+  Search,
+  Bell,
+  Repeat,
+  User,
+} from "lucide-react";
+
+type NavModule = {
+  key: string;
+  label: string;
+  path: string;
+  icon: React.ComponentType<{ className?: string }>;
+  masterOnly?: boolean;
+};
+
+const NAV_MODULES: NavModule[] = [
+  { key: "dashboard", label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+  { key: "historico", label: "Histórico", path: "/historico", icon: History },
+  { key: "conciliacao", label: "NF-e / NFS-e", path: "/conciliacao", icon: FileSearch },
+  { key: "abastecimento", label: "Abastecimento", path: "/abastecimento", icon: Fuel },
+  { key: "clientes", label: "Clientes", path: "/clientes", icon: Building2 },
+];
 
 const DashboardLayout = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const mainRef = useRef<HTMLElement | null>(null);
+  const userMenuRef = useRef<HTMLDivElement | null>(null);
 
   const location = useLocation();
   const navigate = useNavigate();
   const { isPresentationMode } = usePresentationMode();
+  const { canView, isMaster } = useModulePermissions();
+  const { user } = useAuth();
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (isPresentationMode) return;
+  const firstName =
+    user?.user_metadata?.full_name?.split(" ")[0] ||
+    user?.email?.split("@")[0] ||
+    "Usuário";
 
-      if (e.key === "Escape" && location.pathname !== "/inicio") {
-        e.preventDefault();
-        navigate("/inicio");
-      }
-    };
+  const userEmail = user?.email || "";
+  const userInitial = firstName.charAt(0).toUpperCase();
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [location.pathname, navigate, isPresentationMode]);
+  const visibleModules = useMemo(() => {
+    return NAV_MODULES.filter((mod) => {
+      if (mod.masterOnly && !isMaster) return false;
+      return canView(mod.key) || isMaster;
+    });
+  }, [canView, isMaster]);
 
   useEffect(() => {
     if (isPresentationMode) return;
@@ -40,202 +75,82 @@ const DashboardLayout = () => {
   }, [location.pathname, isPresentationMode]);
 
   useEffect(() => {
-    const html = document.documentElement;
-    const body = document.body;
-    const mainEl = mainRef.current;
-
-    let scrollTimeout = 0;
-    let hoverTimeout = 0;
-
-    const addScrollState = () => {
-      html.classList.add("is-scrolling");
-      body.classList.add("is-scrolling");
-      mainEl?.classList.add("is-scrolling");
-
-      window.clearTimeout(scrollTimeout);
-      scrollTimeout = window.setTimeout(() => {
-        html.classList.remove("is-scrolling");
-        body.classList.remove("is-scrolling");
-        mainEl?.classList.remove("is-scrolling");
-      }, 850);
-    };
-
-    const addHoverState = () => {
-      html.classList.add("scrollbar-awake");
-      body.classList.add("scrollbar-awake");
-      mainEl?.classList.add("scrollbar-awake");
-
-      window.clearTimeout(hoverTimeout);
-      hoverTimeout = window.setTimeout(() => {
-        html.classList.remove("scrollbar-awake");
-        body.classList.remove("scrollbar-awake");
-        mainEl?.classList.remove("scrollbar-awake");
-      }, 900);
-    };
-
-    const handleWindowScroll = () => {
-      addScrollState();
-    };
-
-    const handlePointerMove = (e: PointerEvent) => {
-      const nearViewportRightEdge = window.innerWidth - e.clientX <= 28;
-      if (nearViewportRightEdge) {
-        addHoverState();
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!userMenuRef.current) return;
+      if (!userMenuRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false);
       }
     };
 
-    const handleMainMouseEnter = () => {
-      addHoverState();
-    };
-
-    const handleMainMouseMove = (e: MouseEvent) => {
-      const rect = mainEl?.getBoundingClientRect();
-      if (!rect) return;
-
-      const nearContainerRightEdge = rect.right - e.clientX <= 28;
-      if (nearContainerRightEdge) {
-        addHoverState();
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setUserMenuOpen(false);
       }
     };
 
-    window.addEventListener("scroll", handleWindowScroll, { passive: true });
-    window.addEventListener("pointermove", handlePointerMove, { passive: true });
-    mainEl?.addEventListener("mouseenter", handleMainMouseEnter);
-    mainEl?.addEventListener("mousemove", handleMainMouseMove);
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
 
     return () => {
-      window.removeEventListener("scroll", handleWindowScroll);
-      window.removeEventListener("pointermove", handlePointerMove);
-      mainEl?.removeEventListener("mouseenter", handleMainMouseEnter);
-      mainEl?.removeEventListener("mousemove", handleMainMouseMove);
-
-      window.clearTimeout(scrollTimeout);
-      window.clearTimeout(hoverTimeout);
-
-      html.classList.remove("is-scrolling", "scrollbar-awake");
-      body.classList.remove("is-scrolling", "scrollbar-awake");
-      mainEl?.classList.remove("is-scrolling", "scrollbar-awake");
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
     };
   }, []);
 
+  const isRouteActive = (path: string) => {
+    if (path === "/dashboard") {
+      return location.pathname === "/dashboard" || location.pathname === "/inicio";
+    }
+    return location.pathname.startsWith(path);
+  };
+
   return (
-    <div className="apple-dashboard-shell relative min-h-screen bg-background">
+    <div className="rf-shell relative min-h-screen overflow-x-hidden bg-background text-foreground">
       <style>
         {`
-          .apple-dashboard-shell {
-            --apple-ease: cubic-bezier(0.4, 0, 0.2, 1);
-            --apple-fast: 180ms;
-            --apple-normal: 220ms;
-            --apple-ring: rgba(255, 255, 255, 0.08);
-            --apple-border: rgba(255, 255, 255, 0.06);
-            --apple-border-strong: rgba(255, 255, 255, 0.12);
-            --apple-surface: rgba(255, 255, 255, 0.03);
-            --apple-surface-strong: rgba(255, 255, 255, 0.05);
-            --apple-shadow-sm: 0 10px 24px rgba(0, 0, 0, 0.18);
-            --apple-shadow-md: 0 18px 40px rgba(0, 0, 0, 0.22);
-            --apple-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+          .rf-shell {
+            --rf-bg: #05070c;
+            --rf-bg-2: #0a0d15;
+            --rf-panel: rgba(18, 23, 34, 0.78);
+            --rf-panel-strong: rgba(19, 24, 36, 0.92);
+            --rf-panel-soft: rgba(255,255,255,0.035);
+            --rf-line: rgba(255,255,255,0.08);
+            --rf-line-soft: rgba(255,255,255,0.05);
+            --rf-text-soft: rgba(255,255,255,0.7);
+            --rf-text-muted: rgba(255,255,255,0.52);
+            --rf-brand: #8b5cf6;
+            --rf-brand-soft: rgba(139, 92, 246, 0.16);
+            --rf-gold: #efb24f;
+            --rf-green: #44d391;
+            --rf-red: #ff7f7f;
+            --rf-shadow-lg: 0 30px 80px rgba(0, 0, 0, 0.42);
+            --rf-shadow-md: 0 18px 45px rgba(0, 0, 0, 0.28);
+            --rf-shadow-sm: 0 10px 24px rgba(0, 0, 0, 0.18);
+            --rf-ease: cubic-bezier(0.22, 1, 0.36, 1);
           }
 
-          .apple-dashboard-shell * {
+          .rf-shell * {
             -webkit-tap-highlight-color: transparent;
           }
 
-          .apple-dashboard-shell main,
-          .apple-dashboard-shell aside,
-          .apple-dashboard-shell header,
-          .apple-dashboard-shell section,
-          .apple-dashboard-shell article,
-          .apple-dashboard-shell nav,
-          .apple-dashboard-shell button,
-          .apple-dashboard-shell a,
-          .apple-dashboard-shell input,
-          .apple-dashboard-shell textarea,
-          .apple-dashboard-shell select,
-          .apple-dashboard-shell [role="button"],
-          .apple-dashboard-shell [data-state],
-          .apple-dashboard-shell [data-slot="card"],
-          .apple-dashboard-shell .card {
-            transition:
-              background-color var(--apple-normal) var(--apple-ease),
-              border-color var(--apple-normal) var(--apple-ease),
-              box-shadow var(--apple-normal) var(--apple-ease),
-              transform var(--apple-fast) var(--apple-ease),
-              opacity var(--apple-fast) var(--apple-ease),
-              color var(--apple-fast) var(--apple-ease);
+          .rf-shell .rf-glass {
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            background: linear-gradient(
+              180deg,
+              rgba(15, 20, 31, 0.82),
+              rgba(11, 15, 24, 0.72)
+            );
+            border: 1px solid var(--rf-line);
+            box-shadow: var(--rf-shadow-lg);
           }
 
-          .apple-dashboard-shell button,
-          .apple-dashboard-shell a,
-          .apple-dashboard-shell [role="button"] {
-            transform: translateY(0) scale(1);
-            will-change: transform, box-shadow, background-color;
-          }
-
-          .apple-dashboard-shell button:hover,
-          .apple-dashboard-shell a:hover,
-          .apple-dashboard-shell [role="button"]:hover {
-            transform: translateY(-1px);
-          }
-
-          .apple-dashboard-shell button:active,
-          .apple-dashboard-shell a:active,
-          .apple-dashboard-shell [role="button"]:active {
-            transform: translateY(0) scale(0.985);
-          }
-
-          .apple-dashboard-shell button:focus-visible,
-          .apple-dashboard-shell a:focus-visible,
-          .apple-dashboard-shell input:focus-visible,
-          .apple-dashboard-shell textarea:focus-visible,
-          .apple-dashboard-shell select:focus-visible,
-          .apple-dashboard-shell [role="button"]:focus-visible {
-            outline: none;
-            box-shadow:
-              0 0 0 2px var(--apple-ring),
-              0 0 0 1px var(--apple-border-strong),
-              0 12px 28px rgba(0, 0, 0, 0.16);
-          }
-
-          .apple-dashboard-shell input,
-          .apple-dashboard-shell textarea,
-          .apple-dashboard-shell select {
-            border-color: var(--apple-border);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
-          }
-
-          .apple-dashboard-shell input:hover,
-          .apple-dashboard-shell textarea:hover,
-          .apple-dashboard-shell select:hover {
-            border-color: rgba(255, 255, 255, 0.1);
-          }
-
-          .apple-dashboard-shell input:focus,
-          .apple-dashboard-shell textarea:focus,
-          .apple-dashboard-shell select:focus {
-            border-color: var(--apple-border-strong);
-            background: rgba(255, 255, 255, 0.035);
-            box-shadow:
-              0 0 0 2px rgba(255, 255, 255, 0.06),
-              0 14px 32px rgba(0, 0, 0, 0.12),
-              inset 0 1px 0 rgba(255, 255, 255, 0.04);
-          }
-
-          .apple-dashboard-shell [data-slot="card"],
-          .apple-dashboard-shell .card,
-          .apple-dashboard-shell article,
-          .apple-dashboard-shell section > div[class*="rounded"],
-          .apple-dashboard-shell div[class*="border"][class*="rounded"],
-          .apple-dashboard-shell div[class*="bg-card"] {
+          .rf-shell .rf-card-polish {
             position: relative;
             overflow: hidden;
           }
 
-          .apple-dashboard-shell [data-slot="card"]::before,
-          .apple-dashboard-shell .card::before,
-          .apple-dashboard-shell article::before,
-          .apple-dashboard-shell section > div[class*="rounded"]::before,
-          .apple-dashboard-shell div[class*="border"][class*="rounded"]::before,
-          .apple-dashboard-shell div[class*="bg-card"]::before {
+          .rf-shell .rf-card-polish::before {
             content: "";
             position: absolute;
             inset: 0;
@@ -243,94 +158,175 @@ const DashboardLayout = () => {
             border-radius: inherit;
             background: linear-gradient(
               180deg,
-              rgba(255, 255, 255, 0.045) 0%,
-              rgba(255, 255, 255, 0.018) 22%,
-              rgba(255, 255, 255, 0.008) 45%,
-              rgba(255, 255, 255, 0) 100%
+              rgba(255,255,255,0.055) 0%,
+              rgba(255,255,255,0.018) 18%,
+              rgba(255,255,255,0.008) 42%,
+              rgba(255,255,255,0) 100%
             );
-            opacity: 0.8;
+            opacity: 0.95;
           }
 
-          .apple-dashboard-shell [data-slot="card"]:hover,
-          .apple-dashboard-shell .card:hover,
-          .apple-dashboard-shell article:hover,
-          .apple-dashboard-shell section > div[class*="rounded"]:hover,
-          .apple-dashboard-shell div[class*="border"][class*="rounded"]:hover,
-          .apple-dashboard-shell div[class*="bg-card"]:hover {
-            border-color: var(--apple-border-strong);
+          .rf-shell .rf-surface-hover {
+            transition:
+              transform 220ms var(--rf-ease),
+              background-color 220ms var(--rf-ease),
+              border-color 220ms var(--rf-ease),
+              box-shadow 220ms var(--rf-ease),
+              color 220ms var(--rf-ease),
+              opacity 220ms var(--rf-ease);
+          }
+
+          .rf-shell .rf-surface-hover:hover {
+            border-color: rgba(255,255,255,0.12);
             box-shadow:
-              var(--apple-shadow-sm),
-              var(--apple-highlight);
+              var(--rf-shadow-sm),
+              inset 0 1px 0 rgba(255,255,255,0.05);
+          }
+
+          .rf-shell .rf-top-nav-item {
+            position: relative;
+            height: 40px;
+            padding: 0 16px;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            background: rgba(255,255,255,0.035);
+            color: rgba(255,255,255,0.78);
+            font-size: 14px;
+            font-weight: 700;
+            transition:
+              transform 200ms var(--rf-ease),
+              background-color 200ms var(--rf-ease),
+              border-color 200ms var(--rf-ease),
+              color 200ms var(--rf-ease),
+              box-shadow 200ms var(--rf-ease);
+          }
+
+          .rf-shell .rf-top-nav-item:hover {
             transform: translateY(-1px);
+            background: rgba(255,255,255,0.055);
+            border-color: rgba(255,255,255,0.07);
+            color: rgba(255,255,255,0.92);
           }
 
-          .apple-dashboard-shell [data-slot="card"]:focus-within,
-          .apple-dashboard-shell .card:focus-within,
-          .apple-dashboard-shell article:focus-within,
-          .apple-dashboard-shell section > div[class*="rounded"]:focus-within,
-          .apple-dashboard-shell div[class*="border"][class*="rounded"]:focus-within,
-          .apple-dashboard-shell div[class*="bg-card"]:focus-within {
-            border-color: rgba(255, 255, 255, 0.14);
+          .rf-shell .rf-top-nav-item.is-active {
+            background: #fbfbfd;
+            color: #111318;
+            border-color: rgba(255,255,255,0.1);
             box-shadow:
-              0 0 0 1px rgba(255, 255, 255, 0.08),
-              var(--apple-shadow-md),
-              var(--apple-highlight);
+              0 10px 24px rgba(255,255,255,0.08),
+              inset 0 1px 0 rgba(255,255,255,0.45);
           }
 
-          /* BLOQUEIO TOTAL DO HOVER DA SIDEBAR */
-          .apple-dashboard-shell .sidebar-shell,
-          .apple-dashboard-shell .sidebar-shell:hover,
-          .apple-dashboard-shell .sidebar-shell:focus-within,
-          .apple-dashboard-shell .sidebar-shell:active {
-            transform: none !important;
+          .rf-shell .rf-icon-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--rf-line-soft);
+            color: rgba(255,255,255,0.82);
+            transition:
+              transform 200ms var(--rf-ease),
+              background-color 200ms var(--rf-ease),
+              border-color 200ms var(--rf-ease),
+              box-shadow 200ms var(--rf-ease);
           }
 
-          .apple-dashboard-shell .sidebar-shell::before,
-          .apple-dashboard-shell .sidebar-shell:hover::before,
-          .apple-dashboard-shell .sidebar-shell:focus-within::before {
-            opacity: 1;
+          .rf-shell .rf-icon-btn:hover {
+            transform: translateY(-1px);
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.1);
+            box-shadow: var(--rf-shadow-sm);
           }
 
-          .apple-dashboard-shell aside a[aria-current="page"],
-          .apple-dashboard-shell aside button[aria-current="page"],
-          .apple-dashboard-shell aside .active,
-          .apple-dashboard-shell nav a[aria-current="page"],
-          .apple-dashboard-shell nav .active {
+          .rf-shell .rf-user-trigger {
+            height: 44px;
+            padding: 0 10px 0 4px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--rf-line-soft);
+            color: rgba(255,255,255,0.92);
+            transition:
+              transform 200ms var(--rf-ease),
+              background-color 200ms var(--rf-ease),
+              border-color 200ms var(--rf-ease),
+              box-shadow 200ms var(--rf-ease);
+          }
+
+          .rf-shell .rf-user-trigger:hover {
+            transform: translateY(-1px);
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.1);
+            box-shadow: var(--rf-shadow-sm);
+          }
+
+          .rf-shell .rf-user-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 800;
+            color: #171717;
+            background: linear-gradient(135deg, #f1d29f, #a5693f);
+            border: 1px solid rgba(255,255,255,0.14);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+          }
+
+          .rf-shell .rf-dropdown {
             background: linear-gradient(
               180deg,
-              rgba(255, 255, 255, 0.08),
-              rgba(255, 255, 255, 0.045)
+              rgba(18, 22, 33, 0.96),
+              rgba(13, 16, 25, 0.96)
             );
-            border-color: rgba(255, 255, 255, 0.12);
-            box-shadow:
-              inset 0 1px 0 rgba(255, 255, 255, 0.06),
-              0 8px 24px rgba(0, 0, 0, 0.14);
+            border: 1px solid rgba(255,255,255,0.09);
+            box-shadow: 0 28px 70px rgba(0,0,0,0.46);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
           }
 
-          .apple-dashboard-shell aside a:hover,
-          .apple-dashboard-shell aside button:hover,
-          .apple-dashboard-shell nav a:hover {
-            background: rgba(255, 255, 255, 0.045);
+          .rf-shell .rf-dropdown-item {
+            height: 42px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 12px;
+            color: rgba(255,255,255,0.86);
+            font-size: 14px;
+            font-weight: 700;
+            transition:
+              background-color 180ms var(--rf-ease),
+              color 180ms var(--rf-ease),
+              transform 180ms var(--rf-ease);
           }
 
-          .apple-dashboard-shell .apple-panel {
-            background: rgba(255, 255, 255, 0.025);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid var(--apple-border);
-            box-shadow:
-              0 16px 40px rgba(0, 0, 0, 0.18),
-              inset 0 1px 0 rgba(255, 255, 255, 0.04);
+          .rf-shell .rf-dropdown-item:hover {
+            background: rgba(255,255,255,0.05);
+            transform: translateX(2px);
           }
 
-          .apple-dashboard-shell .apple-page-enter {
-            animation: applePageEnter 220ms var(--apple-ease);
+          .rf-shell .rf-dropdown-divider {
+            height: 1px;
+            background: rgba(255,255,255,0.06);
+            margin: 8px 2px;
           }
 
-          @keyframes applePageEnter {
+          .rf-shell .rf-page-enter {
+            animation: rfPageEnter 240ms var(--rf-ease);
+          }
+
+          @keyframes rfPageEnter {
             from {
               opacity: 0;
-              transform: translateY(8px) scale(0.995);
+              transform: translateY(10px) scale(0.996);
             }
             to {
               opacity: 1;
@@ -340,60 +336,219 @@ const DashboardLayout = () => {
         `}
       </style>
 
-      <div className="pointer-events-none fixed inset-0 z-0">
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <div
-          className="absolute left-1/2 top-[-120px] h-[320px] w-[320px] -translate-x-1/2 rounded-full blur-3xl"
-          style={{ background: "rgba(186, 117, 23, 0.09)" }}
+          className="absolute left-1/2 top-[-120px] h-[300px] w-[300px] -translate-x-1/2 rounded-full blur-3xl"
+          style={{ background: "rgba(139, 92, 246, 0.13)" }}
         />
         <div
-          className="absolute left-[10%] top-[18%] h-[180px] w-[180px] rounded-full blur-3xl"
-          style={{ background: "rgba(250, 199, 117, 0.05)" }}
+          className="absolute left-[8%] top-[18%] h-[190px] w-[190px] rounded-full blur-3xl"
+          style={{ background: "rgba(239, 178, 79, 0.06)" }}
         />
         <div
-          className="absolute right-[8%] bottom-[12%] h-[220px] w-[220px] rounded-full blur-3xl"
-          style={{ background: "rgba(239, 159, 39, 0.05)" }}
+          className="absolute right-[6%] bottom-[12%] h-[240px] w-[240px] rounded-full blur-3xl"
+          style={{ background: "rgba(139, 92, 246, 0.08)" }}
         />
-        <div
-          className="absolute left-[18%] top-[8%] h-[240px] w-[240px] rounded-full blur-3xl"
-          style={{ background: "rgba(255, 255, 255, 0.025)" }}
-        />
-        <div className="absolute inset-0 bg-grid-pattern" />
         <div
           className="absolute inset-0"
           style={{
             background: `
-              radial-gradient(circle at 20% 10%, rgba(255,255,255,0.035), transparent 28%),
-              radial-gradient(circle at 80% 80%, rgba(255,200,0,0.05), transparent 32%),
-              linear-gradient(to bottom, rgba(255,255,255,0.015), transparent 30%)
+              radial-gradient(circle at 15% 0%, rgba(139,92,246,0.10), transparent 20%),
+              radial-gradient(circle at 100% 100%, rgba(139,92,246,0.06), transparent 22%),
+              linear-gradient(180deg, rgba(255,255,255,0.015), transparent 24%)
             `,
           }}
         />
+        <div className="absolute inset-0 bg-grid-pattern opacity-[0.18]" />
       </div>
 
       {!isPresentationMode && (
-        <>
-          <DashboardSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-          <DashboardTopbar onMenuToggle={() => setSidebarOpen(true)} />
-        </>
+        <header className="fixed inset-x-0 top-0 z-40 px-4 pt-4 md:px-6 lg:px-8">
+          <div className="mx-auto max-w-[1680px]">
+            <div className="rf-glass rf-card-polish rounded-[28px]">
+              <div className="grid h-[78px] grid-cols-[minmax(180px,260px)_1fr_auto] items-center gap-4 px-4 md:px-5 lg:px-6">
+                <button
+                  type="button"
+                  onClick={() => navigate("/dashboard")}
+                  className="group flex min-w-0 items-center gap-3 text-left"
+                >
+                  <div
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
+                    style={{
+                      background:
+                        "conic-gradient(from 180deg, #d4c4ff, #a57bff, #6f45ff, #d4c4ff)",
+                      boxShadow: "0 0 20px rgba(139,92,246,.22)",
+                    }}
+                  />
+                  <div className="min-w-0">
+                    <p className="truncate text-[18px] font-extrabold tracking-[-0.04em] text-foreground">
+                      ReceitaFlow
+                    </p>
+                    <p className="truncate text-[11px] font-semibold uppercase tracking-[0.16em] text-white/45">
+                      Control Center
+                    </p>
+                  </div>
+                </button>
+
+                <nav className="hidden min-w-0 items-center justify-center gap-2 lg:flex">
+                  {visibleModules.map((mod) => {
+                    const Icon = mod.icon;
+                    const active = isRouteActive(mod.path);
+
+                    return (
+                      <button
+                        key={mod.key}
+                        type="button"
+                        onClick={() => navigate(mod.path)}
+                        className={`rf-top-nav-item inline-flex items-center gap-2 ${
+                          active ? "is-active" : ""
+                        }`}
+                      >
+                        <Icon className="h-4 w-4" />
+                        <span>{mod.label}</span>
+                      </button>
+                    );
+                  })}
+                </nav>
+
+                <div className="flex items-center justify-end gap-2 md:gap-3">
+                  <button type="button" className="rf-icon-btn hidden sm:inline-flex">
+                    <Search className="h-4 w-4" />
+                  </button>
+
+                  <button type="button" className="rf-icon-btn hidden sm:inline-flex">
+                    <Bell className="h-4 w-4" />
+                  </button>
+
+                  <div ref={userMenuRef} className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setUserMenuOpen((prev) => !prev)}
+                      className="rf-user-trigger"
+                    >
+                      <span className="rf-user-avatar">{userInitial}</span>
+                      <span className="hidden max-w-[110px] truncate text-[14px] font-bold sm:inline-block">
+                        {firstName}
+                      </span>
+                      <ChevronDown
+                        className={`h-4 w-4 text-white/55 transition-transform duration-200 ${
+                          userMenuOpen ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+
+                    <AnimatePresence>
+                      {userMenuOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 6, scale: 0.985 }}
+                          transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                          className="rf-dropdown absolute right-0 top-[54px] z-50 w-[290px] rounded-[22px] p-3"
+                        >
+                          <div className="mb-2 rounded-[16px] border border-white/5 bg-white/[0.03] p-3">
+                            <div className="flex items-center gap-3">
+                              <span className="rf-user-avatar h-[42px] w-[42px] text-[14px]">
+                                {userInitial}
+                              </span>
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate text-[15px] font-extrabold tracking-[-0.02em] text-foreground">
+                                  {firstName}
+                                </p>
+                                <p className="truncate text-[12px] text-white/52">
+                                  {userEmail || "Administrador"}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <button type="button" className="rf-dropdown-item w-full text-left">
+                            <User className="h-4 w-4 text-white/68" />
+                            Perfil
+                          </button>
+
+                          <button
+                            type="button"
+                            className="rf-dropdown-item w-full text-left"
+                            onClick={() => {
+                              setUserMenuOpen(false);
+                              navigate("/configuracoes");
+                            }}
+                          >
+                            <Settings className="h-4 w-4 text-white/68" />
+                            Configurações
+                          </button>
+
+                          <button type="button" className="rf-dropdown-item w-full text-left">
+                            <Repeat className="h-4 w-4 text-white/68" />
+                            Trocar empresa
+                          </button>
+
+                          <button type="button" className="rf-dropdown-item w-full text-left">
+                            <HelpCircle className="h-4 w-4 text-white/68" />
+                            Ajuda e suporte
+                          </button>
+
+                          <div className="rf-dropdown-divider" />
+
+                          <button
+                            type="button"
+                            className="rf-dropdown-item w-full text-left text-[#ffb3b3]"
+                          >
+                            <LogOut className="h-4 w-4 text-[#ff9d9d]" />
+                            Sair
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
+              </div>
+
+              {visibleModules.length > 0 && (
+                <div className="flex items-center gap-2 overflow-x-auto px-4 pb-4 lg:hidden">
+                  {visibleModules.map((mod) => {
+                    const Icon = mod.icon;
+                    const active = isRouteActive(mod.path);
+
+                    return (
+                      <button
+                        key={`mobile-${mod.key}`}
+                        type="button"
+                        onClick={() => navigate(mod.path)}
+                        className={`rf-top-nav-item inline-flex shrink-0 items-center gap-2 ${
+                          active ? "is-active" : ""
+                        }`}
+                      >
+                        <Icon className="h-4 w-4" />
+                        <span>{mod.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </header>
       )}
 
       <main
         ref={mainRef}
-        className={`relative z-10 mac-scroll transition-all duration-500 ease-out ${
-          isPresentationMode ? "" : "md:ml-[272px]"
+        className={`relative z-10 transition-all duration-500 ease-out ${
+          isPresentationMode ? "" : "pt-[104px] md:pt-[112px]"
         }`}
       >
         <div
-          className={`transition-all duration-500 ease-out ${
+          className={`mx-auto transition-all duration-500 ease-out ${
             isPresentationMode
-              ? "mx-auto max-w-[1920px] p-6 lg:p-10"
-              : "mx-auto max-w-[1500px] px-4 pb-6 pt-20 md:px-6 md:pb-8 md:pt-20 lg:px-8 lg:pb-10 lg:pt-20"
+              ? "max-w-[1920px] p-6 lg:p-10"
+              : "max-w-[1680px] px-4 pb-6 md:px-6 md:pb-8 lg:px-8 lg:pb-10"
           }`}
         >
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
-              className="apple-page-enter"
+              className="rf-page-enter"
               initial={{ opacity: 0, y: 8, scale: 0.995 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -4, scale: 0.998 }}
