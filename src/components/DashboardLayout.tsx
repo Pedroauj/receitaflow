@@ -19,6 +19,7 @@ import {
   Bell,
   User,
   BarChart3,
+  Users,
 } from "lucide-react";
 
 type NavModule = {
@@ -112,6 +113,11 @@ const DashboardLayout = () => {
   const handleOpenSettings = () => {
     setUserMenuOpen(false);
     navigate("/configuracoes");
+  };
+
+  const handleOpenUsers = () => {
+    setUserMenuOpen(false);
+    navigate("/usuarios");
   };
 
   const handleOpenSupport = () => {
@@ -460,6 +466,17 @@ const DashboardLayout = () => {
                             <Settings className="h-4 w-4 text-white/68" />
                             Configurações
                           </button>
+
+                          {isMaster && (
+                            <button
+                              type="button"
+                              className="rf-dropdown-item w-full text-left"
+                              onClick={handleOpenUsers}
+                            >
+                              <Users className="h-4 w-4 text-white/68" />
+                              Usuários
+                            </button>
+                          )}
 
                           <button
                             type="button"

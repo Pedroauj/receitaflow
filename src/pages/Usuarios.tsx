@@ -384,7 +384,6 @@ const Usuarios = () => {
     if (!deletingCompany) return;
     setDeleting(true);
 
-    // Unlink users from this company first
     const { error: unlinkError } = await supabase
       .from("profiles")
       .update({ company_id: null } as any)
@@ -457,7 +456,6 @@ const Usuarios = () => {
       setInviteEmail("");
       setInviteCompany("");
       setShowInvite(false);
-      // Reload profiles after a brief delay for the trigger
       setTimeout(() => loadProfiles(), 2000);
     }
     setInviting(false);
@@ -490,7 +488,6 @@ const Usuarios = () => {
         </p>
       </div>
 
-      {/* Tabs */}
       <div className="flex items-center gap-1 p-1 rounded-lg bg-muted/30 w-fit">
         <button
           onClick={() => setActiveTab("users")}
@@ -537,7 +534,6 @@ const Usuarios = () => {
             </Button>
           </div>
 
-          {/* New company form */}
           <AnimatePresence>
             {showNewCompany && (
               <motion.div
@@ -550,7 +546,14 @@ const Usuarios = () => {
                 <div className="rounded-xl border border-border bg-card p-5 space-y-4">
                   <div className="flex items-center justify-between">
                     <h3 className="text-sm font-semibold text-foreground">Nova empresa</h3>
-                    <button onClick={() => { setShowNewCompany(false); setLogoPreview(null); setNewCompanyLogo(null); }} className="text-muted-foreground hover:text-foreground">
+                    <button
+                      onClick={() => {
+                        setShowNewCompany(false);
+                        setLogoPreview(null);
+                        setNewCompanyLogo(null);
+                      }}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
                       <X className="h-4 w-4" />
                     </button>
                   </div>
@@ -580,7 +583,10 @@ const Usuarios = () => {
                           <img src={logoPreview} alt="Preview" className="h-full object-contain" />
                         </div>
                         <button
-                          onClick={() => { setNewCompanyLogo(null); setLogoPreview(null); }}
+                          onClick={() => {
+                            setNewCompanyLogo(null);
+                            setLogoPreview(null);
+                          }}
                           className="text-xs text-muted-foreground hover:text-foreground"
                         >
                           Remover
@@ -605,7 +611,10 @@ const Usuarios = () => {
                       disabled={creatingCompany}
                     >
                       {creatingCompany ? (
-                        <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> Criando...</>
+                        <>
+                          <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                          Criando...
+                        </>
                       ) : (
                         "Criar empresa"
                       )}
@@ -616,13 +625,15 @@ const Usuarios = () => {
             )}
           </AnimatePresence>
 
-          {/* Companies list */}
           <div className="rounded-xl border border-border overflow-hidden">
             <div className="divide-y divide-border/50">
               {companies.map((company) => {
                 const userCount = profiles.filter((p) => p.company_id === company.id).length;
                 return (
-                  <div key={company.id} className="flex items-center gap-4 px-5 py-4 hover:bg-accent/30 transition-colors group">
+                  <div
+                    key={company.id}
+                    className="flex items-center gap-4 px-5 py-4 hover:bg-accent/30 transition-colors group"
+                  >
                     <div className="h-10 w-10 rounded-lg border border-border bg-background flex items-center justify-center overflow-hidden shrink-0">
                       {company.logo_url ? (
                         <img src={company.logo_url} alt={company.name} className="h-full w-full object-contain p-1" />
@@ -663,7 +674,6 @@ const Usuarios = () => {
             </div>
           </div>
 
-          {/* Edit company modal */}
           <AnimatePresence>
             {editingCompany && (
               <motion.div
@@ -712,7 +722,10 @@ const Usuarios = () => {
                           <img src={editLogoPreview} alt="Preview" className="h-full object-contain" />
                         </div>
                         <button
-                          onClick={() => { setEditCompanyLogo(null); setEditLogoPreview(null); }}
+                          onClick={() => {
+                            setEditCompanyLogo(null);
+                            setEditLogoPreview(null);
+                          }}
                           className="text-xs text-muted-foreground hover:text-foreground"
                         >
                           Remover
@@ -739,7 +752,14 @@ const Usuarios = () => {
                       onClick={saveCompany}
                       disabled={savingCompany || !editCompanyName.trim()}
                     >
-                      {savingCompany ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> Salvando...</> : "Salvar"}
+                      {savingCompany ? (
+                        <>
+                          <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                          Salvando...
+                        </>
+                      ) : (
+                        "Salvar"
+                      )}
                     </Button>
                   </div>
                 </motion.div>
@@ -747,7 +767,6 @@ const Usuarios = () => {
             )}
           </AnimatePresence>
 
-          {/* Delete company confirmation modal */}
           <AnimatePresence>
             {deletingCompany && (
               <motion.div
@@ -755,7 +774,10 @@ const Usuarios = () => {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
-                onClick={() => { setDeletingCompany(null); setConfirmDeleteName(""); }}
+                onClick={() => {
+                  setDeletingCompany(null);
+                  setConfirmDeleteName("");
+                }}
               >
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -767,7 +789,8 @@ const Usuarios = () => {
                 >
                   <h3 className="text-sm font-semibold text-foreground">Excluir empresa</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Esta ação é irreversível. Todos os usuários vinculados a <span className="font-semibold text-foreground">{deletingCompany.name}</span> serão desvinculados.
+                    Esta ação é irreversível. Todos os usuários vinculados a{" "}
+                    <span className="font-semibold text-foreground">{deletingCompany.name}</span> serão desvinculados.
                   </p>
                   <div className="space-y-2">
                     <Label className="text-[11px] text-muted-foreground">
@@ -781,7 +804,15 @@ const Usuarios = () => {
                     />
                   </div>
                   <div className="flex justify-end gap-2 pt-2">
-                    <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => { setDeletingCompany(null); setConfirmDeleteName(""); }}>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 text-xs"
+                      onClick={() => {
+                        setDeletingCompany(null);
+                        setConfirmDeleteName("");
+                      }}
+                    >
                       Cancelar
                     </Button>
                     <Button
@@ -791,7 +822,14 @@ const Usuarios = () => {
                       onClick={deleteCompany}
                       disabled={deleting || confirmDeleteName !== deletingCompany.name}
                     >
-                      {deleting ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> Excluindo...</> : "Excluir empresa"}
+                      {deleting ? (
+                        <>
+                          <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                          Excluindo...
+                        </>
+                      ) : (
+                        "Excluir empresa"
+                      )}
                     </Button>
                   </div>
                 </motion.div>
@@ -829,7 +867,6 @@ const Usuarios = () => {
             </div>
           </div>
 
-          {/* Invite form */}
           <AnimatePresence>
             {showInvite && (
               <motion.div
@@ -887,9 +924,15 @@ const Usuarios = () => {
                       disabled={inviting}
                     >
                       {inviting ? (
-                        <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> Enviando...</>
+                        <>
+                          <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                          Enviando...
+                        </>
                       ) : (
-                        <><Mail className="h-3.5 w-3.5 mr-1.5" /> Enviar convite</>
+                        <>
+                          <Mail className="h-3.5 w-3.5 mr-1.5" />
+                          Enviar convite
+                        </>
                       )}
                     </Button>
                   </div>
@@ -1067,7 +1110,6 @@ const Usuarios = () => {
                             </td>
                           </tr>
 
-                          {/* Permissions panel */}
                           <AnimatePresence>
                             {isExpanded && (
                               <tr key={`perm-${profile.id}`}>
@@ -1170,7 +1212,6 @@ const Usuarios = () => {
         </>
       )}
 
-      {/* Delete user confirmation modal */}
       <AnimatePresence>
         {deletingUser && (
           <motion.div
@@ -1190,7 +1231,11 @@ const Usuarios = () => {
             >
               <h3 className="text-sm font-semibold text-foreground">Excluir usuário</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Tem certeza que deseja excluir o usuário <span className="font-semibold text-foreground">{deletingUser.full_name || deletingUser.display_name || deletingUser.email}</span>? Esta ação é irreversível e removerá todas as permissões e dados de acesso.
+                Tem certeza que deseja excluir o usuário{" "}
+                <span className="font-semibold text-foreground">
+                  {deletingUser.full_name || deletingUser.display_name || deletingUser.email}
+                </span>
+                ? Esta ação é irreversível e removerá todas as permissões e dados de acesso.
               </p>
               <div className="flex justify-end gap-2 pt-2">
                 <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => setDeletingUser(null)}>
@@ -1203,7 +1248,14 @@ const Usuarios = () => {
                   onClick={deleteUser}
                   disabled={deletingUserLoading}
                 >
-                  {deletingUserLoading ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> Excluindo...</> : "Excluir usuário"}
+                  {deletingUserLoading ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                      Excluindo...
+                    </>
+                  ) : (
+                    "Excluir usuário"
+                  )}
                 </Button>
               </div>
             </motion.div>
