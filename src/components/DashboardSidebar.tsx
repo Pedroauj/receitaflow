@@ -12,7 +12,6 @@ import {
   Shield,
   X,
   BarChart3,
-  ChevronRight,
 } from "lucide-react";
 import { getRecords } from "@/lib/history";
 import { useAuth } from "@/contexts/AuthContext";
@@ -125,54 +124,13 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
 
   const sidebarContent = (
     <div className="flex h-full flex-col px-3 py-4">
-      <div className="mb-3 flex items-center justify-between px-1 md:mb-4">
-        <div className="flex items-center gap-3">
-          <div
-            className="flex h-10 w-10 items-center justify-center rounded-2xl border"
-            style={{
-              borderColor: "rgba(95, 135, 255, 0.18)",
-              background: "linear-gradient(180deg, rgba(70,95,180,0.20) 0%, rgba(45,58,108,0.16) 100%)",
-              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
-            }}
-          >
-            <span className="text-sm font-semibold leading-none text-[#9CB2FF]">⬡</span>
-          </div>
-
-          <div className="min-w-0">
-            <p className="text-[14px] font-semibold tracking-[-0.03em] text-white">
-              Receita<span className="text-[#8EA6FF]">Flow</span>
-            </p>
-            <p className="mt-0.5 text-[11px] text-white/34">Painel operacional</p>
-          </div>
-        </div>
-
+      <div className="mb-2 flex items-center justify-end md:hidden">
         <button
           onClick={onClose}
-          className="flex h-9 w-9 items-center justify-center rounded-2xl border border-white/[0.06] bg-white/[0.02] text-white/52 transition-all duration-200 hover:bg-white/[0.05] hover:text-white md:hidden"
+          className="flex h-8 w-8 items-center justify-center rounded-xl border border-transparent text-muted-foreground transition-all duration-200 hover:translate-y-0 hover:border-white/8 hover:bg-white/[0.045] hover:text-foreground active:translate-y-0 active:scale-[0.98]"
         >
           <X className="h-4 w-4" />
         </button>
-      </div>
-
-      <div className="mb-4 rounded-[22px] border border-white/[0.05] bg-white/[0.025] px-3 py-3">
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/[0.06] bg-[#151821] text-[12px] font-semibold text-[#B9C7FF]">
-            {avatarUrl ? (
-              <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
-            ) : (
-              initials
-            )}
-          </div>
-
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-[13px] font-semibold tracking-[-0.02em] text-white">
-              {displayName}
-            </p>
-            <p className="mt-0.5 truncate text-[11px] text-white/38">
-              {isMaster ? "Administrador master" : "Sessão ativa"}
-            </p>
-          </div>
-        </div>
       </div>
 
       <nav className="mac-scroll flex-1 space-y-5 overflow-y-auto pr-1">
@@ -187,7 +145,7 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
 
           return (
             <div key={section.label}>
-              <p className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/26">
+              <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/32">
                 {section.label}
               </p>
 
@@ -201,54 +159,47 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
                       type="button"
                       onClick={() => handleNavigate(item.path)}
                       className={[
-                        "group relative flex w-full items-center gap-3 overflow-hidden rounded-[20px] border px-3.5 py-3 text-left transition-all duration-200",
+                        "group relative flex w-full items-center gap-3 overflow-hidden rounded-2xl border px-4 py-3 text-[13px] font-medium transition-all duration-200",
+                        "hover:translate-y-0 active:translate-y-0 active:scale-[0.995]",
                         active
-                          ? "border-white/[0.08] bg-[linear-gradient(180deg,rgba(24,28,38,0.98)_0%,rgba(18,21,29,0.98)_100%)] shadow-[0_12px_30px_rgba(0,0,0,0.18)]"
-                          : "border-transparent bg-transparent hover:border-white/[0.04] hover:bg-white/[0.035]",
+                          ? "border-white/[0.11] bg-white/[0.07] text-white shadow-[0_10px_30px_rgba(0,0,0,0.20),inset_0_1px_0_rgba(255,255,255,0.06)]"
+                          : "border-transparent bg-transparent text-white/58 hover:border-white/[0.05] hover:bg-white/[0.04] hover:text-white/90",
                       ].join(" ")}
                     >
                       <span
-                        className={`absolute left-0 top-[8px] bottom-[8px] w-[3px] rounded-r-full transition-all duration-200 ${
-                          active ? "bg-[#8EA6FF] opacity-100" : "bg-[#8EA6FF] opacity-0 group-hover:opacity-45"
+                        className={[
+                          "pointer-events-none absolute inset-y-[8px] left-0 w-[3px] rounded-r-full transition-all duration-200",
+                          active
+                            ? "bg-primary opacity-100 shadow-[0_0_14px_rgba(250,199,117,0.35)]"
+                            : "bg-primary opacity-0 group-hover:opacity-45",
+                        ].join(" ")}
+                      />
+
+                      <span
+                        className={[
+                          "pointer-events-none absolute inset-0 rounded-2xl transition-opacity duration-200",
+                          active ? "opacity-100" : "opacity-0 group-hover:opacity-100",
+                        ].join(" ")}
+                        style={{
+                          background:
+                            "linear-gradient(180deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.015) 40%, rgba(255,255,255,0) 100%)",
+                        }}
+                      />
+
+                      <item.icon
+                        className={`relative z-[1] h-4 w-4 shrink-0 transition-all duration-200 ${
+                          active ? "text-primary" : "text-white/50 group-hover:text-white/75"
                         }`}
                       />
 
-                      <div
-                        className={`relative z-[1] flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border transition-all duration-200 ${
-                          active
-                            ? "border-[rgba(142,166,255,0.16)] bg-[rgba(142,166,255,0.10)]"
-                            : "border-white/[0.04] bg-white/[0.025] group-hover:border-white/[0.06] group-hover:bg-white/[0.045]"
-                        }`}
-                      >
-                        <item.icon
-                          className={`h-4 w-4 transition-colors duration-200 ${
-                            active ? "text-[#B9C7FF]" : "text-white/48 group-hover:text-white/78"
-                          }`}
-                        />
-                      </div>
+                      <span className="relative z-[1] flex-1 text-left tracking-[-0.01em]">
+                        {item.title}
+                      </span>
 
-                      <div className="relative z-[1] min-w-0 flex-1">
-                        <p
-                          className={`truncate text-[13px] font-medium tracking-[-0.01em] ${
-                            active ? "text-white" : "text-white/62 group-hover:text-white/90"
-                          }`}
-                        >
-                          {item.title}
-                        </p>
-                      </div>
-
-                      {item.showBadge && historyCount > 0 ? (
-                        <span className="relative z-[1] rounded-xl border border-[rgba(142,166,255,0.14)] bg-[rgba(142,166,255,0.08)] px-2 py-1 text-[11px] font-semibold text-[#B9C7FF]">
+                      {item.showBadge && historyCount > 0 && (
+                        <span className="relative z-[1] rounded-lg border border-primary/15 bg-primary/12 px-1.5 py-0.5 text-[11px] font-semibold text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
                           {historyCount}
                         </span>
-                      ) : (
-                        <ChevronRight
-                          className={`relative z-[1] h-4 w-4 shrink-0 transition-all duration-200 ${
-                            active
-                              ? "text-[#8EA6FF]"
-                              : "text-white/20 group-hover:translate-x-0.5 group-hover:text-white/38"
-                          }`}
-                        />
                       )}
                     </button>
                   );
@@ -259,39 +210,46 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
         })}
       </nav>
 
-      <div className="mt-4 border-t border-white/[0.06] pt-4">
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="flex w-full items-center justify-between rounded-[20px] border border-white/[0.06] bg-white/[0.025] px-3.5 py-3 text-left transition-all duration-200 hover:bg-white/[0.05]"
-        >
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-2xl border border-white/[0.04] bg-white/[0.03]">
-              <LogOut className="h-4 w-4 text-white/58" />
-            </div>
-
-            <div>
-              <p className="text-[13px] font-medium text-white/82">Sair</p>
-              <p className="mt-0.5 text-[11px] text-white/34">Encerrar sessão atual</p>
-            </div>
+      <div className="mt-4 border-t border-white/8 pt-4">
+        <div className="flex items-center gap-2.5 rounded-2xl border border-white/[0.05] bg-white/[0.025] px-2.5 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-primary/12 bg-primary/12 text-[11px] font-semibold text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+            ) : (
+              initials
+            )}
           </div>
 
-          <ChevronRight className="h-4 w-4 text-white/20" />
-        </button>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[12px] font-semibold tracking-[-0.01em] text-white">
+              {displayName}
+            </p>
+            <p className="truncate text-[11px] text-white/40">Sessão ativa</p>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-transparent text-white/55 transition-all duration-200 hover:translate-y-0 hover:border-white/8 hover:bg-white/[0.05] hover:text-white active:translate-y-0 active:scale-[0.98]"
+            title="Sair"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+          </button>
+        </div>
       </div>
     </div>
   );
 
   return (
     <>
-      <aside className="fixed left-4 top-[72px] bottom-4 z-50 hidden w-[248px] md:flex">
+      <aside className="fixed left-4 top-[68px] bottom-4 z-50 hidden w-[240px] md:flex">
         <div
-          className="sidebar-shell w-full rounded-[28px] border shadow-[0_24px_70px_rgba(0,0,0,0.28)]"
+          className="sidebar-shell w-full rounded-[24px] border border-white/[0.07] shadow-[0_24px_60px_rgba(0,0,0,0.26),inset_0_1px_0_rgba(255,255,255,0.05)]"
           style={{
-            borderColor: "rgba(255,255,255,0.06)",
-            background: "linear-gradient(180deg, rgba(17,19,24,0.96) 0%, rgba(13,15,20,0.98) 100%)",
-            backdropFilter: "blur(14px)",
-            WebkitBackdropFilter: "blur(14px)",
+            background:
+              "linear-gradient(180deg, rgba(19,20,24,0.62) 0%, rgba(15,16,20,0.48) 100%)",
+            backdropFilter: "blur(18px) saturate(1.2)",
+            WebkitBackdropFilter: "blur(18px) saturate(1.2)",
           }}
         >
           {sidebarContent}
@@ -301,18 +259,17 @@ const DashboardSidebar = ({ open, onClose }: DashboardSidebarProps) => {
       {open && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div
-            className="absolute inset-0 bg-black/65 backdrop-blur-sm animate-in fade-in-0 duration-200"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in-0 duration-200"
             onClick={onClose}
           />
-
-          <aside className="absolute left-4 top-4 bottom-4 w-[286px]">
+          <aside className="absolute left-4 top-4 bottom-4 w-[280px]">
             <div
-              className="sidebar-shell h-full rounded-[28px] border shadow-[0_24px_70px_rgba(0,0,0,0.30)] animate-in slide-in-from-left duration-200 fade-in-0"
+              className="sidebar-shell h-full rounded-[24px] border border-white/[0.08] shadow-[0_24px_60px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.05)] animate-in slide-in-from-left duration-200 fade-in-0"
               style={{
-                borderColor: "rgba(255,255,255,0.06)",
-                background: "linear-gradient(180deg, rgba(17,19,24,0.98) 0%, rgba(13,15,20,0.99) 100%)",
-                backdropFilter: "blur(14px)",
-                WebkitBackdropFilter: "blur(14px)",
+                background:
+                  "linear-gradient(180deg, rgba(19,20,24,0.78) 0%, rgba(15,16,20,0.62) 100%)",
+                backdropFilter: "blur(18px) saturate(1.22)",
+                WebkitBackdropFilter: "blur(18px) saturate(1.22)",
               }}
             >
               {sidebarContent}

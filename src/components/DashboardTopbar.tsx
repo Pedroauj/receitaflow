@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Menu, Building2, Sparkles } from "lucide-react";
+import { Menu } from "lucide-react";
 
 interface Company {
   id: string;
@@ -42,136 +42,88 @@ const DashboardTopbar = ({ onMenuToggle }: DashboardTopbarProps) => {
   }, [user]);
 
   return (
-    <div className="sticky top-0 z-40 px-4 pt-4 pb-0">
-      <div
-        className="h-14 rounded-[24px] border px-3 md:px-5 shadow-[0_18px_50px_rgba(0,0,0,0.28)] transition-all duration-300"
-        style={{
-          borderColor: "rgba(255,255,255,0.06)",
-          background: "linear-gradient(180deg, rgba(18,19,23,0.96) 0%, rgba(14,15,18,0.98) 100%)",
-          backdropFilter: "blur(14px)",
-          WebkitBackdropFilter: "blur(14px)",
-        }}
-      >
-        <div className="flex h-full items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-2 md:gap-3">
-            <button
-              onClick={onMenuToggle}
-              className="mr-1 flex h-9 w-9 items-center justify-center rounded-2xl border text-muted-foreground transition-all duration-200 hover:bg-white/[0.04] hover:text-white active:scale-[0.98] md:hidden"
-              style={{
-                borderColor: "rgba(255,255,255,0.06)",
-                background: "rgba(255,255,255,0.02)",
-              }}
-            >
-              <Menu className="h-4.5 w-4.5" />
-            </button>
-
-            <div className="flex items-center gap-3 min-w-0">
-              <div
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border"
-                style={{
-                  borderColor: "rgba(95, 135, 255, 0.22)",
-                  background: "linear-gradient(180deg, rgba(70,95,180,0.22) 0%, rgba(45,58,108,0.18) 100%)",
-                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
-                }}
+    <div className="sticky top-0 z-40 pt-3 pb-0">
+      <div className="px-4">
+        <div
+          className="h-12 rounded-[20px] border border-white/[0.07] px-3 md:px-5 shadow-[0_18px_45px_rgba(0,0,0,0.22),inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-300"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(34,34,37,0.64) 0%, rgba(24,24,27,0.46) 100%)",
+            backdropFilter: "blur(18px) saturate(1.35)",
+            WebkitBackdropFilter: "blur(18px) saturate(1.35)",
+          }}
+        >
+          <div className="flex h-full items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center">
+              <button
+                onClick={onMenuToggle}
+                className="mr-2 flex h-8 w-8 items-center justify-center rounded-xl border border-transparent text-muted-foreground transition-all duration-200 hover:translate-y-0 hover:border-white/8 hover:bg-white/[0.045] hover:text-foreground active:translate-y-0 active:scale-[0.98] md:hidden"
               >
-                <span
-                  className="text-sm font-semibold leading-none"
-                  style={{ color: "#9CB2FF" }}
-                >
-                  ⬡
-                </span>
-              </div>
+                <Menu className="h-4.5 w-4.5" />
+              </button>
 
-              <div className="min-w-0">
-                <div className="flex items-center gap-1.5 leading-none">
+              <div className="flex items-center gap-2">
+                <div
+                  className="flex h-7 w-7 items-center justify-center rounded-xl border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+                  style={{
+                    background:
+                      "linear-gradient(180deg, rgba(250,199,117,0.18) 0%, rgba(250,199,117,0.08) 100%)",
+                  }}
+                >
+                  <span className="text-sm leading-none" style={{ color: "#FAC775" }}>
+                    ⬡
+                  </span>
+                </div>
+
+                <div className="flex items-baseline gap-0.5">
                   <span
-                    className="text-[15px] font-semibold tracking-[-0.03em]"
-                    style={{ color: "#F5F7FA" }}
+                    className="text-sm font-semibold tracking-[-0.02em]"
+                    style={{ color: "#F5F5F0" }}
                   >
                     Receita
                   </span>
                   <span
-                    className="text-[15px] font-semibold tracking-[-0.03em]"
-                    style={{ color: "#8EA6FF" }}
+                    className="text-sm font-semibold tracking-[-0.02em]"
+                    style={{ color: "#FAC775" }}
                   >
                     Flow
                   </span>
                 </div>
-
-                <p
-                  className="mt-1 truncate text-[11px] leading-none"
-                  style={{ color: "rgba(255,255,255,0.38)" }}
-                >
-                  Plataforma operacional
-                </p>
               </div>
-            </div>
 
-            {company && (
-              <>
-                <div
-                  className="mx-1 hidden h-6 w-px md:block"
-                  style={{
-                    background:
-                      "linear-gradient(to bottom, rgba(255,255,255,0.01), rgba(255,255,255,0.10), rgba(255,255,255,0.01))",
-                  }}
-                />
-
-                <div
-                  className="hidden min-w-0 items-center gap-2 rounded-2xl border px-3 py-2 md:flex"
-                  style={{
-                    borderColor: "rgba(255,255,255,0.05)",
-                    background: "rgba(255,255,255,0.025)",
-                  }}
-                >
+              {company && (
+                <>
                   <div
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl"
+                    className="mx-3 h-5 w-px md:mx-4"
                     style={{
-                      background: "rgba(255,255,255,0.04)",
-                      color: "rgba(255,255,255,0.58)",
+                      background:
+                        "linear-gradient(to bottom, rgba(255,255,255,0.02), rgba(255,255,255,0.10), rgba(255,255,255,0.02))",
                     }}
-                  >
-                    <Building2 className="h-3.5 w-3.5" />
-                  </div>
+                  />
 
-                  <div className="min-w-0">
-                    <p
-                      className="text-[10px] uppercase tracking-[0.16em]"
-                      style={{ color: "rgba(255,255,255,0.30)" }}
-                    >
-                      Empresa
-                    </p>
-
+                  <div className="flex min-w-0 items-center">
                     {company.logo_url ? (
                       <img
                         src={company.logo_url}
                         alt={company.name}
-                        className="mt-1 h-5 max-w-[140px] object-contain object-left opacity-90"
+                        className="h-5 max-w-[120px] object-contain object-left opacity-90"
                       />
                     ) : (
-                      <p
-                        className="mt-0.5 truncate text-[12px] font-medium"
-                        style={{ color: "#D7DBE4" }}
+                      <span
+                        className="block max-w-[160px] truncate text-[12px] font-medium tracking-[-0.01em]"
+                        style={{ color: "#A4A39D" }}
                       >
                         {company.name}
-                      </p>
+                      </span>
                     )}
                   </div>
-                </div>
-              </>
-            )}
-          </div>
+                </>
+              )}
+            </div>
 
-          <div
-            className="hidden items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-medium md:flex"
-            style={{
-              borderColor: "rgba(120,146,255,0.16)",
-              background: "rgba(120,146,255,0.08)",
-              color: "#B8C6FF",
-            }}
-          >
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>Sistema ativo</span>
+            <div className="pointer-events-none hidden h-7 items-center rounded-full border border-white/[0.05] bg-white/[0.025] px-3 text-[11px] font-medium tracking-[-0.01em] text-white/45 md:flex">
+              Sistema ativo
+            </div>
           </div>
         </div>
       </div>
