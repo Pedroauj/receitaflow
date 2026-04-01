@@ -432,7 +432,7 @@ const ConciliacaoNFE = () => {
                 }}
               >
                 <Sparkles style={{ width: 14, height: 14 }} />
-                NF-e / NFS-e · Conciliação
+                NF-e · Conciliação
               </div>
 
               <h1
