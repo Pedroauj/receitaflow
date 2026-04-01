@@ -193,7 +193,7 @@ const MediasAbastecimento = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.35 }}
     >
-      <div className="relative overflow-hidden rounded-[26px] border border-white/8 bg-[linear-gradient(180deg,rgba(9,13,24,0.92),rgba(6,10,18,0.96))] px-5 py-5 shadow-[0_18px_60px_rgba(0,0,0,0.28)] md:px-7 md:py-6">
+      <div className="relative overflow-hidden rounded-[26px] border border-white/8 bg-[linear-gradient(180deg,rgba(9,13,24,0.92),rgba(6,10,18,0.96))] px-5 py-5 shadow-[0_18px_60px_rgba(0,0,0,0.28)] md:px-7 md:py-6"/>
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute -left-16 top-0 h-52 w-52 rounded-full bg-violet-500/10 blur-3xl" />
           <div className="absolute right-0 top-0 h-44 w-44 rounded-full bg-blue-500/10 blur-3xl" />
@@ -259,23 +259,6 @@ const MediasAbastecimento = () => {
             </button>
           </div>
         </div>
-
-        <div className="relative mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
-          {executiveSummary.map((item) => (
-            <div
-              key={item.label}
-              className="rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3 backdrop-blur-sm"
-            >
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/42">
-                {item.label}
-              </p>
-              <p className="mt-1 text-lg font-semibold tracking-[-0.03em] text-foreground md:text-xl">
-                {item.value}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
 
       <AnimatePresence>
         {!pm && (
