@@ -3,15 +3,18 @@ import { motion } from "framer-motion";
 import * as XLSX from "xlsx";
 import {
   AlertTriangle,
+  ArrowLeft,
   CalendarDays,
   CheckCircle2,
   Download,
+  FileCheck,
   FileSpreadsheet,
   Info,
   Loader2,
   UploadCloud,
   XCircle,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 type PreviewRowStatus =
@@ -270,6 +273,7 @@ const formatCurrencyInput = (value: string) => {
     currency: "BRL",
   }).format(number);
 };
+
 type CandidateRow = {
   line: number;
   invoiceNumber: string;
@@ -297,7 +301,6 @@ const pickBestCandidate = (current: CandidateRow | undefined, incoming: Candidat
   return incoming.line < current.line ? incoming : current;
 };
 
-
 const getStatusBadgeClass = (status: PreviewRowStatus) => {
   switch (status) {
     case "válida":
@@ -315,18 +318,16 @@ const getStatusBadgeClass = (status: PreviewRowStatus) => {
   }
 };
 
-import { SummaryCard, HighlightCard, StatusCard, SectionContainer, DataTable } from "@/components/dashboard";
-import type { DataTableColumn } from "@/components/dashboard";
-
-const sectionCardClass = "rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(24,24,27,0.96),rgba(16,16,18,0.94))] shadow-[0_18px_60px_rgba(0,0,0,0.35)] backdrop-blur-xl";
+const sectionCardClass =
+  "rounded-[30px] border border-white/10 bg-[#11131c]/95 shadow-[0_18px_60px_rgba(0,0,0,0.28)]";
 const metricCardClass =
-  "rounded-3xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.025))] p-4 shadow-[0_10px_30px_rgba(0,0,0,0.18)] transition-all duration-200 hover:-translate-y-0.5 hover:border-white/15";
-const metricTitleClass = "text-[11px] uppercase tracking-[0.18em] text-muted-foreground";
-const metricValueClass = "mt-2 text-2xl font-semibold tracking-tight text-foreground";
-
-
+  "rounded-3xl border border-white/10 bg-white/[0.03] p-4 shadow-[0_10px_30px_rgba(0,0,0,0.18)] transition-all duration-200 hover:-translate-y-0.5 hover:border-violet-400/20";
+const metricTitleClass = "text-[11px] uppercase tracking-[0.18em] text-white/45";
+const metricValueClass = "mt-2 text-2xl font-semibold tracking-tight text-white";
 
 const Minerva = () => {
+  const navigate = useNavigate();
+
   const [selectedDate, setSelectedDate] = useState("");
   const [bankValue, setBankValue] = useState("");
   const [reportFile, setReportFile] = useState<File | null>(null);
@@ -420,7 +421,6 @@ const Minerva = () => {
       const reportRange = XLSX.utils.decode_range(reportSheet["!ref"] || "A1:A1");
       const planilhaZeroRange = XLSX.utils.decode_range(planilhaZeroSheet["!ref"] || "A1:A1");
 
-      // --- Pré-filtragem ROBUSTA: identificar linhas inutilizadas ---
       const normalizeForStatus = (v: unknown) =>
         String(v ?? "")
           .normalize("NFD")
@@ -433,7 +433,6 @@ const Minerva = () => {
       for (let r = 1; r <= planilhaZeroRange.e.r; r += 1) {
         let isInutilizado = false;
 
-        // 1) Prioridade: validar pela coluna de status, quando encontrada
         if (statusCol >= 0) {
           const statusValue = normalizeForStatus(
             getCellValue(planilhaZeroSheet, statusCol, r)
@@ -444,7 +443,6 @@ const Minerva = () => {
           }
         }
 
-        // 2) Fallback: procurar "INUTILIZ" em qualquer célula da linha
         if (!isInutilizado) {
           for (let c = planilhaZeroRange.s.c; c <= planilhaZeroRange.e.c; c += 1) {
             const value = normalizeForStatus(getCellValue(planilhaZeroSheet, c, r));
@@ -655,313 +653,429 @@ const Minerva = () => {
 
   return (
     <div className="w-full">
-      <motion.div
-        initial={{ opacity: 0, y: -6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25 }}
-        className="mb-6"
-      >
-        <h1 className="text-xl font-semibold text-foreground tracking-tight">Minerva</h1>
-        <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-          Informe a data, o valor do banco, anexe o <strong>Relatório Validação Envio</strong> e a{" "}
-          <strong>Planilha 0</strong>. O sistema cruza os conhecimentos e gera a planilha final de
-          importação, exibindo um resumo completo do processamento.
-        </p>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.05, duration: 0.3 }}
-        className="mb-4 rounded-xl border border-border bg-card p-4"
-      >
-        <div className="mb-3">
-          <div className="flex items-center gap-2">
-            <CalendarDays className="h-4 w-4 text-primary" />
-            <p className="text-sm font-medium text-foreground">Parâmetros da validação</p>
-          </div>
-          <p className="mt-1 text-xs text-muted-foreground">
-            A busca nas planilhas será feita com base na data informada e o valor será usado para
-            validar a diferença final.
-          </p>
-        </div>
-
-        <div className="grid gap-4 lg:grid-cols-2">
-          <div>
-            <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Data da antecipação
-            </label>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="h-10 w-full rounded-lg border border-border bg-muted px-3 text-sm text-foreground outline-none transition-colors focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Valor banco
-            </label>
-            <input
-              type="text"
-              inputMode="numeric"
-              placeholder="R$ 0,00"
-              value={bankValue}
-              onChange={(e) => handleBankValueChange(e.target.value)}
-              className="h-10 w-full rounded-lg border border-border bg-muted px-3 text-sm text-foreground outline-none transition-colors focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
-            />
-          </div>
-        </div>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.08, duration: 0.3 }}
-        className="mb-6 grid gap-4 lg:grid-cols-2"
-      >
-        <label
-          className="cursor-pointer rounded-xl border border-dashed border-border bg-card p-4 transition-colors hover:border-primary/30 data-[dragover=true]:border-primary data-[dragover=true]:bg-primary/5"
-          onDragOver={(e) => {
-            e.preventDefault();
-            e.currentTarget.dataset.dragover = "true";
-          }}
-          onDragLeave={(e) => {
-            e.currentTarget.dataset.dragover = "false";
-          }}
-          onDrop={(e) => {
-            e.preventDefault();
-            e.currentTarget.dataset.dragover = "false";
-            const f = e.dataTransfer.files[0];
-            if (f && /\.(xlsx?|xls)$/i.test(f.name)) setReportFile(f);
-          }}
-        >
-          <div className="mb-3 flex items-center gap-2">
-            <UploadCloud className="h-4 w-4 text-primary" />
-            <p className="text-sm font-medium text-foreground">Relatório Validação Envio</p>
-          </div>
-
-          <p className="text-xs text-muted-foreground">
-            Arraste o arquivo aqui ou clique para selecionar.
-          </p>
-
-          <div className="mt-4 flex min-h-[44px] items-center gap-2 rounded-lg bg-muted px-3 py-2">
-            <FileSpreadsheet className="h-4 w-4 shrink-0 text-primary" />
-            <span className="truncate text-sm text-foreground">
-              {reportFile?.name || "Selecionar arquivo"}
-            </span>
-          </div>
-
-          <input
-            type="file"
-            accept=".xlsx,.xls"
-            className="hidden"
-            onChange={(e) => setReportFile(e.target.files?.[0] || null)}
-          />
-        </label>
-
-        <label
-          className="cursor-pointer rounded-xl border border-dashed border-border bg-card p-4 transition-colors hover:border-primary/30 data-[dragover=true]:border-primary data-[dragover=true]:bg-primary/5"
-          onDragOver={(e) => {
-            e.preventDefault();
-            e.currentTarget.dataset.dragover = "true";
-          }}
-          onDragLeave={(e) => {
-            e.currentTarget.dataset.dragover = "false";
-          }}
-          onDrop={(e) => {
-            e.preventDefault();
-            e.currentTarget.dataset.dragover = "false";
-            const f = e.dataTransfer.files[0];
-            if (f && /\.(xlsx?|xls)$/i.test(f.name)) setPlanilhaZeroFile(f);
-          }}
-        >
-          <div className="mb-3 flex items-center gap-2">
-            <UploadCloud className="h-4 w-4 text-primary" />
-            <p className="text-sm font-medium text-foreground">Planilha 0</p>
-          </div>
-
-          <p className="text-xs text-muted-foreground">
-            Arraste o arquivo aqui ou clique para selecionar.
-          </p>
-
-          <div className="mt-4 flex min-h-[44px] items-center gap-2 rounded-lg bg-muted px-3 py-2">
-            <FileSpreadsheet className="h-4 w-4 shrink-0 text-primary" />
-            <span className="truncate text-sm text-foreground">
-              {planilhaZeroFile?.name || "Selecionar arquivo"}
-            </span>
-          </div>
-
-          <input
-            type="file"
-            accept=".xlsx,.xls"
-            className="hidden"
-            onChange={(e) => setPlanilhaZeroFile(e.target.files?.[0] || null)}
-          />
-        </label>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1, duration: 0.3 }}
-        className="rounded-xl border border-border bg-card p-4"
-      >
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-sm font-medium text-foreground">Processamento</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Gera a planilha de importação com: FILIAL = 1, SERIE = 26, TIPO DOCUMENTO = CTRC e
-              DATA EMISSÃO da Planilha 0.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleProcess}
-            disabled={!canProcess}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {processing ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Processando...
-              </>
-            ) : (
-              <>
-                <Download className="h-4 w-4" />
-                Gerar planilha de importação
-              </>
-            )}
-          </button>
-        </div>
-      </motion.div>
-
-      {summary && (
+      <div className="mx-auto w-full max-w-[1560px] px-6 py-7">
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-7 space-y-5"
+          transition={{ duration: 0.28 }}
+          className="mb-8"
         >
-          <div className={`${sectionCardClass} overflow-hidden`}>
-            <div className="relative overflow-hidden p-6 sm:p-7">
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.12),transparent_28%),radial-gradient(circle_at_top_right,rgba(16,185,129,0.10),transparent_22%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.10),transparent_26%)]" />
+          <div className="relative overflow-hidden rounded-[30px] border border-white/10 bg-[#11131c]/95 shadow-[0_20px_70px_rgba(0,0,0,0.35)]">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.18),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(99,102,241,0.14),transparent_28%)]" />
 
-              <div className="relative z-10 flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
-                <div className="max-w-3xl">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                    <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                    Painel executivo
+            <div className="relative flex flex-col gap-6 p-6 lg:flex-row lg:items-center lg:justify-between lg:p-8">
+              <div className="flex items-start gap-4">
+                <button
+                  onClick={() => navigate("/dashboard")}
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] text-white/80 transition-all duration-200 hover:border-violet-400/40 hover:bg-violet-500/10 hover:text-violet-200"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </button>
+
+                <div>
+                  <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-violet-400/25 bg-violet-500/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-violet-200">
+                    <FileSpreadsheet className="h-3.5 w-3.5" />
+                    Cliente Minerva
                   </div>
 
-                  <h2 className="mt-4 text-2xl font-semibold tracking-tight text-foreground sm:text-[30px]">
-                    Resultado do processamento
-                  </h2>
+                  <h1 className="text-[32px] font-semibold leading-none tracking-tight text-white">
+                    Processamento de importação
+                  </h1>
 
-                  <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                    Uma visão mais refinada da validação, separando produtividade operacional,
-                    conciliação financeira e conferência rápida das linhas processadas.
+                  <p className="mt-3 max-w-3xl text-[15px] leading-7 text-white/60">
+                    Informe a data, o valor do banco, anexe o relatório de validação e a Planilha 0.
+                    O sistema cruza os conhecimentos, desconsidera inutilizados, trata duplicidades e
+                    gera a planilha final de importação com conferência completa.
                   </p>
+                </div>
+              </div>
 
-                  <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                    <div className="rounded-3xl border border-emerald-500/15 bg-emerald-500/8 p-4">
-                      <p className={metricTitleClass}>Válidas finais</p>
-                      <p className="mt-2 text-3xl font-semibold tracking-tight text-emerald-300">
-                        {summary.finalValidCount}
-                      </p>
-                      <p className="mt-1 text-xs text-emerald-200/80">Documentos prontos para importação</p>
-                    </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:w-[420px]">
+                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-sm">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-violet-200/80">
+                    Entrada
+                  </p>
+                  <p className="mt-2 text-sm font-medium text-white">
+                    Relatório + Planilha 0
+                  </p>
+                </div>
 
-                    <div className="rounded-3xl border border-amber-500/15 bg-amber-500/8 p-4">
-                      <p className={metricTitleClass}>Total processado</p>
-                      <p className="mt-2 text-3xl font-semibold tracking-tight text-amber-300">
-                        {formatCurrencyBR(summary.totalProcessed)}
-                      </p>
-                      <p className="mt-1 text-xs text-amber-200/80">Somatório das linhas consideradas válidas</p>
-                    </div>
+                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-sm">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-violet-200/80">
+                    Saída
+                  </p>
+                  <p className="mt-2 text-sm font-medium leading-6 text-white">
+                    Planilha de importação e conferência final
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
 
-                    <div
-                      className={`rounded-3xl border p-4 ${
-                        summary.status === "ok"
-                          ? "border-emerald-500/20 bg-emerald-500/8"
-                          : "border-red-500/20 bg-red-500/8"
-                      }`}
-                    >
-                      <p className={metricTitleClass}>Diferença</p>
-                      <p
-                        className={`mt-2 text-3xl font-semibold tracking-tight ${
-                          summary.status === "ok" ? "text-emerald-300" : "text-red-300"
-                        }`}
-                      >
-                        {formatSignedCurrencyBR(summary.difference)}
-                      </p>
-                      <p
-                        className={`mt-1 text-xs ${
-                          summary.status === "ok" ? "text-emerald-200/80" : "text-red-200/80"
-                        }`}
-                      >
-                        {summary.status === "ok"
-                          ? "Conciliação fechada com o valor informado"
-                          : "Existe divergência entre planilha e banco"}
-                      </p>
-                    </div>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.04, duration: 0.3 }}
+          className="mb-6 grid gap-6 xl:grid-cols-[0.85fr_1.15fr]"
+        >
+          <div className="relative overflow-hidden rounded-[30px] border border-white/10 bg-[#11131c]/95 shadow-[0_18px_60px_rgba(0,0,0,0.28)]">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.10),transparent_28%)]" />
+
+            <div className="relative p-6 lg:p-7">
+              <div className="mb-6 flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-violet-400/20 bg-violet-500/10 text-violet-200">
+                  <CalendarDays className="h-5 w-5" />
+                </div>
+
+                <div>
+                  <h2 className="text-xl font-semibold text-white">
+                    Parâmetros da validação
+                  </h2>
+                  <p className="text-sm text-white/55">
+                    Defina a data-base da antecipação e o valor do banco para conciliar o resultado.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid gap-5">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-white/90">
+                    Data da antecipação
+                  </label>
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="h-12 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 text-sm text-white outline-none transition-colors focus:border-violet-400/40 focus:ring-2 focus:ring-violet-500/10"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-white/90">
+                    Valor banco
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="R$ 0,00"
+                    value={bankValue}
+                    onChange={(e) => handleBankValueChange(e.target.value)}
+                    className="h-12 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 text-sm text-white outline-none transition-colors placeholder:text-white/35 focus:border-violet-400/40 focus:ring-2 focus:ring-violet-500/10"
+                  />
+                </div>
+
+                <div className="rounded-2xl border border-violet-400/15 bg-violet-500/[0.06] p-4">
+                  <p className="text-sm leading-7 text-white/62">
+                    A importação final será gerada com FILIAL = 1, SÉRIE = 26, TIPO DOCUMENTO = CTRC
+                    e DATA EMISSÃO obtida da Planilha 0.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleProcess}
+                  disabled={!canProcess}
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border-0 bg-[linear-gradient(135deg,#7c3aed_0%,#8b5cf6_55%,#6366f1_100%)] px-5 text-sm font-medium text-white shadow-[0_10px_30px_rgba(124,58,237,0.35)] transition-all duration-200 hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {processing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Processando...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="h-4 w-4" />
+                      Gerar planilha de importação
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <label
+              className="relative overflow-hidden rounded-[30px] border border-white/10 bg-[#11131c]/95 p-6 shadow-[0_18px_60px_rgba(0,0,0,0.28)] cursor-pointer"
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.currentTarget.dataset.dragover = "true";
+              }}
+              onDragLeave={(e) => {
+                e.currentTarget.dataset.dragover = "false";
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.currentTarget.dataset.dragover = "false";
+                const f = e.dataTransfer.files[0];
+                if (f && /\.(xlsx?|xls)$/i.test(f.name)) setReportFile(f);
+              }}
+            >
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.10),transparent_24%)]" />
+
+              <div className="relative">
+                <div className="mb-5 flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-violet-400/20 bg-violet-500/10 text-violet-200">
+                    <UploadCloud className="h-5 w-5" />
+                  </div>
+
+                  <div>
+                    <h2 className="text-xl font-semibold text-white">
+                      Relatório Validação Envio
+                    </h2>
+                    <p className="text-sm text-white/55">
+                      Arraste o arquivo ou clique para selecionar.
+                    </p>
                   </div>
                 </div>
 
-                <div className="w-full xl:max-w-[360px]">
-                  <div className="rounded-[28px] border border-white/10 bg-black/20 p-5 shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Status da conciliação</p>
-                        <div className="mt-3 flex items-center gap-2">
-                          {summary.status === "ok" ? (
-                            <CheckCircle2 className="h-5 w-5 text-emerald-300" />
-                          ) : (
-                            <XCircle className="h-5 w-5 text-red-300" />
-                          )}
-                          <p
-                            className={`text-lg font-semibold ${
-                              summary.status === "ok" ? "text-emerald-300" : "text-red-300"
-                            }`}
-                          >
-                            {summary.status === "ok" ? "Conciliação validada" : "Diferença identificada"}
-                          </p>
-                        </div>
+                <div className="rounded-[26px] border border-dashed border-violet-400/20 bg-[linear-gradient(180deg,rgba(139,92,246,0.06),rgba(255,255,255,0.02))] px-6 py-14 text-center transition-all duration-200 hover:border-violet-400/45 hover:bg-[linear-gradient(180deg,rgba(139,92,246,0.12),rgba(255,255,255,0.03))]">
+                  {reportFile ? (
+                    <div className="flex flex-col items-center justify-center gap-4">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-violet-400/25 bg-violet-500/12">
+                        <FileCheck className="h-7 w-7 text-violet-200" />
                       </div>
 
-                      <div
-                        className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${
-                          summary.status === "ok"
-                            ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300"
-                            : "border-red-500/20 bg-red-500/10 text-red-300"
-                        }`}
-                      >
-                        {summary.status === "ok" ? "OK" : "DIVERGE"}
+                      <div>
+                        <p className="text-lg font-semibold text-white">{reportFile.name}</p>
+                        <p className="mt-1 text-sm text-white/55">
+                          Arquivo carregado com sucesso. Clique para trocar.
+                        </p>
                       </div>
                     </div>
+                  ) : (
+                    <>
+                      <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[24px] border border-violet-400/20 bg-violet-500/10">
+                        <UploadCloud className="h-8 w-8 text-violet-200" />
+                      </div>
 
-                    <div className="mt-5 grid gap-3">
-                      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                        <p className={metricTitleClass}>Valor banco</p>
-                        <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
-                          {formatCurrencyBR(summary.bankValue)}
+                      <p className="text-xl font-semibold text-white">
+                        Selecione o relatório
+                      </p>
+                      <p className="mt-3 text-sm text-white/50">
+                        Formatos aceitos: .xlsx e .xls
+                      </p>
+                    </>
+                  )}
+                </div>
+
+                <input
+                  type="file"
+                  accept=".xlsx,.xls"
+                  className="hidden"
+                  onChange={(e) => setReportFile(e.target.files?.[0] || null)}
+                />
+              </div>
+            </label>
+
+            <label
+              className="relative overflow-hidden rounded-[30px] border border-white/10 bg-[#11131c]/95 p-6 shadow-[0_18px_60px_rgba(0,0,0,0.28)] cursor-pointer"
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.currentTarget.dataset.dragover = "true";
+              }}
+              onDragLeave={(e) => {
+                e.currentTarget.dataset.dragover = "false";
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.currentTarget.dataset.dragover = "false";
+                const f = e.dataTransfer.files[0];
+                if (f && /\.(xlsx?|xls)$/i.test(f.name)) setPlanilhaZeroFile(f);
+              }}
+            >
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.10),transparent_24%)]" />
+
+              <div className="relative">
+                <div className="mb-5 flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-violet-400/20 bg-violet-500/10 text-violet-200">
+                    <UploadCloud className="h-5 w-5" />
+                  </div>
+
+                  <div>
+                    <h2 className="text-xl font-semibold text-white">
+                      Planilha 0
+                    </h2>
+                    <p className="text-sm text-white/55">
+                      Base usada para localizar e montar a importação final.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="rounded-[26px] border border-dashed border-violet-400/20 bg-[linear-gradient(180deg,rgba(139,92,246,0.06),rgba(255,255,255,0.02))] px-6 py-14 text-center transition-all duration-200 hover:border-violet-400/45 hover:bg-[linear-gradient(180deg,rgba(139,92,246,0.12),rgba(255,255,255,0.03))]">
+                  {planilhaZeroFile ? (
+                    <div className="flex flex-col items-center justify-center gap-4">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-violet-400/25 bg-violet-500/12">
+                        <FileCheck className="h-7 w-7 text-violet-200" />
+                      </div>
+
+                      <div>
+                        <p className="text-lg font-semibold text-white">{planilhaZeroFile.name}</p>
+                        <p className="mt-1 text-sm text-white/55">
+                          Arquivo carregado com sucesso. Clique para trocar.
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[24px] border border-violet-400/20 bg-violet-500/10">
+                        <UploadCloud className="h-8 w-8 text-violet-200" />
+                      </div>
+
+                      <p className="text-xl font-semibold text-white">
+                        Selecione a Planilha 0
+                      </p>
+                      <p className="mt-3 text-sm text-white/50">
+                        Formatos aceitos: .xlsx e .xls
+                      </p>
+                    </>
+                  )}
+                </div>
+
+                <input
+                  type="file"
+                  accept=".xlsx,.xls"
+                  className="hidden"
+                  onChange={(e) => setPlanilhaZeroFile(e.target.files?.[0] || null)}
+                />
+              </div>
+            </label>
+          </div>
+        </motion.div>
+
+        {summary && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-7 space-y-5"
+          >
+            <div className={`${sectionCardClass} overflow-hidden`}>
+              <div className="relative overflow-hidden p-6 sm:p-7">
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.12),transparent_28%),radial-gradient(circle_at_top_right,rgba(16,185,129,0.10),transparent_22%),radial-gradient(circle_at_bottom_right,rgba(99,102,241,0.10),transparent_26%)]" />
+
+                <div className="relative z-10 flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+                  <div className="max-w-3xl">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/55">
+                      <span className="h-1.5 w-1.5 rounded-full bg-violet-400" />
+                      Painel executivo
+                    </div>
+
+                    <h2 className="mt-4 text-2xl font-semibold tracking-tight text-white sm:text-[30px]">
+                      Resultado do processamento
+                    </h2>
+
+                    <p className="mt-2 max-w-2xl text-sm leading-6 text-white/55">
+                      Uma visão refinada da validação, separando produtividade operacional,
+                      conciliação financeira e conferência rápida das linhas processadas.
+                    </p>
+
+                    <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                      <div className="rounded-3xl border border-emerald-500/15 bg-emerald-500/8 p-4">
+                        <p className={metricTitleClass}>Válidas finais</p>
+                        <p className="mt-2 text-3xl font-semibold tracking-tight text-emerald-300">
+                          {summary.finalValidCount}
+                        </p>
+                        <p className="mt-1 text-xs text-emerald-200/80">
+                          Documentos prontos para importação
                         </p>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="rounded-3xl border border-violet-500/15 bg-violet-500/8 p-4">
+                        <p className={metricTitleClass}>Total processado</p>
+                        <p className="mt-2 text-3xl font-semibold tracking-tight text-violet-200">
+                          {formatCurrencyBR(summary.totalProcessed)}
+                        </p>
+                        <p className="mt-1 text-xs text-violet-200/80">
+                          Somatório das linhas consideradas válidas
+                        </p>
+                      </div>
+
+                      <div
+                        className={`rounded-3xl border p-4 ${
+                          summary.status === "ok"
+                            ? "border-emerald-500/20 bg-emerald-500/8"
+                            : "border-red-500/20 bg-red-500/8"
+                        }`}
+                      >
+                        <p className={metricTitleClass}>Diferença</p>
+                        <p
+                          className={`mt-2 text-3xl font-semibold tracking-tight ${
+                            summary.status === "ok" ? "text-emerald-300" : "text-red-300"
+                          }`}
+                        >
+                          {formatSignedCurrencyBR(summary.difference)}
+                        </p>
+                        <p
+                          className={`mt-1 text-xs ${
+                            summary.status === "ok" ? "text-emerald-200/80" : "text-red-200/80"
+                          }`}
+                        >
+                          {summary.status === "ok"
+                            ? "Conciliação fechada com o valor informado"
+                            : "Existe divergência entre planilha e banco"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="w-full xl:max-w-[360px]">
+                    <div className="rounded-[28px] border border-white/10 bg-black/20 p-5 shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <p className="text-[11px] uppercase tracking-[0.2em] text-white/45">
+                            Status da conciliação
+                          </p>
+                          <div className="mt-3 flex items-center gap-2">
+                            {summary.status === "ok" ? (
+                              <CheckCircle2 className="h-5 w-5 text-emerald-300" />
+                            ) : (
+                              <XCircle className="h-5 w-5 text-red-300" />
+                            )}
+                            <p
+                              className={`text-lg font-semibold ${
+                                summary.status === "ok" ? "text-emerald-300" : "text-red-300"
+                              }`}
+                            >
+                              {summary.status === "ok"
+                                ? "Conciliação validada"
+                                : "Diferença identificada"}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div
+                          className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${
+                            summary.status === "ok"
+                              ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300"
+                              : "border-red-500/20 bg-red-500/10 text-red-300"
+                          }`}
+                        >
+                          {summary.status === "ok" ? "OK" : "DIVERGE"}
+                        </div>
+                      </div>
+
+                      <div className="mt-5 grid gap-3">
                         <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                          <p className={metricTitleClass}>Não localizados</p>
-                          <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
-                            {summary.missingDocs.length}
+                          <p className={metricTitleClass}>Valor banco</p>
+                          <p className="mt-2 text-2xl font-semibold tracking-tight text-white">
+                            {formatCurrencyBR(summary.bankValue)}
                           </p>
                         </div>
 
-                        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                          <p className={metricTitleClass}>Data-base</p>
-                          <p className="mt-2 text-base font-semibold tracking-tight text-foreground">
-                            {formatDateBR(summary.selectedDate)}
-                          </p>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                            <p className={metricTitleClass}>Não localizados</p>
+                            <p className="mt-2 text-2xl font-semibold tracking-tight text-white">
+                              {summary.missingDocs.length}
+                            </p>
+                          </div>
+
+                          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                            <p className={metricTitleClass}>Data-base</p>
+                            <p className="mt-2 text-base font-semibold tracking-tight text-white">
+                              {formatDateBR(summary.selectedDate)}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -969,237 +1083,257 @@ const Minerva = () => {
                 </div>
               </div>
             </div>
-          </div>
 
-          <div className="grid gap-5 xl:grid-cols-[1.45fr_0.95fr]">
-            <div className={`${sectionCardClass} p-5 sm:p-6`}>
-              <div className="mb-5 flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Performance operacional</p>
-                  <p className="mt-1 text-sm text-muted-foreground">Leitura do fluxo até a montagem final da importação.</p>
+            <div className="grid gap-5 xl:grid-cols-[1.45fr_0.95fr]">
+              <div className={`${sectionCardClass} p-5 sm:p-6`}>
+                <div className="mb-5 flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/45">
+                      Performance operacional
+                    </p>
+                    <p className="mt-1 text-sm text-white/55">
+                      Leitura do fluxo até a montagem final da importação.
+                    </p>
+                  </div>
+
+                  <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-white/50">
+                    {summary.reportRows} linha(s) analisada(s)
+                  </div>
                 </div>
 
-                <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-muted-foreground">
-                  {summary.reportRows} linha(s) analisada(s)
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  <div className={metricCardClass}>
+                    <p className={metricTitleClass}>Linhas lidas</p>
+                    <p className={metricValueClass}>{summary.reportRows}</p>
+                  </div>
+
+                  <div className={metricCardClass}>
+                    <p className={metricTitleClass}>Filtradas por data</p>
+                    <p className={metricValueClass}>{summary.reportRows}</p>
+                  </div>
+
+                  <div className={metricCardClass}>
+                    <p className={metricTitleClass}>Pgto vazio</p>
+                    <p className={metricValueClass}>{summary.emptyPaymentCount}</p>
+                  </div>
+
+                  <div className={metricCardClass}>
+                    <p className={metricTitleClass}>Pgto preenchido</p>
+                    <p className={metricValueClass}>{summary.filledPaymentCount}</p>
+                  </div>
+
+                  <div className={metricCardClass}>
+                    <p className={metricTitleClass}>Removidas por pagamento</p>
+                    <p className={metricValueClass}>{summary.removedByPaymentCount}</p>
+                  </div>
+
+                  <div className={metricCardClass}>
+                    <p className={metricTitleClass}>Duplicados ignorados</p>
+                    <p className={metricValueClass}>{summary.duplicateIgnoredCount}</p>
+                  </div>
+
+                  <div className={metricCardClass}>
+                    <p className={metricTitleClass}>Válidas finais</p>
+                    <p className={metricValueClass}>{summary.finalValidCount}</p>
+                  </div>
+
+                  <div className={metricCardClass}>
+                    <p className={metricTitleClass}>Com erro</p>
+                    <p className={metricValueClass}>{summary.errorCount}</p>
+                  </div>
                 </div>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                <div className={metricCardClass}>
-                  <p className={metricTitleClass}>Linhas lidas</p>
-                  <p className={metricValueClass}>{summary.reportRows}</p>
-                </div>
+              <div className={`${sectionCardClass} p-5 sm:p-6`}>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/45">
+                  Leitura executiva
+                </p>
+                <p className="mt-1 text-sm text-white/55">
+                  Resumo rápido para bater o olho e entender o resultado.
+                </p>
 
-                <div className={metricCardClass}>
-                  <p className={metricTitleClass}>Filtradas por data</p>
-                  <p className={metricValueClass}>{summary.reportRows}</p>
-                </div>
+                <div className="mt-5 space-y-3">
+                  <div
+                    className={`rounded-3xl border p-4 ${
+                      summary.finalValidCount === 0
+                        ? "border-white/10 bg-white/[0.03] text-white/55"
+                        : "border-emerald-500/15 bg-emerald-500/8 text-emerald-200"
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      {summary.finalValidCount === 0 ? (
+                        <Info className="mt-0.5 h-4 w-4 shrink-0" />
+                      ) : (
+                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+                      )}
+                      <div>
+                        <p className="text-sm font-semibold">
+                          {summary.finalValidCount === 0
+                            ? "Nenhum documento elegível para importação"
+                            : `${summary.finalValidCount} documento(s) válido(s) encontrado(s)`}
+                        </p>
+                        <p className="mt-1 text-xs leading-5 opacity-80">
+                          {summary.finalValidCount === 0
+                            ? "A data selecionada não retornou títulos em aberto após as validações."
+                            : "A etapa de cruzamento encontrou documentos compatíveis e prontos para seguir para a planilha final."}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
 
-                <div className={metricCardClass}>
-                  <p className={metricTitleClass}>Pgto vazio</p>
-                  <p className={metricValueClass}>{summary.emptyPaymentCount}</p>
-                </div>
+                  <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <p className={metricTitleClass}>Cobertura</p>
+                        <p className="mt-2 text-2xl font-semibold tracking-tight text-white">
+                          {summary.uniqueDocs}
+                        </p>
+                        <p className="mt-1 text-xs text-white/45">
+                          Conhecimentos únicos capturados no relatório
+                        </p>
+                      </div>
 
-                <div className={metricCardClass}>
-                  <p className={metricTitleClass}>Pgto preenchido</p>
-                  <p className={metricValueClass}>{summary.filledPaymentCount}</p>
-                </div>
+                      <div>
+                        <p className={metricTitleClass}>Importados</p>
+                        <p className="mt-2 text-2xl font-semibold tracking-tight text-white">
+                          {summary.matchedRows}
+                        </p>
+                        <p className="mt-1 text-xs text-white/45">
+                          Linhas que entraram na planilha final
+                        </p>
+                      </div>
+                    </div>
+                  </div>
 
-                <div className={metricCardClass}>
-                  <p className={metricTitleClass}>Removidas por pagamento</p>
-                  <p className={metricValueClass}>{summary.removedByPaymentCount}</p>
+                  <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-4">
+                    <p className={metricTitleClass}>Diagnóstico</p>
+                    <div className="mt-3 space-y-2 text-sm text-white">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-white/50">Duplicados tratados automaticamente</span>
+                        <span className="font-semibold">{summary.duplicateIgnoredCount}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-white/50">Documentos não localizados</span>
+                        <span className="font-semibold">{summary.missingDocs.length}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-white/50">Linhas com erro</span>
+                        <span className="font-semibold">{summary.errorCount}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+              </div>
+            </div>
 
-                <div className={metricCardClass}>
-                  <p className={metricTitleClass}>Duplicados ignorados</p>
-                  <p className={metricValueClass}>{summary.duplicateIgnoredCount}</p>
+            <div className={`${sectionCardClass} overflow-hidden`}>
+              <div className="border-b border-white/10 px-5 py-4 sm:px-6">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-white">Preview de validação</p>
+                    <p className="text-xs text-white/50">
+                      Primeiras 20 linhas processadas para conferência visual.
+                    </p>
+                  </div>
+
+                  <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-white/50">
+                    <Info className="h-3.5 w-3.5" />
+                    {summary.previewRows.length} linha(s) exibida(s)
+                  </div>
                 </div>
+              </div>
 
-                <div className={metricCardClass}>
-                  <p className={metricTitleClass}>Válidas finais</p>
-                  <p className={metricValueClass}>{summary.finalValidCount}</p>
-                </div>
+              <div className="overflow-x-auto">
+                <div className="min-w-[980px]">
+                  <div className="grid grid-cols-[90px_150px_170px_190px_160px_180px] gap-3 bg-white/[0.03] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/45 sm:px-6">
+                    <div>Linha</div>
+                    <div>Data Vcto.</div>
+                    <div>Data Pagamento</div>
+                    <div>Nº Fatura</div>
+                    <div>Valor Bruto</div>
+                    <div>Status</div>
+                  </div>
 
-                <div className={metricCardClass}>
-                  <p className={metricTitleClass}>Com erro</p>
-                  <p className={metricValueClass}>{summary.errorCount}</p>
+                  <div className="max-h-[400px] overflow-y-auto">
+                    {summary.previewRows.map((row, index) => (
+                      <div
+                        key={`${row.line}-${row.invoiceNumber}-${row.status}`}
+                        className={`grid grid-cols-[90px_150px_170px_190px_160px_180px] gap-3 px-5 py-3.5 text-sm text-white transition-colors hover:bg-white/[0.035] sm:px-6 ${
+                          index % 2 === 0 ? "bg-transparent" : "bg-white/[0.015]"
+                        } ${index !== summary.previewRows.length - 1 ? "border-t border-white/5" : ""}`}
+                      >
+                        <div className="font-medium text-white/90">{row.line}</div>
+                        <div>{row.dueDate || "-"}</div>
+                        <div>{row.paymentDate || "-"}</div>
+                        <div className="font-medium tracking-tight">{row.invoiceNumber || "-"}</div>
+                        <div>{formatCurrencyBR(row.grossValue)}</div>
+                        <div>
+                          <span
+                            className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${getStatusBadgeClass(
+                              row.status
+                            )}`}
+                          >
+                            {row.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+
+                    {summary.previewRows.length === 0 && (
+                      <div className="px-5 py-10 text-sm text-white/50 sm:px-6">
+                        Nenhuma linha disponível para preview.
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
 
             <div className={`${sectionCardClass} p-5 sm:p-6`}>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Leitura executiva</p>
-              <p className="mt-1 text-sm text-muted-foreground">Resumo rápido para bater o olho e entender o resultado.</p>
-
-              <div className="mt-5 space-y-3">
-                <div
-                  className={`rounded-3xl border p-4 ${
-                    summary.finalValidCount === 0
-                      ? "border-white/10 bg-white/[0.03] text-muted-foreground"
-                      : "border-emerald-500/15 bg-emerald-500/8 text-emerald-200"
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    {summary.finalValidCount === 0 ? (
-                      <Info className="mt-0.5 h-4 w-4 shrink-0" />
-                    ) : (
-                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
-                    )}
+              {summary.missingDocs.length === 0 ? (
+                <div className="flex items-start gap-3 text-emerald-300">
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
+                  <div>
+                    <p className="text-sm font-semibold">
+                      Todos os conhecimentos foram localizados.
+                    </p>
+                    <p className="mt-1 text-xs text-emerald-200/80">
+                      Nenhum documento ficou pendente após o cruzamento com a Planilha 0.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="mb-4 flex items-start gap-3 text-amber-300">
+                    <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
                     <div>
                       <p className="text-sm font-semibold">
-                        {summary.finalValidCount === 0
-                          ? "Nenhum documento elegível para importação"
-                          : `${summary.finalValidCount} documento(s) válido(s) encontrado(s)`}
+                        {summary.missingDocs.length} documento(s) não localizado(s)
                       </p>
-                      <p className="mt-1 text-xs leading-5 opacity-80">
-                        {summary.finalValidCount === 0
-                          ? "A data selecionada não retornou títulos em aberto após as validações."
-                          : "A etapa de cruzamento encontrou documentos compatíveis e prontos para seguir para a planilha final."}
+                      <p className="mt-1 text-xs text-amber-200/80">
+                        Esses conhecimentos ficaram de fora da importação e merecem conferência manual.
                       </p>
                     </div>
                   </div>
-                </div>
 
-                <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <p className={metricTitleClass}>Cobertura</p>
-                      <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
-                        {summary.uniqueDocs}
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">Conhecimentos únicos capturados no relatório</p>
-                    </div>
-
-                    <div>
-                      <p className={metricTitleClass}>Importados</p>
-                      <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
-                        {summary.matchedRows}
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">Linhas que entraram na planilha final</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-4">
-                  <p className={metricTitleClass}>Diagnóstico</p>
-                  <div className="mt-3 space-y-2 text-sm text-foreground">
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-muted-foreground">Duplicados tratados automaticamente</span>
-                      <span className="font-semibold">{summary.duplicateIgnoredCount}</span>
-                    </div>
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-muted-foreground">Documentos não localizados</span>
-                      <span className="font-semibold">{summary.missingDocs.length}</span>
-                    </div>
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-muted-foreground">Linhas com erro</span>
-                      <span className="font-semibold">{summary.errorCount}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className={`${sectionCardClass} overflow-hidden`}>
-            <div className="border-b border-white/10 px-5 py-4 sm:px-6">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-foreground">Preview de validação</p>
-                  <p className="text-xs text-muted-foreground">
-                    Primeiras 20 linhas com cabeçalho fixo, mais respiro visual e leitura mais elegante.
-                  </p>
-                </div>
-
-                <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-muted-foreground">
-                  <Info className="h-3.5 w-3.5" />
-                  {summary.previewRows.length} linha(s) exibida(s)
-                </div>
-              </div>
-            </div>
-
-            <div className="overflow-x-auto">
-              <div className="min-w-[980px]">
-                <div className="grid grid-cols-[90px_150px_170px_190px_160px_180px] gap-3 bg-white/[0.03] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground sm:px-6">
-                  <div>Linha</div>
-                  <div>Data Vcto.</div>
-                  <div>Data Pagamento</div>
-                  <div>Nº Fatura</div>
-                  <div>Valor Bruto</div>
-                  <div>Status</div>
-                </div>
-
-                <div className="max-h-[400px] overflow-y-auto">
-                  {summary.previewRows.map((row, index) => (
-                    <div
-                      key={`${row.line}-${row.invoiceNumber}-${row.status}`}
-                      className={`grid grid-cols-[90px_150px_170px_190px_160px_180px] gap-3 px-5 py-3.5 text-sm text-foreground transition-colors hover:bg-white/[0.035] sm:px-6 ${
-                        index % 2 === 0 ? "bg-transparent" : "bg-white/[0.015]"
-                      } ${index !== summary.previewRows.length - 1 ? "border-t border-white/5" : ""}`}
-                    >
-                      <div className="font-medium text-foreground/90">{row.line}</div>
-                      <div>{row.dueDate || "-"}</div>
-                      <div>{row.paymentDate || "-"}</div>
-                      <div className="font-medium tracking-tight">{row.invoiceNumber || "-"}</div>
-                      <div>{formatCurrencyBR(row.grossValue)}</div>
-                      <div>
+                  <div className="max-h-56 overflow-auto rounded-3xl border border-white/10 bg-white/[0.03] p-3">
+                    <div className="flex flex-wrap gap-2">
+                      {summary.missingDocs.map((doc) => (
                         <span
-                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${getStatusBadgeClass(
-                            row.status
-                          )}`}
+                          key={doc}
+                          className="inline-flex items-center rounded-xl border border-amber-500/15 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-300"
                         >
-                          {row.status}
+                          {doc}
                         </span>
-                      </div>
+                      ))}
                     </div>
-                  ))}
-
-                  {summary.previewRows.length === 0 && (
-                    <div className="px-5 py-10 text-sm text-muted-foreground sm:px-6">
-                      Nenhuma linha disponível para preview.
-                    </div>
-                  )}
-                </div>
-              </div>
+                  </div>
+                </>
+              )}
             </div>
-          </div>
-
-          <div className={`${sectionCardClass} p-5 sm:p-6`}>
-            {summary.missingDocs.length === 0 ? (
-              <div className="flex items-start gap-3 text-emerald-300">
-                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
-                <div>
-                  <p className="text-sm font-semibold">Todos os conhecimentos foram localizados.</p>
-                  <p className="mt-1 text-xs text-emerald-200/80">Nenhum documento ficou pendente após o cruzamento com a Planilha 0.</p>
-                </div>
-              </div>
-            ) : (
-              <>
-                <div className="mb-4 flex items-start gap-3 text-amber-300">
-                  <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
-                  <div>
-                    <p className="text-sm font-semibold">{summary.missingDocs.length} documento(s) não localizado(s)</p>
-                    <p className="mt-1 text-xs text-amber-200/80">Esses conhecimentos ficaram de fora da importação e merecem conferência manual.</p>
-                  </div>
-                </div>
-
-                <div className="max-h-56 overflow-auto rounded-3xl border border-white/10 bg-white/[0.03] p-3">
-                  <div className="flex flex-wrap gap-2">
-                    {summary.missingDocs.map((doc) => (
-                      <span
-                        key={doc}
-                        className="inline-flex items-center rounded-xl border border-amber-500/15 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-300"
-                      >
-                        {doc}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        </motion.div>
-      )}
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 };
