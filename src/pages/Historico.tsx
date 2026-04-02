@@ -14,6 +14,8 @@ import { getRecords, getStats, type HistoryRecord } from "@/lib/history";
 import { clients } from "@/lib/clients";
 import { usePagination } from "@/hooks/usePagination";
 import TablePagination from "@/components/TablePagination";
+import { motion } from "framer-motion";
+import SectionContainer from "@/components/dashboard/SectionContainer";
 
 const Historico = () => {
   const navigate = useNavigate();
@@ -49,33 +51,45 @@ const Historico = () => {
   const formatDateShort = (iso: string) => { try { return format(parseISO(iso), "dd/MM/yyyy"); } catch { return iso; } };
 
   return (
-    <div>
-      <div className="mb-6">
+    <div className="space-y-5">
+      <motion.div
+        initial={{ opacity: 0, y: -6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25 }}
+      >
         <h1 className="text-xl font-semibold text-foreground tracking-tight">Histórico de Processamentos</h1>
-        <p className="text-xs text-muted-foreground mt-1">Registros de conversões realizadas</p>
-      </div>
+        <p className="text-sm text-muted-foreground mt-1">Registros de conversões realizadas</p>
+      </motion.div>
 
       {/* Stats */}
-      <div className="grid gap-3 sm:grid-cols-3 mb-6">
+      <div className="grid gap-3 sm:grid-cols-3">
         {[
           { icon: FileSpreadsheet, label: "Planilhas processadas", value: stats.totalPlanilhas },
           { icon: Hash, label: "Documentos processados", value: stats.totalDocumentos },
           { icon: DollarSign, label: "Valor total processado", value: formatBRL(stats.valorTotalProcessado) },
-        ].map((stat) => (
-          <div key={stat.label} className="rounded-xl border border-border bg-card p-4 flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg flex items-center justify-center shrink-0 bg-primary/10">
-              <stat.icon className="h-4 w-4 text-primary" />
+        ].map((stat, i) => (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25, delay: i * 0.03 }}
+            className="rounded-3xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.025))] p-4 shadow-[0_10px_30px_rgba(0,0,0,0.18)] transition-all duration-200 hover:-translate-y-0.5 hover:border-white/15"
+          >
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0 bg-primary/10">
+                <stat.icon className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{stat.label}</p>
+                <p className="text-lg font-semibold tabular-nums text-foreground">{stat.value}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-[11px] text-muted-foreground">{stat.label}</p>
-              <p className="text-lg font-semibold tabular-nums text-foreground">{stat.value}</p>
-            </div>
-          </div>
+          </motion.div>
         ))}
       </div>
 
       {/* Filters */}
-      <div className="rounded-xl border border-border bg-card p-5 mb-6">
+      <SectionContainer delay={0.06}>
         <p className="text-sm font-medium text-foreground mb-3">Filtros</p>
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-1.5">
@@ -120,15 +134,16 @@ const Historico = () => {
             Limpar filtros
           </Button>
         )}
-      </div>
+      </SectionContainer>
 
       {/* Table */}
-      <div className="rounded-xl border border-border bg-card overflow-hidden">
-        <div className="px-5 py-3.5 border-b border-border">
-          <p className="text-sm font-medium text-foreground">Processamentos ({filtered.length})</p>
+      <SectionContainer noPadding delay={0.1}>
+        <div className="border-b border-white/10 px-5 py-3.5 sm:px-6">
+          <p className="text-sm font-semibold text-foreground">Processamentos ({filtered.length})</p>
         </div>
+
         {filtered.length === 0 ? (
-          <div className="text-center py-12">
+          <div className="text-center py-12 px-5">
             <FileSpreadsheet className="h-10 w-10 mx-auto mb-3 text-muted-foreground/40" />
             <p className="text-sm text-muted-foreground">Nenhum processamento encontrado.</p>
           </div>
@@ -137,30 +152,33 @@ const Historico = () => {
             <div className="overflow-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-border">
+                  <tr className="border-b border-white/10">
                     {["Cliente", "Data processamento", "Data vencimento", "Documentos", "Valor total", "Status", ""].map((h, i) => (
-                      <th key={h || 'actions'} className={cn("px-5 py-2.5 text-[11px] font-medium uppercase tracking-wider text-left text-muted-foreground/70", (i === 3 || i === 4) && "text-right", i === 6 && "text-right w-12")}>
+                      <th key={h || 'actions'} className={cn("px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-left text-muted-foreground bg-white/[0.03]", (i === 3 || i === 4) && "text-right", i === 6 && "text-right w-12")}>
                         {h}
                       </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedItems.map((r) => (
-                    <tr key={r.id} className="border-b border-border/50 transition-colors hover:bg-accent/30">
-                      <td className="px-5 py-3 text-[13px] font-medium text-foreground">{r.cliente}</td>
-                      <td className="px-5 py-3 text-[13px] tabular-nums text-foreground/70">{formatDate(r.dataProcessamento)}</td>
-                      <td className="px-5 py-3 text-[13px] tabular-nums text-foreground/70">{formatDateShort(r.dataVencimento)}</td>
-                      <td className="px-5 py-3 text-[13px] tabular-nums text-right text-foreground/70">{r.quantidadeDocumentos}</td>
-                      <td className="px-5 py-3 text-[13px] tabular-nums text-right font-medium text-primary">{formatBRL(r.valorTotal)}</td>
+                  {paginatedItems.map((r, idx) => (
+                    <tr key={r.id} className={cn(
+                      "border-t border-white/5 transition-colors hover:bg-white/[0.035]",
+                      idx % 2 !== 0 && "bg-white/[0.015]"
+                    )}>
+                      <td className="px-5 py-3 text-sm font-medium text-foreground">{r.cliente}</td>
+                      <td className="px-5 py-3 text-sm tabular-nums text-foreground/70">{formatDate(r.dataProcessamento)}</td>
+                      <td className="px-5 py-3 text-sm tabular-nums text-foreground/70">{formatDateShort(r.dataVencimento)}</td>
+                      <td className="px-5 py-3 text-sm tabular-nums text-right text-foreground/70">{r.quantidadeDocumentos}</td>
+                      <td className="px-5 py-3 text-sm tabular-nums text-right font-medium text-primary">{formatBRL(r.valorTotal)}</td>
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-1.5">
                           {r.statusConferencia === "confere" ? (
-                            <CheckCircle2 className="h-3.5 w-3.5 text-green-400" />
+                            <CheckCircle2 className="h-3.5 w-3.5 text-success-foreground" />
                           ) : (
-                            <XCircle className="h-3.5 w-3.5 text-red-400" />
+                            <XCircle className="h-3.5 w-3.5 text-destructive" />
                           )}
-                          <span className={cn("text-xs font-medium capitalize", r.statusConferencia === "confere" ? "text-green-400" : "text-red-400")}>
+                          <span className={cn("text-xs font-medium capitalize", r.statusConferencia === "confere" ? "text-success-foreground" : "text-destructive")}>
                             {r.statusConferencia}
                           </span>
                         </div>
@@ -181,7 +199,7 @@ const Historico = () => {
             <TablePagination page={page} totalPages={totalPages} from={from} to={to} totalItems={totalItems} onPageChange={setPage} />
           </>
         )}
-      </div>
+      </SectionContainer>
 
       {/* Detail Dialog */}
       <Dialog open={!!selectedRecord} onOpenChange={(open) => !open && setSelectedRecord(null)}>
@@ -210,11 +228,11 @@ const Historico = () => {
                 <span className="text-[13px] text-muted-foreground">Status</span>
                 <div className="flex items-center gap-1.5">
                   {selectedRecord.statusConferencia === "confere" ? (
-                    <CheckCircle2 className="h-3.5 w-3.5 text-green-400" />
+                    <CheckCircle2 className="h-3.5 w-3.5 text-success-foreground" />
                   ) : (
-                    <XCircle className="h-3.5 w-3.5 text-red-400" />
+                    <XCircle className="h-3.5 w-3.5 text-destructive" />
                   )}
-                  <span className={cn("text-[13px] font-medium capitalize", selectedRecord.statusConferencia === "confere" ? "text-green-400" : "text-red-400")}>
+                  <span className={cn("text-[13px] font-medium capitalize", selectedRecord.statusConferencia === "confere" ? "text-success-foreground" : "text-destructive")}>
                     {selectedRecord.statusConferencia}
                   </span>
                 </div>

@@ -4,6 +4,7 @@ import { User, Lock, Bell, Save, Loader2, Eye, EyeOff, Check, Camera, X } from "
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import SectionContainer from "@/components/dashboard/SectionContainer";
 
 /* ── Notification preferences (localStorage) ── */
 type NotifPrefs = {
@@ -30,50 +31,6 @@ function saveNotifPrefs(prefs: NotifPrefs) {
   localStorage.setItem("rf_notif_prefs", JSON.stringify(prefs));
 }
 
-/* ── Styles ── */
-const cardStyle: React.CSSProperties = {
-  background: "linear-gradient(180deg, #18191D 0%, #15161A 100%)",
-  border: "1px solid #22242A",
-  borderRadius: 16,
-  boxShadow: "0 8px 24px rgba(0,0,0,.16)",
-};
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  height: 42,
-  padding: "0 14px",
-  background: "#111114",
-  border: "1px solid #2C2C30",
-  borderRadius: 10,
-  color: "#F5F5F0",
-  fontSize: 14,
-  outline: "none",
-  transition: "border-color .15s",
-};
-
-const labelStyle: React.CSSProperties = {
-  fontSize: 13,
-  fontWeight: 600,
-  color: "#B0B0B8",
-  marginBottom: 6,
-  display: "block",
-};
-
-const btnPrimary: React.CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  gap: 8,
-  background: "#D7922B",
-  color: "#111113",
-  border: "none",
-  borderRadius: 10,
-  padding: "10px 20px",
-  fontSize: 14,
-  fontWeight: 700,
-  cursor: "pointer",
-  transition: "opacity .15s",
-};
-
 /* ── Toggle component ── */
 function Toggle({
   checked,
@@ -86,30 +43,15 @@ function Toggle({
     <button
       type="button"
       onClick={() => onChange(!checked)}
-      style={{
-        width: 44,
-        height: 24,
-        borderRadius: 999,
-        background: checked ? "#D7922B" : "#2C2C30",
-        border: "none",
-        cursor: "pointer",
-        position: "relative",
-        transition: "background .15s",
-        flexShrink: 0,
-      }}
+      className={`relative h-6 w-11 rounded-full border transition-colors duration-200 ${
+        checked
+          ? "border-primary/30 bg-primary"
+          : "border-border bg-muted"
+      }`}
     >
       <div
-        style={{
-          width: 18,
-          height: 18,
-          borderRadius: "50%",
-          background: "#F5F5F0",
-          position: "absolute",
-          top: 3,
-          left: checked ? 23 : 3,
-          transition: "left .15s",
-          boxShadow: "0 1px 3px rgba(0,0,0,.3)",
-        }}
+        className="absolute top-[3px] h-[18px] w-[18px] rounded-full bg-foreground shadow-sm transition-[left] duration-200"
+        style={{ left: checked ? 23 : 3 }}
       />
     </button>
   );
@@ -305,7 +247,7 @@ const Configuracoes = () => {
 
   return (
     <div className="w-full">
-      <div className="mx-auto" style={{ maxWidth: 720 }}>
+      <div className="mx-auto max-w-[720px]">
         <motion.div
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
@@ -320,32 +262,14 @@ const Configuracoes = () => {
 
         <div className="space-y-5">
           {/* ── Profile ── */}
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05, duration: 0.3 }}
-            style={cardStyle}
-            className="p-6"
-          >
+          <SectionContainer delay={0.05}>
             <div className="flex items-center gap-3 mb-5">
-              <div
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 10,
-                  background: "#1E1A14",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <User style={{ width: 18, height: 18, color: "#D7922B" }} />
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
+                <User className="h-[18px] w-[18px] text-primary" />
               </div>
               <div>
-                <p style={{ fontSize: 16, fontWeight: 700, color: "#F5F5F0", margin: 0 }}>
-                  Perfil
-                </p>
-                <p style={{ fontSize: 13, color: "#7A7A82", margin: 0 }}>
+                <p className="text-base font-semibold text-foreground">Perfil</p>
+                <p className="text-[13px] text-muted-foreground">
                   Informações pessoais da sua conta
                 </p>
               </div>
@@ -361,16 +285,7 @@ const Configuracoes = () => {
                 {/* ── Avatar upload ── */}
                 <div className="flex items-center gap-5">
                   <div className="relative group">
-                    <div
-                      className="h-20 w-20 rounded-2xl overflow-hidden flex items-center justify-center shrink-0 transition-shadow duration-200"
-                      style={{
-                        background: displayedAvatar ? "transparent" : "#1E1A14",
-                        border: "2px solid #2C2C30",
-                        boxShadow: "0 0 0 0 rgba(215,146,43,0)",
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 0 0 3px rgba(215,146,43,0.25)")}
-                      onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "0 0 0 0 rgba(215,146,43,0)")}
-                    >
+                    <div className="h-20 w-20 rounded-2xl overflow-hidden flex items-center justify-center shrink-0 border-2 border-border bg-muted transition-shadow duration-200 hover:shadow-[0_0_0_3px_hsl(var(--primary)/0.25)]">
                       {displayedAvatar ? (
                         <img
                           src={displayedAvatar}
@@ -378,32 +293,19 @@ const Configuracoes = () => {
                           className="h-full w-full object-cover"
                         />
                       ) : (
-                        <span
-                          style={{
-                            fontSize: 22,
-                            fontWeight: 700,
-                            color: "#D7922B",
-                            letterSpacing: 1,
-                          }}
-                        >
+                        <span className="text-[22px] font-bold text-primary tracking-wider">
                           {initials}
                         </span>
                       )}
                     </div>
 
-                    {/* Camera overlay */}
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="absolute -bottom-1 -right-1 h-7 w-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:scale-110"
-                      style={{
-                        background: "#D7922B",
-                        border: "2px solid #15161A",
-                        cursor: "pointer",
-                      }}
+                      className="absolute -bottom-1 -right-1 h-7 w-7 rounded-lg flex items-center justify-center bg-primary border-2 border-background transition-transform duration-150 hover:scale-110"
                       title="Alterar foto"
                     >
-                      <Camera style={{ width: 13, height: 13, color: "#111113" }} />
+                      <Camera className="h-[13px] w-[13px] text-primary-foreground" />
                     </button>
 
                     <input
@@ -416,39 +318,22 @@ const Configuracoes = () => {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <p style={{ fontSize: 14, fontWeight: 600, color: "#E2E2E7", margin: 0 }}>
-                      Foto de perfil
-                    </p>
-                    <p style={{ fontSize: 12, color: "#6E6E76", margin: "4px 0 0" }}>
+                    <p className="text-sm font-semibold text-foreground">Foto de perfil</p>
+                    <p className="text-xs text-muted-foreground mt-1">
                       PNG, JPG ou WebP. Máximo 5MB.
                     </p>
                     {avatarPreview && (
                       <div className="flex items-center gap-2 mt-2">
-                        <span
-                          style={{
-                            fontSize: 11,
-                            fontWeight: 600,
-                            color: "#D7922B",
-                            background: "rgba(215,146,43,0.12)",
-                            padding: "3px 8px",
-                            borderRadius: 6,
-                          }}
-                        >
+                        <span className="text-[11px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-md">
                           Preview — salve para aplicar
                         </span>
                         <button
                           type="button"
                           onClick={cancelAvatarPreview}
-                          style={{
-                            background: "none",
-                            border: "none",
-                            cursor: "pointer",
-                            color: "#6E6E76",
-                            display: "flex",
-                          }}
+                          className="text-muted-foreground hover:text-foreground transition-colors"
                           title="Cancelar"
                         >
-                          <X style={{ width: 14, height: 14 }} />
+                          <X className="h-3.5 w-3.5" />
                         </button>
                       </div>
                     )}
@@ -457,43 +342,39 @@ const Configuracoes = () => {
 
                 {/* ── Name fields ── */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label style={labelStyle}>Nome completo</label>
+                  <div className="space-y-1.5">
+                    <label className="text-[13px] font-semibold text-muted-foreground">Nome completo</label>
                     <input
                       type="text"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="Seu nome completo"
-                      style={inputStyle}
-                      onFocus={(e) => (e.currentTarget.style.borderColor = "#D7922B")}
-                      onBlur={(e) => (e.currentTarget.style.borderColor = "#2C2C30")}
+                      className="h-[42px] w-full rounded-xl border border-border bg-muted px-3.5 text-sm text-foreground outline-none transition-colors focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
                     />
                   </div>
-                  <div>
-                    <label style={labelStyle}>Nome de exibição</label>
+                  <div className="space-y-1.5">
+                    <label className="text-[13px] font-semibold text-muted-foreground">Nome de exibição</label>
                     <input
                       type="text"
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
                       placeholder="Como deseja ser chamado"
-                      style={inputStyle}
-                      onFocus={(e) => (e.currentTarget.style.borderColor = "#D7922B")}
-                      onBlur={(e) => (e.currentTarget.style.borderColor = "#2C2C30")}
+                      className="h-[42px] w-full rounded-xl border border-border bg-muted px-3.5 text-sm text-foreground outline-none transition-colors focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
                     />
-                    <p style={{ fontSize: 11, color: "#55555D", marginTop: 4 }}>
+                    <p className="text-[11px] text-muted-foreground/70">
                       Este será o nome principal exibido no sistema.
                     </p>
                   </div>
                 </div>
-                <div>
-                  <label style={labelStyle}>Email</label>
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-semibold text-muted-foreground">Email</label>
                   <input
                     type="email"
                     value={profileEmail}
                     disabled
-                    style={{ ...inputStyle, opacity: 0.5, cursor: "not-allowed" }}
+                    className="h-[42px] w-full rounded-xl border border-border bg-muted px-3.5 text-sm text-foreground outline-none opacity-50 cursor-not-allowed"
                   />
-                  <p style={{ fontSize: 12, color: "#55555D", marginTop: 4 }}>
+                  <p className="text-xs text-muted-foreground/70">
                     O email não pode ser alterado por aqui.
                   </p>
                 </div>
@@ -503,119 +384,75 @@ const Configuracoes = () => {
                     type="button"
                     onClick={handleSaveProfile}
                     disabled={profileSaving || avatarUploading}
-                    style={{ ...btnPrimary, opacity: profileSaving || avatarUploading ? 0.6 : 1 }}
+                    className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {profileSaving || avatarUploading ? (
-                      <Loader2 style={{ width: 16, height: 16 }} className="animate-spin" />
+                      <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      <Save style={{ width: 16, height: 16 }} />
+                      <Save className="h-4 w-4" />
                     )}
                     Salvar perfil
                   </button>
                 </div>
               </div>
             )}
-          </motion.div>
+          </SectionContainer>
 
           {/* ── Password ── */}
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.3 }}
-            style={cardStyle}
-            className="p-6"
-          >
+          <SectionContainer delay={0.1}>
             <div className="flex items-center gap-3 mb-5">
-              <div
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 10,
-                  background: "#141420",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Lock style={{ width: 18, height: 18, color: "#7F77DD" }} />
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent">
+                <Lock className="h-[18px] w-[18px] text-accent-foreground" />
               </div>
               <div>
-                <p style={{ fontSize: 16, fontWeight: 700, color: "#F5F5F0", margin: 0 }}>
-                  Alterar senha
-                </p>
-                <p style={{ fontSize: 13, color: "#7A7A82", margin: 0 }}>
+                <p className="text-base font-semibold text-foreground">Alterar senha</p>
+                <p className="text-[13px] text-muted-foreground">
                   Defina uma nova senha para sua conta
                 </p>
               </div>
             </div>
 
             <div className="space-y-4">
-              <div>
-                <label style={labelStyle}>Nova senha</label>
-                <div style={{ position: "relative" }}>
+              <div className="space-y-1.5">
+                <label className="text-[13px] font-semibold text-muted-foreground">Nova senha</label>
+                <div className="relative">
                   <input
                     type={showNewPass ? "text" : "password"}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Mínimo 6 caracteres"
-                    style={{ ...inputStyle, paddingRight: 44 }}
-                    onFocus={(e) => (e.currentTarget.style.borderColor = "#7F77DD")}
-                    onBlur={(e) => (e.currentTarget.style.borderColor = "#2C2C30")}
+                    className="h-[42px] w-full rounded-xl border border-border bg-muted px-3.5 pr-11 text-sm text-foreground outline-none transition-colors focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
                   />
                   <button
                     type="button"
                     onClick={() => setShowNewPass(!showNewPass)}
-                    style={{
-                      position: "absolute",
-                      right: 10,
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      color: "#6E6E76",
-                      display: "flex",
-                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    {showNewPass ? <EyeOff style={{ width: 16, height: 16 }} /> : <Eye style={{ width: 16, height: 16 }} />}
+                    {showNewPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
 
-              <div>
-                <label style={labelStyle}>Confirmar nova senha</label>
-                <div style={{ position: "relative" }}>
+              <div className="space-y-1.5">
+                <label className="text-[13px] font-semibold text-muted-foreground">Confirmar nova senha</label>
+                <div className="relative">
                   <input
                     type={showConfirmPass ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Repita a nova senha"
-                    style={{ ...inputStyle, paddingRight: 44 }}
-                    onFocus={(e) => (e.currentTarget.style.borderColor = "#7F77DD")}
-                    onBlur={(e) => (e.currentTarget.style.borderColor = "#2C2C30")}
+                    className="h-[42px] w-full rounded-xl border border-border bg-muted px-3.5 pr-11 text-sm text-foreground outline-none transition-colors focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPass(!showConfirmPass)}
-                    style={{
-                      position: "absolute",
-                      right: 10,
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      color: "#6E6E76",
-                      display: "flex",
-                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    {showConfirmPass ? <EyeOff style={{ width: 16, height: 16 }} /> : <Eye style={{ width: 16, height: 16 }} />}
+                    {showConfirmPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
                 {confirmPassword && newPassword !== confirmPassword && (
-                  <p style={{ fontSize: 12, color: "#E24B4A", marginTop: 4 }}>
-                    As senhas não coincidem.
-                  </p>
+                  <p className="text-xs text-destructive mt-1">As senhas não coincidem.</p>
                 )}
               </div>
 
@@ -624,51 +461,28 @@ const Configuracoes = () => {
                   type="button"
                   onClick={handleChangePassword}
                   disabled={passwordSaving || !newPassword || newPassword !== confirmPassword}
-                  style={{
-                    ...btnPrimary,
-                    background: "#7F77DD",
-                    opacity: passwordSaving || !newPassword || newPassword !== confirmPassword ? 0.5 : 1,
-                    cursor: passwordSaving || !newPassword || newPassword !== confirmPassword ? "not-allowed" : "pointer",
-                  }}
+                  className="inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-accent-foreground transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {passwordSaving ? (
-                    <Loader2 style={{ width: 16, height: 16 }} className="animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    <Lock style={{ width: 16, height: 16 }} />
+                    <Lock className="h-4 w-4" />
                   )}
                   Alterar senha
                 </button>
               </div>
             </div>
-          </motion.div>
+          </SectionContainer>
 
           {/* ── Notifications ── */}
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15, duration: 0.3 }}
-            style={cardStyle}
-            className="p-6"
-          >
+          <SectionContainer delay={0.15}>
             <div className="flex items-center gap-3 mb-5">
-              <div
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 10,
-                  background: "#0F1A11",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Bell style={{ width: 18, height: 18, color: "#4A9D5B" }} />
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-success/10">
+                <Bell className="h-[18px] w-[18px] text-success-foreground" />
               </div>
               <div className="flex-1">
-                <p style={{ fontSize: 16, fontWeight: 700, color: "#F5F5F0", margin: 0 }}>
-                  Notificações
-                </p>
-                <p style={{ fontSize: 13, color: "#7A7A82", margin: 0 }}>
+                <p className="text-base font-semibold text-foreground">Notificações</p>
+                <p className="text-[13px] text-muted-foreground">
                   Controle os alertas e avisos do sistema
                 </p>
               </div>
@@ -677,16 +491,9 @@ const Configuracoes = () => {
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0 }}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 4,
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: "#4A9D5B",
-                  }}
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-success-foreground"
                 >
-                  <Check style={{ width: 14, height: 14 }} />
+                  <Check className="h-3.5 w-3.5" />
                   Salvo
                 </motion.span>
               )}
@@ -712,26 +519,17 @@ const Configuracoes = () => {
               ]).map(({ key, label, desc }) => (
                 <div
                   key={key}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 16,
-                    padding: "14px 4px",
-                    borderBottom: "1px solid #1E1E22",
-                  }}
+                  className="flex items-center justify-between gap-4 py-3.5 px-1 border-b border-border/50 last:border-0"
                 >
                   <div>
-                    <p style={{ fontSize: 14, fontWeight: 600, color: "#E2E2E7", margin: 0 }}>
-                      {label}
-                    </p>
-                    <p style={{ fontSize: 13, color: "#6E6E76", margin: "2px 0 0" }}>{desc}</p>
+                    <p className="text-sm font-semibold text-foreground">{label}</p>
+                    <p className="text-[13px] text-muted-foreground mt-0.5">{desc}</p>
                   </div>
                   <Toggle checked={notifs[key]} onChange={(val) => handleNotifChange(key, val)} />
                 </div>
               ))}
             </div>
-          </motion.div>
+          </SectionContainer>
         </div>
       </div>
     </div>
