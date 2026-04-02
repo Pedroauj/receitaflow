@@ -192,7 +192,7 @@ const Platlog = () => {
                   variant="outline"
                   size="icon"
                   onClick={() => navigate("/dashboard")}
-                  className="h-10 w-10 shrink-0 rounded-xl border-border/70 bg-background/60"
+                  className="h-10 w-10 shrink-0 rounded-xl border-border/70 bg-background/60 hover:border-primary/30 hover:bg-primary/5"
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
@@ -261,7 +261,7 @@ const Platlog = () => {
               onDragOver={(e) => e.preventDefault()}
               onDrop={handleDrop}
               onClick={() => document.getElementById("platlog-file-input")?.click()}
-              className="group cursor-pointer rounded-[24px] border border-dashed border-border bg-background/40 px-6 py-14 text-center transition-all hover:border-primary/50 hover:bg-background/60"
+              className="group cursor-pointer rounded-[24px] border border-dashed border-border bg-background/40 px-6 py-14 text-center transition-all hover:border-primary/40 hover:bg-primary/[0.03]"
             >
               {file ? (
                 <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -280,8 +280,8 @@ const Platlog = () => {
                 </div>
               ) : (
                 <>
-                  <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-muted/70 transition-all group-hover:bg-primary/10">
-                    <Upload className="h-7 w-7 text-muted-foreground group-hover:text-primary" />
+                  <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 transition-all group-hover:bg-primary/15">
+                    <Upload className="h-7 w-7 text-primary" />
                   </div>
 
                   <p className="text-base font-semibold text-foreground">
@@ -335,7 +335,7 @@ const Platlog = () => {
                 />
               </div>
 
-              <div className="rounded-2xl border border-border/60 bg-background/40 p-4">
+              <div className="rounded-2xl border border-primary/10 bg-primary/[0.04] p-4">
                 <p className="text-sm leading-6 text-muted-foreground">
                   O desconto será aplicado automaticamente no documento de maior valor.
                   Se ainda houver saldo de desconto, ele continua no próximo maior.
@@ -343,7 +343,7 @@ const Platlog = () => {
               </div>
 
               <Button
-                className="h-11 w-full"
+                className="h-11 w-full bg-primary text-primary-foreground hover:bg-primary/90"
                 disabled={!file || processing}
                 onClick={handleProcess}
               >
@@ -465,7 +465,10 @@ const Platlog = () => {
             )}
 
             <div className="flex justify-start">
-              <Button className="h-10 px-5" onClick={handleDownload}>
+              <Button
+                className="h-10 px-5 bg-primary text-primary-foreground hover:bg-primary/90"
+                onClick={handleDownload}
+              >
                 <Download className="mr-2 h-4 w-4" />
                 Baixar planilha final
               </Button>
