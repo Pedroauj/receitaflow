@@ -331,4 +331,138 @@ body.is-scrolling,
       0 8px 32px rgba(0, 0, 0, 0.18),
       inset 0 1px 0 rgba(255, 255, 255, 0.04);
   }
+
+  /* ── Usuarios page design system classes ── */
+  .rfu-glass {
+    background: linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.025));
+    border: 1px solid rgba(255,255,255,0.07);
+    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.24);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .rfu-panel {
+    background: linear-gradient(180deg, rgba(15,18,28,0.94), rgba(10,13,21,0.94));
+    border: 1px solid rgba(255,255,255,0.07);
+    box-shadow: 0 24px 56px rgba(0, 0, 0, 0.34);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .rfu-tab {
+    @apply h-[38px] px-3.5 rounded-full border border-transparent text-[13px] font-bold inline-flex items-center gap-2;
+    background: rgba(255,255,255,0.035);
+    color: rgba(255,255,255,0.62);
+    transition: transform 180ms var(--apple-ease), background-color 180ms var(--apple-ease), border-color 180ms var(--apple-ease), color 180ms var(--apple-ease), box-shadow 180ms var(--apple-ease);
+  }
+  .rfu-tab:hover {
+    transform: translateY(-1px);
+    background: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.9);
+    border-color: rgba(255,255,255,0.06);
+  }
+  .rfu-tab.is-active {
+    background: hsl(var(--foreground));
+    color: hsl(var(--background));
+    border-color: rgba(255,255,255,0.1);
+    box-shadow: 0 10px 24px rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.45);
+  }
+
+  .rfu-stat {
+    @apply h-9 px-3.5 rounded-full text-xs font-bold inline-flex items-center;
+    background: rgba(255,255,255,0.035);
+    border: 1px solid rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.7);
+  }
+
+  .rfu-search {
+    @apply h-[42px] rounded-[14px] text-foreground;
+    background: rgba(255,255,255,0.035);
+    border: 1px solid rgba(255,255,255,0.07);
+    transition: border-color 180ms var(--apple-ease), background-color 180ms var(--apple-ease), box-shadow 180ms var(--apple-ease);
+  }
+  .rfu-search::placeholder { color: rgba(255,255,255,0.36); }
+  .rfu-search:focus {
+    outline: none;
+    border-color: hsl(var(--ring) / 0.45);
+    box-shadow: 0 0 0 4px hsl(var(--ring) / 0.10);
+    background: rgba(255,255,255,0.045);
+  }
+
+  .rfu-btn-primary {
+    @apply h-[38px] px-3.5 rounded-full text-xs font-extrabold inline-flex items-center gap-2;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.25), hsl(var(--primary) / 0.4));
+    color: hsl(var(--foreground));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 10px 26px hsl(var(--primary) / 0.18);
+    transition: transform 180ms var(--apple-ease), box-shadow 180ms var(--apple-ease);
+  }
+  .rfu-btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 14px 30px hsl(var(--primary) / 0.24);
+  }
+
+  .rfu-btn-ghost {
+    @apply h-[34px] px-3 rounded-full text-xs font-bold inline-flex items-center gap-2;
+    border: 1px solid rgba(255,255,255,0.07);
+    background: rgba(255,255,255,0.03);
+    color: rgba(255,255,255,0.76);
+    transition: transform 180ms var(--apple-ease), background-color 180ms var(--apple-ease);
+  }
+  .rfu-btn-ghost:hover {
+    transform: translateY(-1px);
+    background: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.96);
+  }
+
+  .rfu-table thead tr { background: rgba(255,255,255,0.03); }
+  .rfu-table th { @apply text-muted-foreground text-[11px] font-bold tracking-wider uppercase; }
+  .rfu-table td { color: rgba(255,255,255,0.86); }
+  .rfu-row { transition: background-color 160ms var(--apple-ease); }
+  .rfu-row:hover { background: rgba(255,255,255,0.03); }
+
+  .rfu-badge {
+    @apply h-[26px] px-2.5 rounded-full inline-flex items-center gap-1.5 text-[11px] font-extrabold;
+  }
+
+  .rfu-input,
+  .rfu-native-select {
+    @apply h-10 rounded-xl;
+    background: rgba(255,255,255,0.035);
+    border: 1px solid rgba(255,255,255,0.07);
+    color: rgba(255,255,255,0.92);
+  }
+  .rfu-input:focus,
+  .rfu-native-select:focus {
+    outline: none;
+    border-color: hsl(var(--ring) / 0.45);
+    box-shadow: 0 0 0 4px hsl(var(--ring) / 0.10);
+  }
+  .rfu-native-select option { color: hsl(var(--background)); }
+
+  .rfu-mini-btn {
+    @apply h-[30px] min-w-[30px] px-2.5 rounded-[10px] text-[11px] font-bold inline-flex items-center justify-center gap-1.5;
+    border: 1px solid rgba(255,255,255,0.07);
+    background: rgba(255,255,255,0.03);
+    color: rgba(255,255,255,0.72);
+    transition: transform 160ms var(--apple-ease), background-color 160ms var(--apple-ease);
+  }
+  .rfu-mini-btn:hover {
+    transform: translateY(-1px);
+    background: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.94);
+  }
+  .rfu-mini-btn:disabled { @apply opacity-45 cursor-not-allowed; transform: none; }
+
+  .rfu-modal-backdrop {
+    background: rgba(4, 6, 12, 0.72);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .rfu-modal {
+    background: linear-gradient(180deg, rgba(18, 22, 33, 0.98), rgba(13, 16, 25, 0.98));
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 30px 70px rgba(0,0,0,0.42);
+  }
 }
