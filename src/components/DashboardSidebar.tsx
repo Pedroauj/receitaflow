@@ -38,6 +38,7 @@ const navSections: { label: string; items: NavItem[] }[] = [
     label: "Fiscal",
     items: [
       { title: "NF-e / NFS-e", icon: FileSearch, path: "/conciliacao", moduleKey: "conciliacao" },
+      { title: "Contas a Pagar", icon: Landmark, path: "/contas-a-pagar", moduleKey: "contas-a-pagar" },
     ],
   },
   {
