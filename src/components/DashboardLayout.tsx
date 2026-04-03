@@ -34,6 +34,7 @@ const NAV_MODULES: NavModule[] = [
   { key: "dashboard", label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { key: "historico", label: "Histórico", path: "/historico", icon: History },
   { key: "conciliacao", label: "NF-e / NFS-e", path: "/conciliacao", icon: FileSearch },
+  { key: "contas-a-pagar", label: "Contas a Pagar", path: "/contas-a-pagar", icon: Landmark },
   { key: "abastecimento", label: "Abastecimento", path: "/abastecimento", icon: Fuel },
   {
     key: "medias_abastecimento",
