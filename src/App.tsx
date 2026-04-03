@@ -30,6 +30,7 @@ import Abastecimento from "./pages/Abastecimento";
 import MediasAbastecimento from "./pages/MediasAbastecimento";
 import Inicio from "./pages/Inicio";
 import Minerva from "./pages/Minerva";
+import ContasAPagar from "./pages/ContasAPagar";
 
 const queryClient = new QueryClient();
 
