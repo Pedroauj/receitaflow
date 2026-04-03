@@ -14,6 +14,7 @@ import {
   Fuel,
   Building2,
   Settings,
+  Landmark,
   LogOut,
   Search,
   Bell,

@@ -25,7 +25,7 @@ const stagger = {
 };
 const fadeUp = {
   hidden: { opacity: 0, y: 10 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0, 0, 0.2, 1] as const } },
 };
 
 /* ─── placeholder KPI data ─── */

@@ -73,6 +73,7 @@ const App = () => {
                 <Route path="/conciliacao" element={withModule("conciliacao", <Conciliacao />)} />
                 <Route path="/abastecimento" element={withModule("abastecimento", <Abastecimento />)} />
                 <Route path="/medias-abastecimento" element={withModule("medias-abastecimento", <MediasAbastecimento />)} />
+                <Route path="/contas-a-pagar" element={withModule("contas-a-pagar", <ContasAPagar />)} />
                 <Route path="/configuracoes" element={withModule("configuracoes", <Configuracoes />)} />
                 <Route path="/usuarios" element={<Usuarios />} />
                 <Route path="/cliente/minerva" element={<Minerva />} />

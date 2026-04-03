@@ -17,6 +17,7 @@ import {
   Loader2,
   FileSearch,
   Building2,
+  Landmark,
   Settings,
   Fuel,
   BarChart3,

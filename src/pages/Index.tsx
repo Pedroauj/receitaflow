@@ -78,6 +78,14 @@ const MODULE_REGISTRY: ModuleDef[] = [
     color: "#9B7BD4",
   },
   {
+    key: "contas-a-pagar",
+    title: "Contas a Pagar",
+    description: "Conciliação de pagamentos com extratos bancários",
+    icon: Landmark,
+    path: "/contas-a-pagar",
+    color: "#5B9BD5",
+  },
+  {
     key: "clientes",
     title: "Clientes",
     description: "Gestão e processamento por cliente",

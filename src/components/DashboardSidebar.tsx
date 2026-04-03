@@ -6,6 +6,7 @@ import {
   Fuel,
   FileSearch,
   History,
+  Landmark,
   LayoutDashboard,
   LogOut,
   Settings,
