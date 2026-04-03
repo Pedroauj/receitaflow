@@ -65,6 +65,7 @@ const MODULES = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { key: "historico", label: "Histórico", icon: History },
   { key: "conciliacao", label: "NF-e / NFS-e", icon: FileSearch },
+  { key: "contas-a-pagar", label: "Contas a Pagar", icon: Landmark },
   { key: "abastecimento", label: "Abastecimento", icon: Fuel },
   { key: "medias-abastecimento", label: "Médias de Abastecimento", icon: BarChart3 },
   { key: "clientes", label: "Clientes", icon: Building2 },
