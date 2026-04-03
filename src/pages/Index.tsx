@@ -9,6 +9,7 @@ import {
   History,
   FileSearch,
   Fuel,
+  Landmark,
   BarChart3,
   Building2,
   Settings,
@@ -76,6 +77,14 @@ const MODULE_REGISTRY: ModuleDef[] = [
     icon: BarChart3,
     path: "/medias-abastecimento",
     color: "#9B7BD4",
+  },
+  {
+    key: "contas-a-pagar",
+    title: "Contas a Pagar",
+    description: "Conciliação de pagamentos com extratos bancários",
+    icon: Landmark,
+    path: "/contas-a-pagar",
+    color: "#5B9BD5",
   },
   {
     key: "clientes",
