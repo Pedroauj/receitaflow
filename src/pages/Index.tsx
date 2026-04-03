@@ -9,6 +9,7 @@ import {
   History,
   FileSearch,
   Fuel,
+  Landmark,
   BarChart3,
   Building2,
   Settings,
