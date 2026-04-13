@@ -173,10 +173,10 @@ const MartinBrower = () => {
 
         {/* UPLOAD */}
         <div className="rounded-[30px] border border-white/10 bg-[#11131c]/95 p-7 mb-6">
-          <div
+          <label
             onDrop={handleDrop}
             onDragOver={(e) => e.preventDefault()}
-            className="border border-dashed border-violet-400/20 rounded-2xl p-16 text-center cursor-pointer hover:border-violet-400/50 transition"
+            className="border border-dashed border-violet-400/20 rounded-2xl p-16 text-center cursor-pointer hover:border-violet-400/50 transition block"
           >
             {file ? (
               <div className="flex items-center justify-center gap-4">
@@ -186,34 +186,99 @@ const MartinBrower = () => {
             ) : (
               <>
                 <Upload className="mx-auto mb-4 text-violet-300" />
-                <p className="text-white">Arraste ou clique</p>
+                <p className="text-white">Arraste ou clique para selecionar</p>
+                <p className="text-sm text-white/40 mt-1">Formatos aceitos: .xlsx, .xls</p>
               </>
             )}
 
             <input
               type="file"
+              accept=".xlsx,.xls"
               className="hidden"
               onChange={handleFileChange}
             />
-          </div>
+          </label>
         </div>
 
         {/* PARAMETROS */}
         <div className="rounded-[30px] border border-white/10 bg-[#11131c]/95 p-7 mb-6">
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-end">
 
-            <Input
-              placeholder="Valor banco"
-              value={valorBanco}
-              onChange={(e) => setValorBanco(e.target.value)}
-            />
+            {/* Data Recebimento */}
+            <div className="space-y-1.5">
+              <Label className="text-white/60 text-xs">Data Recebimento</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal border-white/10 bg-white/[0.03]",
+                      !dataRecebimento && "text-white/40"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dataRecebimento
+                      ? format(dataRecebimento, "dd/MM/yyyy", { locale: ptBR })
+                      : "Selecione"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={dataRecebimento}
+                    onSelect={setDataRecebimento}
+                    locale={ptBR}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* Data Vencimento */}
+            <div className="space-y-1.5">
+              <Label className="text-white/60 text-xs">Data Vencimento</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal border-white/10 bg-white/[0.03]",
+                      !dataVencimento && "text-white/40"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dataVencimento
+                      ? format(dataVencimento, "dd/MM/yyyy", { locale: ptBR })
+                      : "Selecione"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={dataVencimento}
+                    onSelect={setDataVencimento}
+                    locale={ptBR}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* Valor Banco */}
+            <div className="space-y-1.5">
+              <Label className="text-white/60 text-xs">Valor Banco</Label>
+              <Input
+                placeholder="0,00"
+                value={valorBanco}
+                onChange={(e) => setValorBanco(e.target.value)}
+                className="border-white/10 bg-white/[0.03]"
+              />
+            </div>
 
             <Button
               onClick={handleProcess}
-              disabled={!canProcess}
-              className="bg-gradient-to-r from-violet-600 to-indigo-500 text-white"
+              disabled={!canProcess || processing}
+              className="bg-gradient-to-r from-violet-600 to-indigo-500 text-white h-10"
             >
-              Processar
+              {processing ? "Processando..." : "Processar"}
             </Button>
           </div>
         </div>
