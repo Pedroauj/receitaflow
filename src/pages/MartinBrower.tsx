@@ -285,13 +285,103 @@ const MartinBrower = () => {
 
         {/* RESULTADO */}
         {result && (
-          <SectionContainer title="Resultado">
-            <SummaryCard
-              label="Total"
-              value={formatBRL(result.totalValorBruto)}
-              index={0}
-            />
-          </SectionContainer>
+          <>
+            {/* Conferência banco */}
+            <SectionContainer title="Conferência">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <HighlightCard
+                  label="Total Planilha"
+                  value={formatBRL(result.totalValorBruto)}
+                  color="neutral"
+                />
+                <HighlightCard
+                  label="Valor Banco"
+                  value={formatBRL(valorBancoNum)}
+                  color="neutral"
+                />
+                <HighlightCard
+                  label="Diferença"
+                  value={formatBRL(Math.abs(result.totalValorBruto - valorBancoNum))}
+                  color={Math.abs(result.totalValorBruto - valorBancoNum) < 0.01 ? "emerald" : "red"}
+                />
+              </div>
+
+              <div className="mt-4">
+                <StatusCard
+                  title={Math.abs(result.totalValorBruto - valorBancoNum) < 0.01 ? "Confere" : "Diverge"}
+                  description="Status da conferência com valor bancário"
+                  icon={Math.abs(result.totalValorBruto - valorBancoNum) < 0.01 ? CheckCircle2 : XCircle}
+                  variant={Math.abs(result.totalValorBruto - valorBancoNum) < 0.01 ? "success" : "error"}
+                />
+              </div>
+            </SectionContainer>
+
+            {/* Indicadores de auditoria */}
+            <SectionContainer title="Auditoria do Processamento">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <SummaryCard label="Linhas lidas" value={String(result.totalLinhasLidas)} index={0} />
+                <SummaryCard label="Filtradas por data" value={String(result.totalLinhasFiltradasData)} index={1} />
+                <SummaryCard label="Pgto. vazio (mantidas)" value={String(result.totalLinhasPagamentoVazio)} index={2} />
+                <SummaryCard label="Removidas por pgto." value={String(result.totalLinhasRemovidasPagamento)} index={3} />
+                <SummaryCard label="Documentos válidos" value={String(result.totalLinhasValidas)} index={4} />
+                <SummaryCard label="Com erro" value={String(result.totalLinhasComErro)} index={5} />
+                <SummaryCard label="Ignoradas (subtotal)" value={String(result.totalLinhasIgnoradas)} index={6} />
+                <SummaryCard label="Total documentos" value={String(result.totalDocumentos)} index={7} />
+              </div>
+            </SectionContainer>
+
+            {/* Preview de validação */}
+            {result.preview.length > 0 && (
+              <SectionContainer title="Preview de Validação" subtitle="Primeiras 20 linhas processadas">
+                <DataTable
+                  columns={[
+                    { key: "row", label: "Linha" },
+                    { key: "dataVcto", label: "Data Vcto." },
+                    { key: "dataPagamento", label: "Data Pagamento" },
+                    { key: "faturaOriginal", label: "Nº Fatura" },
+                    { key: "serie", label: "Série" },
+                    { key: "numeroDocumento", label: "Nº Documento" },
+                    { key: "valorBrutoConvertido", label: "Valor Bruto", render: (row) => row.valorBrutoConvertido != null ? formatBRL(row.valorBrutoConvertido) : "—" },
+                    { key: "status", label: "Status", render: (row) => {
+                      const s = row.status;
+                      const color = s === "válida" ? "text-emerald-400" : s === "erro" ? "text-red-400" : "text-amber-400";
+                      return <span className={color}>{s}</span>;
+                    }},
+                  ]}
+                  data={result.preview}
+                  keyExtractor={(row, i) => `preview-${row.row}-${i}`}
+                />
+              </SectionContainer>
+            )}
+
+            {/* Erros */}
+            {result.errors.length > 0 && (
+              <SectionContainer title="Erros encontrados">
+                <DataTable
+                  columns={[
+                    { key: "row", label: "Linha" },
+                    { key: "fatura", label: "Nº Fatura" },
+                    { key: "motivo", label: "Motivo" },
+                  ]}
+                  data={result.errors}
+                  keyExtractor={(row, i) => `err-${row.row}-${i}`}
+                />
+              </SectionContainer>
+            )}
+
+            {/* Download */}
+            {result.totalDocumentos > 0 && (
+              <div className="flex justify-end">
+                <Button
+                  onClick={handleDownload}
+                  className="bg-gradient-to-r from-violet-600 to-indigo-500 text-white gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Baixar planilha final
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
