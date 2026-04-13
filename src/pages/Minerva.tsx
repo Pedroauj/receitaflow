@@ -796,7 +796,7 @@ const Minerva = () => {
 
           <div className="grid gap-6 md:grid-cols-2">
             <label
-              className="relative overflow-hidden rounded-[30px] border border-white/10 bg-[#11131c]/95 p-6 shadow-[0_18px_60px_rgba(0,0,0,0.28)] cursor-pointer"
+              className="relative overflow-hidden rounded-[28px] border border-border bg-card p-6 shadow-[0_14px_40px_rgba(0,0,0,0.22)] cursor-pointer"
               onDragOver={(e) => {
                 e.preventDefault();
                 e.currentTarget.dataset.dragover = "true";
@@ -811,48 +811,48 @@ const Minerva = () => {
                 if (f && /\.(xlsx?|xls)$/i.test(f.name)) setReportFile(f);
               }}
             >
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.10),transparent_24%)]" />
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.08),transparent_24%)]" />
 
               <div className="relative">
                 <div className="mb-5 flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-violet-400/20 bg-violet-500/10 text-violet-200">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary">
                     <UploadCloud className="h-5 w-5" />
                   </div>
 
                   <div>
-                    <h2 className="text-xl font-semibold text-white">
+                    <h2 className="text-lg font-semibold text-foreground">
                       Relatório Validação Envio
                     </h2>
-                    <p className="text-sm text-white/55">
+                    <p className="text-sm text-muted-foreground">
                       Arraste o arquivo ou clique para selecionar.
                     </p>
                   </div>
                 </div>
 
-                <div className="rounded-[26px] border border-dashed border-violet-400/20 bg-[linear-gradient(180deg,rgba(139,92,246,0.06),rgba(255,255,255,0.02))] px-6 py-14 text-center transition-all duration-200 hover:border-violet-400/45 hover:bg-[linear-gradient(180deg,rgba(139,92,246,0.12),rgba(255,255,255,0.03))]">
+                <div className="rounded-[22px] border border-dashed border-primary/15 bg-primary/[0.04] px-6 py-14 text-center transition-all duration-200 hover:border-primary/30 hover:bg-primary/[0.07]">
                   {reportFile ? (
                     <div className="flex flex-col items-center justify-center gap-4">
-                      <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-violet-400/25 bg-violet-500/12">
-                        <FileCheck className="h-7 w-7 text-violet-200" />
+                      <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-primary/20 bg-primary/10">
+                        <FileCheck className="h-7 w-7 text-primary" />
                       </div>
 
                       <div>
-                        <p className="text-lg font-semibold text-white">{reportFile.name}</p>
-                        <p className="mt-1 text-sm text-white/55">
+                        <p className="text-lg font-semibold text-foreground">{reportFile.name}</p>
+                        <p className="mt-1 text-sm text-muted-foreground">
                           Arquivo carregado com sucesso. Clique para trocar.
                         </p>
                       </div>
                     </div>
                   ) : (
                     <>
-                      <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[24px] border border-violet-400/20 bg-violet-500/10">
-                        <UploadCloud className="h-8 w-8 text-violet-200" />
+                      <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[24px] border border-primary/15 bg-primary/8">
+                        <UploadCloud className="h-8 w-8 text-primary" />
                       </div>
 
-                      <p className="text-xl font-semibold text-white">
+                      <p className="text-xl font-semibold text-foreground">
                         Selecione o relatório
                       </p>
-                      <p className="mt-3 text-sm text-white/50">
+                      <p className="mt-3 text-sm text-muted-foreground">
                         Formatos aceitos: .xlsx e .xls
                       </p>
                     </>
