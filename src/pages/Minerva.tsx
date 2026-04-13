@@ -319,11 +319,11 @@ const getStatusBadgeClass = (status: PreviewRowStatus) => {
 };
 
 const sectionCardClass =
-  "rounded-[30px] border border-white/10 bg-[#11131c]/95 shadow-[0_18px_60px_rgba(0,0,0,0.28)]";
+  "rounded-[28px] border border-border bg-card shadow-[0_14px_40px_rgba(0,0,0,0.22)]";
 const metricCardClass =
-  "rounded-3xl border border-white/10 bg-white/[0.03] p-4 shadow-[0_10px_30px_rgba(0,0,0,0.18)] transition-all duration-200 hover:-translate-y-0.5 hover:border-violet-400/20";
-const metricTitleClass = "text-[11px] uppercase tracking-[0.18em] text-white/45";
-const metricValueClass = "mt-2 text-2xl font-semibold tracking-tight text-white";
+  "rounded-3xl border border-border bg-muted/30 p-4 shadow-[0_10px_30px_rgba(0,0,0,0.18)] transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/20";
+const metricTitleClass = "text-[11px] uppercase tracking-[0.18em] text-muted-foreground";
+const metricValueClass = "mt-2 text-2xl font-semibold tracking-tight text-foreground";
 
 const Minerva = () => {
   const navigate = useNavigate();
@@ -658,31 +658,31 @@ const Minerva = () => {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.28 }}
-          className="mb-8"
+          className="mb-7"
         >
-          <div className="relative overflow-hidden rounded-[30px] border border-white/10 bg-[#11131c]/95 shadow-[0_20px_70px_rgba(0,0,0,0.35)]">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.18),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(99,102,241,0.14),transparent_28%)]" />
+          <div className="relative overflow-hidden rounded-[28px] border border-border bg-card shadow-[0_18px_48px_rgba(0,0,0,0.28)]">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.12),transparent_32%),radial-gradient(circle_at_bottom_right,hsl(var(--primary)/0.08),transparent_28%)]" />
 
             <div className="relative flex flex-col gap-6 p-6 lg:flex-row lg:items-center lg:justify-between lg:p-8">
               <div className="flex items-start gap-4">
                 <button
                   onClick={() => navigate("/dashboard")}
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] text-white/80 transition-all duration-200 hover:border-violet-400/40 hover:bg-violet-500/10 hover:text-violet-200"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-border bg-muted/50 text-muted-foreground transition-all duration-200 hover:border-primary/30 hover:bg-primary/10 hover:text-primary"
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </button>
 
                 <div>
-                  <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-violet-400/25 bg-violet-500/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-violet-200">
+                  <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">
                     <FileSpreadsheet className="h-3.5 w-3.5" />
                     Cliente Minerva
                   </div>
 
-                  <h1 className="text-[32px] font-semibold leading-none tracking-tight text-white">
+                  <h1 className="text-[28px] font-semibold leading-none tracking-tight text-foreground lg:text-[32px]">
                     Processamento de importação
                   </h1>
 
-                  <p className="mt-3 max-w-3xl text-[15px] leading-7 text-white/60">
+                  <p className="mt-3 max-w-3xl text-[15px] leading-7 text-muted-foreground">
                     Informe a data, o valor do banco, anexe o relatório de validação e a Planilha 0.
                     O sistema cruza os conhecimentos, desconsidera inutilizados, trata duplicidades e
                     gera a planilha final de importação com conferência completa.
@@ -691,20 +691,20 @@ const Minerva = () => {
               </div>
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:w-[420px]">
-                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-sm">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-violet-200/80">
+                <div className="rounded-2xl border border-border bg-muted/30 p-4 backdrop-blur-sm">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary/80">
                     Entrada
                   </p>
-                  <p className="mt-2 text-sm font-medium text-white">
+                  <p className="mt-2 text-sm font-medium text-foreground">
                     Relatório + Planilha 0
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-sm">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-violet-200/80">
+                <div className="rounded-2xl border border-border bg-muted/30 p-4 backdrop-blur-sm">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary/80">
                     Saída
                   </p>
-                  <p className="mt-2 text-sm font-medium leading-6 text-white">
+                  <p className="mt-2 text-sm font-medium leading-6 text-foreground">
                     Planilha de importação e conferência final
                   </p>
                 </div>
