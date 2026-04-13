@@ -319,11 +319,11 @@ const getStatusBadgeClass = (status: PreviewRowStatus) => {
 };
 
 const sectionCardClass =
-  "rounded-[30px] border border-white/10 bg-[#11131c]/95 shadow-[0_18px_60px_rgba(0,0,0,0.28)]";
+  "rounded-[28px] border border-border bg-card shadow-[0_14px_40px_rgba(0,0,0,0.22)]";
 const metricCardClass =
-  "rounded-3xl border border-white/10 bg-white/[0.03] p-4 shadow-[0_10px_30px_rgba(0,0,0,0.18)] transition-all duration-200 hover:-translate-y-0.5 hover:border-violet-400/20";
-const metricTitleClass = "text-[11px] uppercase tracking-[0.18em] text-white/45";
-const metricValueClass = "mt-2 text-2xl font-semibold tracking-tight text-white";
+  "rounded-3xl border border-border bg-muted/30 p-4 shadow-[0_10px_30px_rgba(0,0,0,0.18)] transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/20";
+const metricTitleClass = "text-[11px] uppercase tracking-[0.18em] text-muted-foreground";
+const metricValueClass = "mt-2 text-2xl font-semibold tracking-tight text-foreground";
 
 const Minerva = () => {
   const navigate = useNavigate();
@@ -658,31 +658,31 @@ const Minerva = () => {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.28 }}
-          className="mb-8"
+          className="mb-7"
         >
-          <div className="relative overflow-hidden rounded-[30px] border border-white/10 bg-[#11131c]/95 shadow-[0_20px_70px_rgba(0,0,0,0.35)]">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.18),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(99,102,241,0.14),transparent_28%)]" />
+          <div className="relative overflow-hidden rounded-[28px] border border-border bg-card shadow-[0_18px_48px_rgba(0,0,0,0.28)]">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.12),transparent_32%),radial-gradient(circle_at_bottom_right,hsl(var(--primary)/0.08),transparent_28%)]" />
 
             <div className="relative flex flex-col gap-6 p-6 lg:flex-row lg:items-center lg:justify-between lg:p-8">
               <div className="flex items-start gap-4">
                 <button
                   onClick={() => navigate("/dashboard")}
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] text-white/80 transition-all duration-200 hover:border-violet-400/40 hover:bg-violet-500/10 hover:text-violet-200"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-border bg-muted/50 text-muted-foreground transition-all duration-200 hover:border-primary/30 hover:bg-primary/10 hover:text-primary"
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </button>
 
                 <div>
-                  <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-violet-400/25 bg-violet-500/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-violet-200">
+                  <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">
                     <FileSpreadsheet className="h-3.5 w-3.5" />
                     Cliente Minerva
                   </div>
 
-                  <h1 className="text-[32px] font-semibold leading-none tracking-tight text-white">
+                  <h1 className="text-[28px] font-semibold leading-none tracking-tight text-foreground lg:text-[32px]">
                     Processamento de importação
                   </h1>
 
-                  <p className="mt-3 max-w-3xl text-[15px] leading-7 text-white/60">
+                  <p className="mt-3 max-w-3xl text-[15px] leading-7 text-muted-foreground">
                     Informe a data, o valor do banco, anexe o relatório de validação e a Planilha 0.
                     O sistema cruza os conhecimentos, desconsidera inutilizados, trata duplicidades e
                     gera a planilha final de importação com conferência completa.
@@ -691,20 +691,20 @@ const Minerva = () => {
               </div>
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:w-[420px]">
-                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-sm">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-violet-200/80">
+                <div className="rounded-2xl border border-border bg-muted/30 p-4 backdrop-blur-sm">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary/80">
                     Entrada
                   </p>
-                  <p className="mt-2 text-sm font-medium text-white">
+                  <p className="mt-2 text-sm font-medium text-foreground">
                     Relatório + Planilha 0
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-sm">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-violet-200/80">
+                <div className="rounded-2xl border border-border bg-muted/30 p-4 backdrop-blur-sm">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary/80">
                     Saída
                   </p>
-                  <p className="mt-2 text-sm font-medium leading-6 text-white">
+                  <p className="mt-2 text-sm font-medium leading-6 text-foreground">
                     Planilha de importação e conferência final
                   </p>
                 </div>
@@ -719,20 +719,20 @@ const Minerva = () => {
           transition={{ delay: 0.04, duration: 0.3 }}
           className="mb-6 grid gap-6 xl:grid-cols-[0.85fr_1.15fr]"
         >
-          <div className="relative overflow-hidden rounded-[30px] border border-white/10 bg-[#11131c]/95 shadow-[0_18px_60px_rgba(0,0,0,0.28)]">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.10),transparent_28%)]" />
+          <div className="relative overflow-hidden rounded-[28px] border border-border bg-card shadow-[0_14px_40px_rgba(0,0,0,0.22)]">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.08),transparent_28%)]" />
 
             <div className="relative p-6 lg:p-7">
               <div className="mb-6 flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-violet-400/20 bg-violet-500/10 text-violet-200">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary">
                   <CalendarDays className="h-5 w-5" />
                 </div>
 
                 <div>
-                  <h2 className="text-xl font-semibold text-white">
+                  <h2 className="text-lg font-semibold text-foreground">
                     Parâmetros da validação
                   </h2>
-                  <p className="text-sm text-white/55">
+                  <p className="text-sm text-muted-foreground">
                     Defina a data-base da antecipação e o valor do banco para conciliar o resultado.
                   </p>
                 </div>
@@ -740,19 +740,19 @@ const Minerva = () => {
 
               <div className="grid gap-5">
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-white/90">
+                  <label className="mb-2 block text-sm font-medium text-foreground/90">
                     Data da antecipação
                   </label>
                   <input
                     type="date"
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
-                    className="h-12 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 text-sm text-white outline-none transition-colors focus:border-violet-400/40 focus:ring-2 focus:ring-violet-500/10"
+                    className="h-12 w-full rounded-xl border border-border bg-muted/50 px-4 text-sm text-foreground outline-none transition-colors focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-white/90">
+                  <label className="mb-2 block text-sm font-medium text-foreground/90">
                     Valor banco
                   </label>
                   <input
@@ -761,12 +761,12 @@ const Minerva = () => {
                     placeholder="R$ 0,00"
                     value={bankValue}
                     onChange={(e) => handleBankValueChange(e.target.value)}
-                    className="h-12 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 text-sm text-white outline-none transition-colors placeholder:text-white/35 focus:border-violet-400/40 focus:ring-2 focus:ring-violet-500/10"
+                    className="h-12 w-full rounded-xl border border-border bg-muted/50 px-4 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
                   />
                 </div>
 
-                <div className="rounded-2xl border border-violet-400/15 bg-violet-500/[0.06] p-4">
-                  <p className="text-sm leading-7 text-white/62">
+                <div className="rounded-2xl border border-primary/12 bg-primary/[0.05] p-4">
+                  <p className="text-sm leading-7 text-muted-foreground">
                     A importação final será gerada com FILIAL = 1, SÉRIE = 26, TIPO DOCUMENTO = CTRC
                     e DATA EMISSÃO obtida da Planilha 0.
                   </p>
@@ -776,7 +776,7 @@ const Minerva = () => {
                   type="button"
                   onClick={handleProcess}
                   disabled={!canProcess}
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border-0 bg-[linear-gradient(135deg,#7c3aed_0%,#8b5cf6_55%,#6366f1_100%)] px-5 text-sm font-medium text-white shadow-[0_10px_30px_rgba(124,58,237,0.35)] transition-all duration-200 hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border-0 bg-[linear-gradient(135deg,hsl(var(--primary)),hsl(var(--primary)/0.75))] px-5 text-sm font-medium text-primary-foreground shadow-[0_10px_30px_hsl(var(--primary)/0.25)] transition-all duration-200 hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {processing ? (
                     <>
@@ -796,7 +796,7 @@ const Minerva = () => {
 
           <div className="grid gap-6 md:grid-cols-2">
             <label
-              className="relative overflow-hidden rounded-[30px] border border-white/10 bg-[#11131c]/95 p-6 shadow-[0_18px_60px_rgba(0,0,0,0.28)] cursor-pointer"
+              className="relative overflow-hidden rounded-[28px] border border-border bg-card p-6 shadow-[0_14px_40px_rgba(0,0,0,0.22)] cursor-pointer"
               onDragOver={(e) => {
                 e.preventDefault();
                 e.currentTarget.dataset.dragover = "true";
@@ -811,48 +811,48 @@ const Minerva = () => {
                 if (f && /\.(xlsx?|xls)$/i.test(f.name)) setReportFile(f);
               }}
             >
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.10),transparent_24%)]" />
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.08),transparent_24%)]" />
 
               <div className="relative">
                 <div className="mb-5 flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-violet-400/20 bg-violet-500/10 text-violet-200">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary">
                     <UploadCloud className="h-5 w-5" />
                   </div>
 
                   <div>
-                    <h2 className="text-xl font-semibold text-white">
+                    <h2 className="text-lg font-semibold text-foreground">
                       Relatório Validação Envio
                     </h2>
-                    <p className="text-sm text-white/55">
+                    <p className="text-sm text-muted-foreground">
                       Arraste o arquivo ou clique para selecionar.
                     </p>
                   </div>
                 </div>
 
-                <div className="rounded-[26px] border border-dashed border-violet-400/20 bg-[linear-gradient(180deg,rgba(139,92,246,0.06),rgba(255,255,255,0.02))] px-6 py-14 text-center transition-all duration-200 hover:border-violet-400/45 hover:bg-[linear-gradient(180deg,rgba(139,92,246,0.12),rgba(255,255,255,0.03))]">
+                <div className="rounded-[22px] border border-dashed border-primary/15 bg-primary/[0.04] px-6 py-14 text-center transition-all duration-200 hover:border-primary/30 hover:bg-primary/[0.07]">
                   {reportFile ? (
                     <div className="flex flex-col items-center justify-center gap-4">
-                      <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-violet-400/25 bg-violet-500/12">
-                        <FileCheck className="h-7 w-7 text-violet-200" />
+                      <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-primary/20 bg-primary/10">
+                        <FileCheck className="h-7 w-7 text-primary" />
                       </div>
 
                       <div>
-                        <p className="text-lg font-semibold text-white">{reportFile.name}</p>
-                        <p className="mt-1 text-sm text-white/55">
+                        <p className="text-lg font-semibold text-foreground">{reportFile.name}</p>
+                        <p className="mt-1 text-sm text-muted-foreground">
                           Arquivo carregado com sucesso. Clique para trocar.
                         </p>
                       </div>
                     </div>
                   ) : (
                     <>
-                      <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[24px] border border-violet-400/20 bg-violet-500/10">
-                        <UploadCloud className="h-8 w-8 text-violet-200" />
+                      <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[24px] border border-primary/15 bg-primary/8">
+                        <UploadCloud className="h-8 w-8 text-primary" />
                       </div>
 
-                      <p className="text-xl font-semibold text-white">
+                      <p className="text-xl font-semibold text-foreground">
                         Selecione o relatório
                       </p>
-                      <p className="mt-3 text-sm text-white/50">
+                      <p className="mt-3 text-sm text-muted-foreground">
                         Formatos aceitos: .xlsx e .xls
                       </p>
                     </>

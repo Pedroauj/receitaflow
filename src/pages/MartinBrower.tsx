@@ -1,19 +1,15 @@
-// (CÓDIGO GRANDE — FOCO 100% VISUAL PADRONIZADO)
-
 import { useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { motion } from "framer-motion";
 import {
-  ArrowLeft,
   Upload,
   CalendarIcon,
   Download,
   CheckCircle2,
   XCircle,
   FileCheck,
-  Info,
+  FileSpreadsheet,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -43,10 +39,9 @@ import {
   DataTable,
   StatusCard,
 } from "@/components/dashboard";
+import { ClientPageHeader, UploadZone, AccentButton, ActionPanel } from "@/components/client";
 
 const MartinBrower = () => {
-  const navigate = useNavigate();
-
   const [file, setFile] = useState<File | null>(null);
   const [dataRecebimento, setDataRecebimento] = useState<Date>();
   const [dataVencimento, setDataVencimento] = useState<Date>();
@@ -78,21 +73,16 @@ const MartinBrower = () => {
 
   const handleProcess = async () => {
     if (!file || !dataRecebimento || !dataVencimento) return;
-
     setProcessing(true);
-
     try {
       const buffer = await file.arrayBuffer();
       const res = processarMartinBrower(buffer, dataVencimento);
-
       setResult(res);
-
       if (res.totalLinhasLidas > 0) {
         const statusConf =
           Math.abs(res.totalValorBruto - valorBancoNum) < 0.01
             ? "confere"
             : "diverge";
-
         addRecord({
           cliente: "Martin Brower",
           dataProcessamento: new Date().toISOString(),
@@ -105,19 +95,11 @@ const MartinBrower = () => {
           quantidadeErros: res.totalLinhasComErro,
         });
       }
-
       if (res.totalLinhasValidas === 0) {
-        toast({
-          title: "Nenhuma linha válida",
-          description: "Nenhum documento encontrado.",
-          variant: "destructive",
-        });
+        toast({ title: "Nenhuma linha válida", description: "Nenhum documento encontrado.", variant: "destructive" });
       }
     } catch (err) {
-      toast({
-        title: "Erro ao processar",
-        variant: "destructive",
-      });
+      toast({ title: "Erro ao processar", variant: "destructive" });
     } finally {
       setProcessing(false);
     }
@@ -125,187 +107,141 @@ const MartinBrower = () => {
 
   const handleDownload = () => {
     if (!result || !dataRecebimento) return;
-
     const buffer = gerarPlanilhaFinal(result.documents, dataRecebimento);
-
     const blob = new Blob([buffer]);
     const url = URL.createObjectURL(blob);
-
     const a = document.createElement("a");
     a.href = url;
     a.download = `baixa_${format(dataRecebimento, "yyyy-MM-dd")}.xlsx`;
     a.click();
-
     URL.revokeObjectURL(url);
   };
 
   const formatBRL = (v: number) =>
-    v.toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    });
+    v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
   return (
     <div className="w-full">
       <div className="mx-auto max-w-[1560px] px-6 py-7">
+        <ClientPageHeader
+          badgeIcon={FileSpreadsheet}
+          badgeLabel="Cliente Martin Brower"
+          title="Baixa por aviso bancário"
+          description="Envie a planilha de avisos bancários, informe as datas e o valor do banco. O sistema processa, valida e gera a planilha final de baixa."
+          infoCards={[
+            { label: "Entrada", value: "Planilha de avisos (.xlsx)" },
+            { label: "Saída", value: "Planilha de baixa com conferência" },
+          ]}
+        />
 
-        {/* HEADER PADRONIZADO */}
-        <div className="mb-8 rounded-[30px] border border-white/10 bg-[#11131c]/95 p-7">
-          <div className="flex items-center gap-4">
-
-            <button
-              onClick={() => navigate("/dashboard")}
-              className="h-11 w-11 rounded-2xl border border-white/10 bg-white/[0.03] flex items-center justify-center hover:bg-violet-500/10 transition"
-            >
-              <ArrowLeft />
-            </button>
-
-            <div>
-              <h1 className="text-2xl font-semibold text-white">
-                Martin Brower
-              </h1>
-              <p className="text-sm text-white/60">
-                Baixa por aviso bancário
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* UPLOAD */}
-        <div className="rounded-[30px] border border-white/10 bg-[#11131c]/95 p-7 mb-6">
-          <label
+        {/* Upload + Parameters */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.04, duration: 0.3 }}
+          className="mb-6 grid gap-6 xl:grid-cols-[1.3fr_0.7fr]"
+        >
+          <UploadZone
+            id="mb-file-input"
+            file={file}
+            title="Planilha de entrada"
+            description="Formatos aceitos: .xlsx e .xls"
+            accept=".xlsx,.xls"
+            onChange={handleFileChange}
             onDrop={handleDrop}
-            onDragOver={(e) => e.preventDefault()}
-            className="border border-dashed border-violet-400/20 rounded-2xl p-16 text-center cursor-pointer hover:border-violet-400/50 transition block"
+            icon={Upload}
+          />
+
+          <ActionPanel
+            icon={CalendarIcon}
+            title="Parâmetros"
+            description="Datas e valor do banco para conferência."
           >
-            {file ? (
-              <div className="flex items-center justify-center gap-4">
-                <FileCheck className="text-violet-300" />
-                <span className="text-white">{file.name}</span>
+            <div className="grid gap-5">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Data Recebimento</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal border-border bg-muted/50",
+                        !dataRecebimento && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dataRecebimento
+                        ? format(dataRecebimento, "dd/MM/yyyy", { locale: ptBR })
+                        : "Selecione"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={dataRecebimento} onSelect={setDataRecebimento} locale={ptBR} />
+                  </PopoverContent>
+                </Popover>
               </div>
-            ) : (
-              <>
-                <Upload className="mx-auto mb-4 text-violet-300" />
-                <p className="text-white">Arraste ou clique para selecionar</p>
-                <p className="text-sm text-white/40 mt-1">Formatos aceitos: .xlsx, .xls</p>
-              </>
-            )}
 
-            <input
-              type="file"
-              accept=".xlsx,.xls"
-              className="hidden"
-              onChange={handleFileChange}
-            />
-          </label>
-        </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Data Vencimento</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal border-border bg-muted/50",
+                        !dataVencimento && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dataVencimento
+                        ? format(dataVencimento, "dd/MM/yyyy", { locale: ptBR })
+                        : "Selecione"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={dataVencimento} onSelect={setDataVencimento} locale={ptBR} />
+                  </PopoverContent>
+                </Popover>
+              </div>
 
-        {/* PARAMETROS */}
-        <div className="rounded-[30px] border border-white/10 bg-[#11131c]/95 p-7 mb-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-end">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Valor Banco</Label>
+                <Input
+                  placeholder="0,00"
+                  value={valorBanco}
+                  onChange={(e) => setValorBanco(e.target.value)}
+                  className="border-border bg-muted/50"
+                />
+              </div>
 
-            {/* Data Recebimento */}
-            <div className="space-y-1.5">
-              <Label className="text-white/60 text-xs">Data Recebimento</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal border-white/10 bg-white/[0.03]",
-                      !dataRecebimento && "text-white/40"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dataRecebimento
-                      ? format(dataRecebimento, "dd/MM/yyyy", { locale: ptBR })
-                      : "Selecione"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={dataRecebimento}
-                    onSelect={setDataRecebimento}
-                    locale={ptBR}
-                  />
-                </PopoverContent>
-              </Popover>
+              <AccentButton
+                onClick={handleProcess}
+                disabled={!canProcess || processing}
+              >
+                {processing ? "Processando..." : "Processar"}
+              </AccentButton>
             </div>
+          </ActionPanel>
+        </motion.div>
 
-            {/* Data Vencimento */}
-            <div className="space-y-1.5">
-              <Label className="text-white/60 text-xs">Data Vencimento</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal border-white/10 bg-white/[0.03]",
-                      !dataVencimento && "text-white/40"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dataVencimento
-                      ? format(dataVencimento, "dd/MM/yyyy", { locale: ptBR })
-                      : "Selecione"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={dataVencimento}
-                    onSelect={setDataVencimento}
-                    locale={ptBR}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            {/* Valor Banco */}
-            <div className="space-y-1.5">
-              <Label className="text-white/60 text-xs">Valor Banco</Label>
-              <Input
-                placeholder="0,00"
-                value={valorBanco}
-                onChange={(e) => setValorBanco(e.target.value)}
-                className="border-white/10 bg-white/[0.03]"
-              />
-            </div>
-
-            <Button
-              onClick={handleProcess}
-              disabled={!canProcess || processing}
-              className="bg-gradient-to-r from-violet-600 to-indigo-500 text-white h-10"
-            >
-              {processing ? "Processando..." : "Processar"}
-            </Button>
-          </div>
-        </div>
-
-        {/* RESULTADO */}
+        {/* Results */}
         {result && (
-          <>
-            {/* Conferência banco */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="space-y-5"
+          >
             <SectionContainer title="Conferência">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <HighlightCard
-                  label="Total Planilha"
-                  value={formatBRL(result.totalValorBruto)}
-                  color="neutral"
-                />
-                <HighlightCard
-                  label="Valor Banco"
-                  value={formatBRL(valorBancoNum)}
-                  color="neutral"
-                />
+                <HighlightCard label="Total Planilha" value={formatBRL(result.totalValorBruto)} color="neutral" />
+                <HighlightCard label="Valor Banco" value={formatBRL(valorBancoNum)} color="neutral" />
                 <HighlightCard
                   label="Diferença"
                   value={formatBRL(Math.abs(result.totalValorBruto - valorBancoNum))}
                   color={Math.abs(result.totalValorBruto - valorBancoNum) < 0.01 ? "emerald" : "red"}
                 />
               </div>
-
               <div className="mt-4">
                 <StatusCard
                   title={Math.abs(result.totalValorBruto - valorBancoNum) < 0.01 ? "Confere" : "Diverge"}
@@ -316,7 +252,6 @@ const MartinBrower = () => {
               </div>
             </SectionContainer>
 
-            {/* Indicadores de auditoria */}
             <SectionContainer title="Auditoria do Processamento">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <SummaryCard label="Linhas lidas" value={String(result.totalLinhasLidas)} index={0} />
@@ -330,7 +265,6 @@ const MartinBrower = () => {
               </div>
             </SectionContainer>
 
-            {/* Preview de validação */}
             {result.preview.length > 0 && (
               <SectionContainer title="Preview de Validação" subtitle="Primeiras 20 linhas processadas">
                 <DataTable
@@ -354,7 +288,6 @@ const MartinBrower = () => {
               </SectionContainer>
             )}
 
-            {/* Erros */}
             {result.errors.length > 0 && (
               <SectionContainer title="Erros encontrados">
                 <DataTable
@@ -369,19 +302,15 @@ const MartinBrower = () => {
               </SectionContainer>
             )}
 
-            {/* Download */}
             {result.totalDocumentos > 0 && (
               <div className="flex justify-end">
-                <Button
-                  onClick={handleDownload}
-                  className="bg-gradient-to-r from-violet-600 to-indigo-500 text-white gap-2"
-                >
+                <AccentButton onClick={handleDownload}>
                   <Download className="h-4 w-4" />
                   Baixar planilha final
-                </Button>
+                </AccentButton>
               </div>
             )}
-          </>
+          </motion.div>
         )}
       </div>
     </div>
