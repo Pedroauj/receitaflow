@@ -292,26 +292,26 @@ const MartinBrower = () => {
                 <HighlightCard
                   label="Total Planilha"
                   value={formatBRL(result.totalValorBruto)}
-                  variant="default"
+                  color="neutral"
                 />
                 <HighlightCard
                   label="Valor Banco"
                   value={formatBRL(valorBancoNum)}
-                  variant="default"
+                  color="neutral"
                 />
                 <HighlightCard
                   label="Diferença"
                   value={formatBRL(Math.abs(result.totalValorBruto - valorBancoNum))}
-                  variant={Math.abs(result.totalValorBruto - valorBancoNum) < 0.01 ? "emerald" : "red"}
+                  color={Math.abs(result.totalValorBruto - valorBancoNum) < 0.01 ? "emerald" : "red"}
                 />
               </div>
 
               <div className="mt-4">
                 <StatusCard
-                  label="Status da conferência"
-                  value={Math.abs(result.totalValorBruto - valorBancoNum) < 0.01 ? "Confere" : "Diverge"}
+                  title={Math.abs(result.totalValorBruto - valorBancoNum) < 0.01 ? "Confere" : "Diverge"}
+                  description="Status da conferência com valor bancário"
                   icon={Math.abs(result.totalValorBruto - valorBancoNum) < 0.01 ? CheckCircle2 : XCircle}
-                  variant={Math.abs(result.totalValorBruto - valorBancoNum) < 0.01 ? "success" : "danger"}
+                  variant={Math.abs(result.totalValorBruto - valorBancoNum) < 0.01 ? "success" : "error"}
                 />
               </div>
             </SectionContainer>
@@ -341,14 +341,15 @@ const MartinBrower = () => {
                     { key: "faturaOriginal", label: "Nº Fatura" },
                     { key: "serie", label: "Série" },
                     { key: "numeroDocumento", label: "Nº Documento" },
-                    { key: "valorBrutoConvertido", label: "Valor Bruto", render: (v) => v != null ? formatBRL(v as number) : "—" },
-                    { key: "status", label: "Status", render: (v) => {
-                      const s = v as string;
+                    { key: "valorBrutoConvertido", label: "Valor Bruto", render: (row) => row.valorBrutoConvertido != null ? formatBRL(row.valorBrutoConvertido) : "—" },
+                    { key: "status", label: "Status", render: (row) => {
+                      const s = row.status;
                       const color = s === "válida" ? "text-emerald-400" : s === "erro" ? "text-red-400" : "text-amber-400";
                       return <span className={color}>{s}</span>;
                     }},
                   ]}
                   data={result.preview}
+                  keyExtractor={(row, i) => `preview-${row.row}-${i}`}
                 />
               </SectionContainer>
             )}
@@ -363,6 +364,7 @@ const MartinBrower = () => {
                     { key: "motivo", label: "Motivo" },
                   ]}
                   data={result.errors}
+                  keyExtractor={(row, i) => `err-${row.row}-${i}`}
                 />
               </SectionContainer>
             )}
