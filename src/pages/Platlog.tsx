@@ -1,15 +1,11 @@
 import { useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import {
-  ArrowLeft,
   Upload,
   Download,
-  FileCheck,
   FileSpreadsheet,
   BadgePercent,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import {
@@ -19,9 +15,9 @@ import {
 } from "@/lib/processors/platlog";
 import { addRecord } from "@/lib/history";
 import { SummaryCard, SectionContainer, DataTable } from "@/components/dashboard";
+import { ClientPageHeader, UploadZone, AccentButton, ActionPanel } from "@/components/client";
 
 const Platlog = () => {
-  const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
   const [discountInput, setDiscountInput] = useState("");
   const [result, setResult] = useState<PlatlogProcessingResult | null>(null);
@@ -30,119 +26,52 @@ const Platlog = () => {
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
     if (!selected) return;
-
-    const isSpreadsheet = /\.(xlsx|xls)$/i.test(selected.name);
-    if (!isSpreadsheet) {
-      toast({
-        title: "Arquivo inválido",
-        description: "Envie uma planilha .xlsx ou .xls.",
-        variant: "destructive",
-      });
+    if (!/\.(xlsx|xls)$/i.test(selected.name)) {
+      toast({ title: "Arquivo inválido", description: "Envie uma planilha .xlsx ou .xls.", variant: "destructive" });
       return;
     }
-
     setFile(selected);
     setResult(null);
-
-    toast({
-      title: "Planilha carregada",
-      description: selected.name,
-    });
+    toast({ title: "Planilha carregada", description: selected.name });
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
-
     const selected = e.dataTransfer.files?.[0];
     if (!selected) return;
-
-    const isSpreadsheet = /\.(xlsx|xls)$/i.test(selected.name);
-    if (!isSpreadsheet) {
-      toast({
-        title: "Arquivo inválido",
-        description: "Envie uma planilha .xlsx ou .xls.",
-        variant: "destructive",
-      });
+    if (!/\.(xlsx|xls)$/i.test(selected.name)) {
+      toast({ title: "Arquivo inválido", description: "Envie uma planilha .xlsx ou .xls.", variant: "destructive" });
       return;
     }
-
     setFile(selected);
     setResult(null);
-
-    toast({
-      title: "Planilha carregada",
-      description: selected.name,
-    });
+    toast({ title: "Planilha carregada", description: selected.name });
   }, []);
 
   const parseDiscountValue = (value: string): number => {
     if (!value.trim()) return 0;
-
-    const cleaned = value
-      .replace(/[R$\s]/g, "")
-      .replace(/\./g, "")
-      .replace(",", ".");
-
+    const cleaned = value.replace(/[R$\s]/g, "").replace(/\./g, "").replace(",", ".");
     const parsed = Number.parseFloat(cleaned);
     return Number.isNaN(parsed) ? 0 : Math.abs(parsed);
   };
 
   const handleProcess = async () => {
     if (!file) return;
-
     setProcessing(true);
-
     try {
       const buffer = await file.arrayBuffer();
       const descontoTotal = parseDiscountValue(discountInput);
-
-      const res = await processarPlatlog(
-        {
-          fileName: file.name,
-          buffer,
-        },
-        descontoTotal
-      );
-
+      const res = await processarPlatlog({ fileName: file.name, buffer }, descontoTotal);
       setResult(res);
-
       if (res.totalDocumentos === 0) {
-        toast({
-          title: "Nenhum documento encontrado",
-          description: "Não foi possível extrair dados válidos da planilha da Platlog.",
-          variant: "destructive",
-        });
+        toast({ title: "Nenhum documento encontrado", description: "Não foi possível extrair dados válidos da planilha da Platlog.", variant: "destructive" });
       } else {
-        toast({
-          title: "Planilha processada com sucesso",
-          description: `${res.totalDocumentos} documento(s) gerado(s).`,
-        });
-
-        addRecord({
-          cliente: "Platlog",
-          dataProcessamento: new Date().toISOString(),
-          dataVencimento: new Date().toISOString(),
-          dataRecebimento: new Date().toISOString(),
-          quantidadeDocumentos: res.totalDocumentos,
-          valorTotal: res.totalValorFinal,
-          valorInformadoBanco: 0,
-          statusConferencia: "confere",
-          quantidadeErros: 0,
-        });
+        toast({ title: "Planilha processada com sucesso", description: `${res.totalDocumentos} documento(s) gerado(s).` });
+        addRecord({ cliente: "Platlog", dataProcessamento: new Date().toISOString(), dataVencimento: new Date().toISOString(), dataRecebimento: new Date().toISOString(), quantidadeDocumentos: res.totalDocumentos, valorTotal: res.totalValorFinal, valorInformadoBanco: 0, statusConferencia: "confere", quantidadeErros: 0 });
       }
     } catch (error) {
       console.error(error);
-
-      const description =
-        error instanceof Error
-          ? error.message
-          : "Não foi possível processar a planilha da Platlog.";
-
-      toast({
-        title: "Erro ao processar",
-        description,
-        variant: "destructive",
-      });
+      toast({ title: "Erro ao processar", description: error instanceof Error ? error.message : "Não foi possível processar a planilha da Platlog.", variant: "destructive" });
     } finally {
       setProcessing(false);
     }
@@ -150,92 +79,33 @@ const Platlog = () => {
 
   const handleDownload = () => {
     if (!result) return;
-
     const buffer = gerarPlanilhaPlatlog(result);
-    const blob = new Blob([buffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
-
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
     a.download = `baixa_platlog_${new Date().toISOString().slice(0, 10)}.xlsx`;
     a.click();
-
     URL.revokeObjectURL(url);
-
-    toast({
-      title: "Arquivo gerado com sucesso",
-      description: a.download,
-    });
+    toast({ title: "Arquivo gerado com sucesso", description: a.download });
   };
 
   const formatBRL = (value: number) =>
-    value.toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    });
+    value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
   return (
     <div className="w-full">
       <div className="mx-auto w-full max-w-[1560px] px-6 py-7">
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.28 }}
-          className="mb-8"
-        >
-          <div className="relative overflow-hidden rounded-[30px] border border-white/10 bg-[#11131c]/95 shadow-[0_20px_70px_rgba(0,0,0,0.35)]">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.18),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(99,102,241,0.14),transparent_28%)]" />
-
-            <div className="relative flex flex-col gap-6 p-6 lg:flex-row lg:items-center lg:justify-between lg:p-8">
-              <div className="flex items-start gap-4">
-                <button
-                  onClick={() => navigate("/dashboard")}
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] text-white/80 transition-all duration-200 hover:border-violet-400/40 hover:bg-violet-500/10 hover:text-violet-200"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </button>
-
-                <div>
-                  <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-violet-400/25 bg-violet-500/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-violet-200">
-                    <FileSpreadsheet className="h-3.5 w-3.5" />
-                    Cliente Platlog
-                  </div>
-
-                  <h1 className="text-[32px] font-semibold leading-none tracking-tight text-white">
-                    Processamento de baixa
-                  </h1>
-
-                  <p className="mt-3 max-w-3xl text-[15px] leading-7 text-white/60">
-                    Envie a planilha da Platlog, informe o desconto total recebido por e-mail
-                    e gere a planilha final já preparada para a baixa.
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:w-[400px]">
-                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-sm">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-violet-200/80">
-                    Entrada
-                  </p>
-                  <p className="mt-2 text-sm font-medium text-white">
-                    Planilha .xlsx ou .xls
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-sm">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-violet-200/80">
-                    Regra
-                  </p>
-                  <p className="mt-2 text-sm font-medium leading-6 text-white">
-                    Desconto aplicado do maior para o menor valor
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
+        <ClientPageHeader
+          badgeIcon={FileSpreadsheet}
+          badgeLabel="Cliente Platlog"
+          title="Processamento de baixa"
+          description="Envie a planilha da Platlog, informe o desconto total recebido por e-mail e gere a planilha final já preparada para a baixa."
+          infoCards={[
+            { label: "Entrada", value: "Planilha .xlsx ou .xls" },
+            { label: "Regra", value: "Desconto aplicado do maior para o menor valor" },
+          ]}
+        />
 
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -243,125 +113,45 @@ const Platlog = () => {
           transition={{ delay: 0.04, duration: 0.3 }}
           className="mb-6 grid gap-6 xl:grid-cols-[1.3fr_0.7fr]"
         >
-          <div className="relative overflow-hidden rounded-[30px] border border-white/10 bg-[#11131c]/95 shadow-[0_18px_60px_rgba(0,0,0,0.28)]">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.10),transparent_26%)]" />
+          <UploadZone
+            id="platlog-file-input"
+            file={file}
+            title="Planilha de entrada"
+            description="Formatos aceitos: .xlsx e .xls"
+            accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+            onChange={handleFileChange}
+            onDrop={handleDrop}
+            icon={Upload}
+          />
 
-            <div className="relative p-6 lg:p-7">
-              <div className="mb-6 flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-violet-400/20 bg-violet-500/10 text-violet-200">
-                  <Upload className="h-5 w-5" />
-                </div>
-
-                <div>
-                  <h2 className="text-xl font-semibold text-white">
-                    Planilha de entrada
-                  </h2>
-                  <p className="text-sm text-white/55">
-                    Arraste o arquivo ou clique para selecionar.
-                  </p>
-                </div>
-              </div>
-
-              <div
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={handleDrop}
-                onClick={() => document.getElementById("platlog-file-input")?.click()}
-                className="group cursor-pointer rounded-[26px] border border-dashed border-violet-400/20 bg-[linear-gradient(180deg,rgba(139,92,246,0.06),rgba(255,255,255,0.02))] px-6 py-16 text-center transition-all duration-200 hover:border-violet-400/45 hover:bg-[linear-gradient(180deg,rgba(139,92,246,0.12),rgba(255,255,255,0.03))]"
-              >
-                {file ? (
-                  <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-violet-400/25 bg-violet-500/12">
-                      <FileCheck className="h-7 w-7 text-violet-200" />
-                    </div>
-
-                    <div className="text-center sm:text-left">
-                      <p className="text-lg font-semibold text-white">
-                        {file.name}
-                      </p>
-                      <p className="mt-1 text-sm text-white/55">
-                        Arquivo carregado com sucesso. Clique para trocar.
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[24px] border border-violet-400/20 bg-violet-500/10 transition-all duration-200 group-hover:scale-[1.03] group-hover:bg-violet-500/15">
-                      <Upload className="h-8 w-8 text-violet-200" />
-                    </div>
-
-                    <p className="text-xl font-semibold text-white">
-                      Arraste ou clique para selecionar a planilha
-                    </p>
-                    <p className="mt-3 text-sm text-white/50">
-                      Formatos aceitos: .xlsx e .xls
-                    </p>
-                  </>
-                )}
-
-                <input
-                  id="platlog-file-input"
-                  type="file"
-                  accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
-                  className="hidden"
-                  onChange={handleFileChange}
+          <ActionPanel
+            icon={BadgePercent}
+            title="Desconto total"
+            description="Valor informado por e-mail."
+            infoText="O desconto será aplicado automaticamente no documento de maior valor. Se ainda houver saldo de desconto, ele continua no próximo maior."
+          >
+            <div className="space-y-5">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-foreground/90">
+                  Desconto total informado por e-mail
+                </label>
+                <Input
+                  value={discountInput}
+                  onChange={(e) => { setDiscountInput(e.target.value); setResult(null); }}
+                  placeholder="Ex.: 1.250,50"
+                  className="h-12 border-border bg-muted/50"
                 />
               </div>
+
+              <AccentButton
+                className="w-full"
+                disabled={!file || processing}
+                onClick={handleProcess}
+              >
+                {processing ? "Processando planilha..." : "Processar planilha"}
+              </AccentButton>
             </div>
-          </div>
-
-          <div className="relative overflow-hidden rounded-[30px] border border-white/10 bg-[#11131c]/95 shadow-[0_18px_60px_rgba(0,0,0,0.28)]">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(139,92,246,0.10),transparent_24%)]" />
-
-            <div className="relative p-6 lg:p-7">
-              <div className="mb-6 flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-violet-400/20 bg-violet-500/10 text-violet-200">
-                  <BadgePercent className="h-5 w-5" />
-                </div>
-
-                <div>
-                  <h2 className="text-xl font-semibold text-white">
-                    Desconto total
-                  </h2>
-                  <p className="text-sm text-white/55">
-                    Valor informado por e-mail.
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-5">
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-white/90">
-                    Desconto total informado por e-mail
-                  </label>
-
-                  <Input
-                    value={discountInput}
-                    onChange={(e) => {
-                      setDiscountInput(e.target.value);
-                      setResult(null);
-                    }}
-                    placeholder="Ex.: 1.250,50"
-                    className="h-12 border-white/10 bg-white/[0.03] text-white placeholder:text-white/35"
-                  />
-                </div>
-
-                <div className="rounded-2xl border border-violet-400/15 bg-violet-500/[0.06] p-4">
-                  <p className="text-sm leading-7 text-white/62">
-                    O desconto será aplicado automaticamente no documento de maior valor.
-                    Se ainda houver saldo de desconto, ele continua no próximo maior.
-                  </p>
-                </div>
-
-                <Button
-                  className="h-12 w-full border-0 bg-[linear-gradient(135deg,#7c3aed_0%,#8b5cf6_55%,#6366f1_100%)] text-white shadow-[0_10px_30px_rgba(124,58,237,0.35)] transition-all duration-200 hover:opacity-95"
-                  disabled={!file || processing}
-                  onClick={handleProcess}
-                >
-                  {processing ? "Processando planilha..." : "Processar planilha"}
-                </Button>
-              </div>
-            </div>
-          </div>
+          </ActionPanel>
         </motion.div>
 
         {result && result.totalDocumentos > 0 && (
@@ -373,26 +163,10 @@ const Platlog = () => {
           >
             <SectionContainer title="Resumo do processamento">
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                <SummaryCard
-                  label="Total de documentos"
-                  value={result.totalDocumentos}
-                  index={0}
-                />
-                <SummaryCard
-                  label="Valor original"
-                  value={formatBRL(result.totalValorOriginal)}
-                  index={1}
-                />
-                <SummaryCard
-                  label="Total de descontos"
-                  value={formatBRL(result.totalDescontos)}
-                  index={2}
-                />
-                <SummaryCard
-                  label="Valor final"
-                  value={formatBRL(result.totalValorFinal)}
-                  index={3}
-                />
+                <SummaryCard label="Total de documentos" value={result.totalDocumentos} index={0} />
+                <SummaryCard label="Valor original" value={formatBRL(result.totalValorOriginal)} index={1} />
+                <SummaryCard label="Total de descontos" value={formatBRL(result.totalDescontos)} index={2} />
+                <SummaryCard label="Valor final" value={formatBRL(result.totalValorFinal)} index={3} />
               </div>
             </SectionContainer>
 
@@ -402,39 +176,14 @@ const Platlog = () => {
               columns={[
                 { key: "filial", label: "Filial", width: "80px" },
                 { key: "serie", label: "Série", width: "80px" },
-                {
-                  key: "numeroDocumento",
-                  label: "Nº Documento",
-                  width: "150px",
-                  render: (row: any) => (
-                    <span className="font-mono">{row.numeroDocumento}</span>
-                  ),
-                },
+                { key: "numeroDocumento", label: "Nº Documento", width: "150px", render: (row: any) => <span className="font-mono">{row.numeroDocumento}</span> },
                 { key: "tipoDocumento", label: "Tipo", width: "100px" },
-                {
-                  key: "valorOriginal",
-                  label: "Valor original",
-                  width: "140px",
-                  render: (row: any) => formatBRL(row.valorOriginal),
-                },
-                {
-                  key: "descontoAplicado",
-                  label: "Desconto",
-                  width: "140px",
-                  render: (row: any) => formatBRL(row.descontoAplicado),
-                },
-                {
-                  key: "valorFinal",
-                  label: "Saldo devedor",
-                  width: "140px",
-                  className: "font-semibold",
-                  render: (row: any) => formatBRL(row.valorFinal),
-                },
+                { key: "valorOriginal", label: "Valor original", width: "140px", render: (row: any) => formatBRL(row.valorOriginal) },
+                { key: "descontoAplicado", label: "Desconto", width: "140px", render: (row: any) => formatBRL(row.descontoAplicado) },
+                { key: "valorFinal", label: "Saldo devedor", width: "140px", className: "font-semibold", render: (row: any) => formatBRL(row.valorFinal) },
               ]}
               data={result.documents}
-              keyExtractor={(row: any, i) =>
-                `${row.numeroDocumento}_${row.serie}_${i}`
-              }
+              keyExtractor={(row: any, i) => `${row.numeroDocumento}_${row.serie}_${i}`}
             />
 
             {result.descontosAplicados.length > 0 && (
@@ -442,33 +191,11 @@ const Platlog = () => {
                 title="Documentos que receberam desconto"
                 badge={`${result.descontosAplicados.length} desconto(s)`}
                 columns={[
-                  {
-                    key: "documentoAlvo",
-                    label: "Documento",
-                    width: "150px",
-                    render: (row: any) => (
-                      <span className="font-mono">{row.documentoAlvo}</span>
-                    ),
-                  },
+                  { key: "documentoAlvo", label: "Documento", width: "150px", render: (row: any) => <span className="font-mono">{row.documentoAlvo}</span> },
                   { key: "serieAlvo", label: "Série", width: "80px" },
-                  {
-                    key: "tipoDocumentoAlvo",
-                    label: "Tipo",
-                    width: "100px",
-                  },
-                  {
-                    key: "valorDescontoAplicado",
-                    label: "Valor descontado",
-                    width: "140px",
-                    render: (row: any) => formatBRL(row.valorDescontoAplicado),
-                  },
-                  {
-                    key: "saldoRestante",
-                    label: "Saldo restante",
-                    width: "140px",
-                    className: "font-semibold",
-                    render: (row: any) => formatBRL(row.saldoRestante),
-                  },
+                  { key: "tipoDocumentoAlvo", label: "Tipo", width: "100px" },
+                  { key: "valorDescontoAplicado", label: "Valor descontado", width: "140px", render: (row: any) => formatBRL(row.valorDescontoAplicado) },
+                  { key: "saldoRestante", label: "Saldo restante", width: "140px", className: "font-semibold", render: (row: any) => formatBRL(row.saldoRestante) },
                 ]}
                 data={result.descontosAplicados}
                 keyExtractor={(row: any, i) => `${row.documentoAlvo}_${i}`}
@@ -476,13 +203,10 @@ const Platlog = () => {
             )}
 
             <div className="flex justify-start">
-              <Button
-                className="h-11 border-0 bg-[linear-gradient(135deg,#7c3aed_0%,#8b5cf6_55%,#6366f1_100%)] px-5 text-white shadow-[0_10px_30px_rgba(124,58,237,0.28)] hover:opacity-95"
-                onClick={handleDownload}
-              >
-                <Download className="mr-2 h-4 w-4" />
+              <AccentButton onClick={handleDownload}>
+                <Download className="h-4 w-4" />
                 Baixar planilha final
-              </Button>
+              </AccentButton>
             </div>
           </motion.div>
         )}
