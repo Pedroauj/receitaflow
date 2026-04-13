@@ -719,20 +719,20 @@ const Minerva = () => {
           transition={{ delay: 0.04, duration: 0.3 }}
           className="mb-6 grid gap-6 xl:grid-cols-[0.85fr_1.15fr]"
         >
-          <div className="relative overflow-hidden rounded-[30px] border border-white/10 bg-[#11131c]/95 shadow-[0_18px_60px_rgba(0,0,0,0.28)]">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(139,92,246,0.10),transparent_28%)]" />
+          <div className="relative overflow-hidden rounded-[28px] border border-border bg-card shadow-[0_14px_40px_rgba(0,0,0,0.22)]">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.08),transparent_28%)]" />
 
             <div className="relative p-6 lg:p-7">
               <div className="mb-6 flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-violet-400/20 bg-violet-500/10 text-violet-200">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary">
                   <CalendarDays className="h-5 w-5" />
                 </div>
 
                 <div>
-                  <h2 className="text-xl font-semibold text-white">
+                  <h2 className="text-lg font-semibold text-foreground">
                     Parâmetros da validação
                   </h2>
-                  <p className="text-sm text-white/55">
+                  <p className="text-sm text-muted-foreground">
                     Defina a data-base da antecipação e o valor do banco para conciliar o resultado.
                   </p>
                 </div>
@@ -740,19 +740,19 @@ const Minerva = () => {
 
               <div className="grid gap-5">
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-white/90">
+                  <label className="mb-2 block text-sm font-medium text-foreground/90">
                     Data da antecipação
                   </label>
                   <input
                     type="date"
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
-                    className="h-12 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 text-sm text-white outline-none transition-colors focus:border-violet-400/40 focus:ring-2 focus:ring-violet-500/10"
+                    className="h-12 w-full rounded-xl border border-border bg-muted/50 px-4 text-sm text-foreground outline-none transition-colors focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-white/90">
+                  <label className="mb-2 block text-sm font-medium text-foreground/90">
                     Valor banco
                   </label>
                   <input
@@ -761,12 +761,12 @@ const Minerva = () => {
                     placeholder="R$ 0,00"
                     value={bankValue}
                     onChange={(e) => handleBankValueChange(e.target.value)}
-                    className="h-12 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 text-sm text-white outline-none transition-colors placeholder:text-white/35 focus:border-violet-400/40 focus:ring-2 focus:ring-violet-500/10"
+                    className="h-12 w-full rounded-xl border border-border bg-muted/50 px-4 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
                   />
                 </div>
 
-                <div className="rounded-2xl border border-violet-400/15 bg-violet-500/[0.06] p-4">
-                  <p className="text-sm leading-7 text-white/62">
+                <div className="rounded-2xl border border-primary/12 bg-primary/[0.05] p-4">
+                  <p className="text-sm leading-7 text-muted-foreground">
                     A importação final será gerada com FILIAL = 1, SÉRIE = 26, TIPO DOCUMENTO = CTRC
                     e DATA EMISSÃO obtida da Planilha 0.
                   </p>
@@ -776,7 +776,7 @@ const Minerva = () => {
                   type="button"
                   onClick={handleProcess}
                   disabled={!canProcess}
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border-0 bg-[linear-gradient(135deg,#7c3aed_0%,#8b5cf6_55%,#6366f1_100%)] px-5 text-sm font-medium text-white shadow-[0_10px_30px_rgba(124,58,237,0.35)] transition-all duration-200 hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border-0 bg-[linear-gradient(135deg,hsl(var(--primary)),hsl(var(--primary)/0.75))] px-5 text-sm font-medium text-primary-foreground shadow-[0_10px_30px_hsl(var(--primary)/0.25)] transition-all duration-200 hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {processing ? (
                     <>
