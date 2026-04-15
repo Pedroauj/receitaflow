@@ -23,29 +23,6 @@ window.addEventListener("scroll", (e) => {
   }
 }, true);
 
-// Apple Spotlight — subtle cursor light effect
-const spotlight = document.createElement("div");
-spotlight.className = "spotlight-layer";
-document.body.appendChild(spotlight);
-
-let spotlightRaf: number;
-let isMouseInside = false;
-
-document.addEventListener("mousemove", (e) => {
-  if (!isMouseInside) {
-    isMouseInside = true;
-    spotlight.classList.add("active");
-  }
-  cancelAnimationFrame(spotlightRaf);
-  spotlightRaf = requestAnimationFrame(() => {
-    document.documentElement.style.setProperty("--mouse-x", `${e.clientX}px`);
-    document.documentElement.style.setProperty("--mouse-y", `${e.clientY}px`);
-  });
-});
-
-document.addEventListener("mouseleave", () => {
-  isMouseInside = false;
-  spotlight.classList.remove("active");
-});
+// Spotlight removed for performance
 
 createRoot(document.getElementById("root")!).render(<App />);
