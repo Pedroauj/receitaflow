@@ -1,3 +1,4 @@
+import PageHeader from "@/components/dashboard/PageHeader";
 import { useState, useMemo } from "react";
 import type { ChangeEvent, DragEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -199,73 +200,55 @@ const MediasAbastecimento = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.35 }}
     >
-      <section className="relative overflow-hidden rounded-[26px] border border-white/8 bg-[linear-gradient(180deg,rgba(9,13,24,0.92),rgba(6,10,18,0.96))] px-5 py-5 shadow-[0_18px_60px_rgba(0,0,0,0.28)] md:px-7 md:py-6">
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -left-16 top-0 h-52 w-52 rounded-full bg-violet-500/10 blur-3xl" />
-          <div className="absolute right-0 top-0 h-44 w-44 rounded-full bg-blue-500/10 blur-3xl" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.05),transparent_28%)]" />
-        </div>
-
-        <div className="relative flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-          <div className="min-w-0">
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/55">
-              <Sparkles className="h-3.5 w-3.5 text-primary" />
-              Painel executivo
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+        <div className="flex-1">
+          <div className="relative overflow-hidden rounded-[28px] border border-border bg-card shadow-[0_18px_48px_rgba(0,0,0,0.28)]">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.12),transparent_32%),radial-gradient(circle_at_bottom_right,hsl(var(--primary)/0.08),transparent_28%)]" />
+            <div className="relative p-6 lg:p-8">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">
+                <Sparkles className="h-3.5 w-3.5" />
+                Painel executivo
+              </div>
+              <AnimatePresence mode="wait">
+                {pm ? (
+                  <motion.div key="pm-header" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.22 }}>
+                    <h1 className="text-[28px] font-semibold leading-none tracking-tight text-foreground lg:text-[32px]">
+                      Desempenho estratégico de abastecimento da frota
+                    </h1>
+                    <p className="mt-3 max-w-3xl text-[15px] leading-7 text-muted-foreground">
+                      Leitura consolidada da operação para apresentação executiva, com foco em eficiência, consumo, custo e oportunidade de economia.
+                    </p>
+                  </motion.div>
+                ) : (
+                  <motion.div key="normal-header" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.22 }}>
+                    <h1 className="text-[28px] font-semibold leading-none tracking-tight text-foreground lg:text-[32px]">
+                      Médias de Abastecimento
+                    </h1>
+                    <p className="mt-3 max-w-3xl text-[15px] leading-7 text-muted-foreground">
+                      Visão executiva da performance de consumo da frota, estruturada para análise interna e apresentação para diretoria.
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-
-            <AnimatePresence mode="wait">
-              {pm ? (
-                <motion.div
-                  key="pm-header"
-                  initial={{ opacity: 0, y: -8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.22 }}
-                >
-                  <h1 className="max-w-4xl text-2xl font-semibold leading-tight tracking-[-0.04em] text-foreground md:text-4xl">
-                    Desempenho estratégico de abastecimento da frota
-                  </h1>
-                  <p className="mt-2 max-w-3xl text-sm text-white/62 md:text-[15px]">
-                    Leitura consolidada da operação para apresentação executiva, com foco em
-                    eficiência, consumo, custo e oportunidade de economia.
-                  </p>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="normal-header"
-                  initial={{ opacity: 0, y: -8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.22 }}
-                >
-                  <h1 className="max-w-4xl text-[28px] font-semibold leading-tight tracking-[-0.04em] text-foreground md:text-[40px]">
-                    Médias de Abastecimento
-                  </h1>
-                  <p className="mt-2 max-w-3xl text-sm text-white/62 md:text-[15px]">
-                    Visão executiva da performance de consumo da frota, estruturada para análise
-                    interna e apresentação para diretoria.
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          <div className="flex shrink-0 items-center gap-2 self-start">
-            <button
-              onClick={togglePresentationMode}
-              title={pm ? "Sair do modo apresentação (ESC)" : "Entrar no modo apresentação (F)"}
-              className={`inline-flex h-11 items-center gap-2 rounded-2xl border px-4 text-sm font-semibold transition-all duration-300 ${
-                pm
-                  ? "border-primary/30 bg-primary/12 text-primary shadow-[0_0_24px_-8px_hsl(var(--primary)/0.45)] hover:bg-primary/18"
-                  : "border-white/10 bg-white/[0.04] text-white/78 hover:border-white/14 hover:bg-white/[0.06] hover:text-foreground"
-              }`}
-            >
-              {pm ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-              <span>{pm ? "Sair da apresentação" : "Modo apresentação"}</span>
-            </button>
           </div>
         </div>
-      </section>
+
+        <div className="flex shrink-0 items-center gap-2 self-start xl:mt-0">
+          <button
+            onClick={togglePresentationMode}
+            title={pm ? "Sair do modo apresentação (ESC)" : "Entrar no modo apresentação (F)"}
+            className={`inline-flex h-11 items-center gap-2 rounded-2xl border px-4 text-sm font-semibold transition-all duration-300 ${
+              pm
+                ? "border-primary/30 bg-primary/12 text-primary shadow-[0_0_24px_-8px_hsl(var(--primary)/0.45)] hover:bg-primary/18"
+                : "border-border bg-card text-muted-foreground hover:border-border/80 hover:bg-muted hover:text-foreground"
+            }`}
+          >
+            {pm ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+            <span>{pm ? "Sair da apresentação" : "Modo apresentação"}</span>
+          </button>
+        </div>
+      </div>
 
       <AnimatePresence>
         {!pm && (
@@ -273,19 +256,19 @@ const MediasAbastecimento = () => {
             initial={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0, marginBottom: 0, overflow: "hidden" }}
             transition={{ duration: 0.35, ease: "easeInOut" }}
-            className="rounded-[24px] border border-white/8 bg-[linear-gradient(180deg,rgba(10,14,25,0.88),rgba(8,12,22,0.94))] p-5 shadow-[0_14px_34px_rgba(0,0,0,0.18)]"
+            className="rounded-[24px] border border-border bg-card p-5 shadow-[0_14px_34px_rgba(0,0,0,0.18)]"
           >
             <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
               <div>
                 <h2 className="text-base font-semibold tracking-[-0.02em] text-foreground">
                   Atualização do painel
                 </h2>
-                <p className="text-sm text-white/55">
+                <p className="text-sm text-muted-foreground">
                   Importe a planilha e refine o recorte da análise antes de apresentar os dados.
                 </p>
               </div>
 
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/45">
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
                 <Filter className="h-3.5 w-3.5" />
                 Base operacional
               </div>
@@ -301,19 +284,19 @@ const MediasAbastecimento = () => {
               className={`relative rounded-[20px] border-2 border-dashed p-8 transition-all duration-300 ${
                 dragOver
                   ? "border-primary/60 bg-primary/6"
-                  : "border-white/10 bg-white/[0.02]"
+                  : "border-border bg-white/[0.02]"
               }`}
             >
               {file ? (
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04]">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-border bg-muted/50">
                       <FileSpreadsheet className="h-6 w-6 text-primary" />
                     </div>
 
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold text-foreground">{file.name}</p>
-                      <p className="text-xs text-white/48">
+                      <p className="text-xs text-muted-foreground">
                         {(file.size / 1024).toFixed(0)} KB • pronto para processamento
                       </p>
                     </div>
@@ -321,22 +304,22 @@ const MediasAbastecimento = () => {
 
                   <button
                     onClick={() => setFile(null)}
-                    className="inline-flex h-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] px-3 text-sm font-medium text-white/70 transition-colors hover:bg-white/[0.06] hover:text-foreground"
+                    className="inline-flex h-10 items-center justify-center rounded-xl border border-border bg-muted/40 px-3 text-sm font-medium text-foreground/70 transition-colors hover:bg-muted/60 hover:text-foreground"
                   >
                     <X className="h-4 w-4" />
                   </button>
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center gap-3 text-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-[20px] border border-white/10 bg-white/[0.04]">
-                    <UploadCloud className="h-8 w-8 text-white/55" />
+                  <div className="flex h-16 w-16 items-center justify-center rounded-[20px] border border-border bg-muted/50">
+                    <UploadCloud className="h-8 w-8 text-muted-foreground" />
                   </div>
 
                   <div>
                     <p className="text-sm font-medium text-foreground">
                       Arraste a planilha ou selecione o arquivo manualmente
                     </p>
-                    <p className="mt-1 text-sm text-white/48">
+                    <p className="mt-1 text-sm text-muted-foreground">
                       Utilize a exportação oficial do sistema para manter a leitura executiva
                       confiável.
                     </p>
@@ -367,7 +350,7 @@ const MediasAbastecimento = () => {
                   type="date"
                   value={periodoInicio}
                   onChange={(e) => setPeriodoInicio(e.target.value)}
-                  className="h-11 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 text-sm text-foreground outline-none transition-colors placeholder:text-white/22 focus:border-primary/35"
+                  className="h-11 w-full rounded-xl border border-border bg-muted/40 px-3 text-sm text-foreground outline-none transition-colors placeholder:text-white/22 focus:border-primary/35"
                 />
               </div>
 
@@ -380,7 +363,7 @@ const MediasAbastecimento = () => {
                   type="date"
                   value={periodoFim}
                   onChange={(e) => setPeriodoFim(e.target.value)}
-                  className="h-11 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 text-sm text-foreground outline-none transition-colors placeholder:text-white/22 focus:border-primary/35"
+                  className="h-11 w-full rounded-xl border border-border bg-muted/40 px-3 text-sm text-foreground outline-none transition-colors placeholder:text-white/22 focus:border-primary/35"
                 />
               </div>
 
@@ -390,7 +373,7 @@ const MediasAbastecimento = () => {
                   Tipo de frota
                 </label>
                 <Select value={tipoFrota} onValueChange={setTipoFrota}>
-                  <SelectTrigger className="h-11 w-full rounded-xl border-white/10 bg-white/[0.03] text-foreground">
+                  <SelectTrigger className="h-11 w-full rounded-xl border-border bg-muted/40 text-foreground">
                     <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
                   <SelectContent>
@@ -440,7 +423,7 @@ const MediasAbastecimento = () => {
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="h-auto flex-wrap rounded-2xl border border-white/8 bg-white/[0.03] p-1">
+              <TabsList className="h-auto flex-wrap rounded-2xl border border-border bg-muted/40 p-1">
                 {availableTypes.map((t) => (
                   <TabsTrigger
                     key={t}
@@ -574,7 +557,7 @@ const MediasAbastecimento = () => {
                 initial={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0, overflow: "hidden" }}
                 transition={{ duration: 0.3 }}
-                className="rounded-[24px] border border-white/8 bg-[linear-gradient(180deg,rgba(10,14,25,0.88),rgba(8,12,22,0.94))] p-5"
+                className="rounded-[24px] border border-border bg-[linear-gradient(180deg,rgba(10,14,25,0.88),rgba(8,12,22,0.94))] p-5"
               >
                 <div className="mb-4">
                   <h3 className="text-base font-semibold tracking-[-0.02em] text-foreground">
@@ -588,7 +571,7 @@ const MediasAbastecimento = () => {
                 <div className="flex flex-wrap gap-3">
                   <button
                     onClick={() => handleExport("PowerPoint")}
-                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 text-sm font-semibold text-foreground transition-colors hover:bg-white/[0.06]"
+                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-border bg-muted/40 px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted/60"
                   >
                     <Presentation className="h-4 w-4 text-primary" />
                     Gerar apresentação
@@ -596,7 +579,7 @@ const MediasAbastecimento = () => {
 
                   <button
                     onClick={() => handleExport("PDF")}
-                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 text-sm font-semibold text-foreground transition-colors hover:bg-white/[0.06]"
+                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-border bg-muted/40 px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted/60"
                   >
                     <FileText className="h-4 w-4 text-red-400" />
                     Exportar PDF
@@ -604,7 +587,7 @@ const MediasAbastecimento = () => {
 
                   <button
                     onClick={() => handleExport("Excel")}
-                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 text-sm font-semibold text-foreground transition-colors hover:bg-white/[0.06]"
+                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-border bg-muted/40 px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted/60"
                   >
                     <Download className="h-4 w-4 text-emerald-400" />
                     Exportar Excel

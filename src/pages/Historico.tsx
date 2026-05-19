@@ -16,6 +16,8 @@ import { usePagination } from "@/hooks/usePagination";
 import TablePagination from "@/components/TablePagination";
 import { motion } from "framer-motion";
 import SectionContainer from "@/components/dashboard/SectionContainer";
+import PageHeader from "@/components/dashboard/PageHeader";
+import { History } from "lucide-react";
 
 const Historico = () => {
   const navigate = useNavigate();
@@ -52,17 +54,15 @@ const Historico = () => {
 
   return (
     <div className="space-y-5">
-      <motion.div
-        initial={{ opacity: 0, y: -6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25 }}
-      >
-        <h1 className="text-xl font-semibold text-foreground tracking-tight">Histórico de Processamentos</h1>
-        <p className="text-sm text-muted-foreground mt-1">Registros de conversões realizadas</p>
-      </motion.div>
+      <PageHeader
+        badgeIcon={History}
+        badgeLabel="Histórico"
+        title="Histórico de Processamentos"
+        description="Consulte todos os processamentos realizados, filtre por cliente ou período e acompanhe o status de cada conferência."
+      />
 
       {/* Stats */}
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-3">
         {[
           { icon: FileSpreadsheet, label: "Planilhas processadas", value: stats.totalPlanilhas },
           { icon: Hash, label: "Documentos processados", value: stats.totalDocumentos },
@@ -73,7 +73,7 @@ const Historico = () => {
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25, delay: i * 0.03 }}
-            className="rounded-3xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.025))] p-4 shadow-[0_10px_30px_rgba(0,0,0,0.18)] transition-all duration-200 hover:-translate-y-0.5 hover:border-white/15"
+            className="rounded-[22px] border border-border bg-card p-4 shadow-[0_8px_24px_rgba(0,0,0,0.18)] transition-all duration-200 hover:-translate-y-0.5 hover:border-white/15"
           >
             <div className="flex items-center gap-3">
               <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0 bg-primary/10">

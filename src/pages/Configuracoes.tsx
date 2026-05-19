@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { User, Lock, Bell, Save, Loader2, Eye, EyeOff, Check, Camera, X } from "lucide-react";
+import { User, Lock, Bell, Save, Loader2, Eye, EyeOff, Check, Camera, X, Settings } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import SectionContainer from "@/components/dashboard/SectionContainer";
+import PageHeader from "@/components/dashboard/PageHeader";
 
 /* ── Notification preferences (localStorage) ── */
 type NotifPrefs = {
@@ -248,17 +249,12 @@ const Configuracoes = () => {
   return (
     <div className="w-full">
       <div className="mx-auto max-w-[720px]">
-        <motion.div
-          initial={{ opacity: 0, y: -6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.25 }}
-          className="mb-8"
-        >
-          <h1 className="text-xl font-semibold text-foreground tracking-tight">Configurações</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Gerencie seu perfil, senha e preferências do sistema.
-          </p>
-        </motion.div>
+        <PageHeader
+          badgeIcon={Settings}
+          badgeLabel="Configurações"
+          title="Configurações"
+          description="Gerencie seu perfil, senha e preferências do sistema."
+        />
 
         <div className="space-y-5">
           {/* ── Profile ── */}

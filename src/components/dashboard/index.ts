@@ -7,3 +7,4 @@ export { default as SectionContainer } from "./SectionContainer";
 export { default as DataTable } from "./DataTable";
 export type { DataTableColumn } from "./DataTable";
 export { default as DashboardSectionLayout } from "./DashboardSectionLayout";
+export { default as PageHeader } from "./PageHeader";

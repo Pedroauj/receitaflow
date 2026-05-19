@@ -28,28 +28,17 @@ const ResetPassword = () => {
     const { error } = await supabase.auth.reauthenticate();
     if (error) {
       console.error("Reauthenticate error:", error);
-      // If rate limited, the code was already sent — proceed to verify step
       if (error.message?.includes("429") || error.message?.toLowerCase().includes("rate") || error.status === 429) {
         setStep("verify-code");
-        toast({
-          title: "Código já enviado",
-          description: "Verifique seu email para o código de verificação.",
-        });
+        toast({ title: "Código já enviado", description: "Verifique seu email para o código de verificação." });
         return;
       }
       hasTriggeredVerificationRef.current = false;
-      toast({
-        title: "Erro ao enviar código",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Erro ao enviar código", description: error.message, variant: "destructive" });
       return;
     }
     setStep("verify-code");
-    toast({
-      title: "Código enviado!",
-      description: "Verifique seu email para o código de verificação.",
-    });
+    toast({ title: "Código enviado!", description: "Verifique seu email para o código de verificação." });
   }, []);
 
   useEffect(() => {
@@ -64,18 +53,12 @@ const ResetPassword = () => {
             await sendVerificationCode();
           }
         } else if (!hasTriggeredVerificationRef.current) {
-          // No session — invalid or expired link
-          toast({
-            title: "Link inválido ou expirado",
-            description: "Solicite um novo convite ou link de recuperação.",
-            variant: "destructive",
-          });
+          toast({ title: "Link inválido ou expirado", description: "Solicite um novo convite ou link de recuperação.", variant: "destructive" });
           navigate("/login", { replace: true });
         }
       }
     );
 
-    // Also check current session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
         setEmail(session.user.email || "");
@@ -83,11 +66,7 @@ const ResetPassword = () => {
           await sendVerificationCode();
         }
       } else if (!hasTriggeredVerificationRef.current) {
-        toast({
-          title: "Link inválido ou expirado",
-          description: "Solicite um novo convite ou link de recuperação.",
-          variant: "destructive",
-        });
+        toast({ title: "Link inválido ou expirado", description: "Solicite um novo convite ou link de recuperação.", variant: "destructive" });
         navigate("/login", { replace: true });
       }
     });
@@ -98,27 +77,17 @@ const ResetPassword = () => {
   const handleVerifyCode = async (e: React.FormEvent) => {
     e.preventDefault();
     if (otpCode.length !== 6) return;
-    // Code is valid — proceed to password step
-    // The nonce will be sent with updateUser
     setStep("set-password");
   };
 
   const handleSetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.updateUser({
-      password,
-      nonce: otpCode,
-    });
+    const { error } = await supabase.auth.updateUser({ password, nonce: otpCode });
     setLoading(false);
-
     if (error) {
       if (error.message.toLowerCase().includes("nonce") || error.message.toLowerCase().includes("otp")) {
-        toast({
-          title: "Código inválido",
-          description: "O código de verificação está incorreto ou expirou. Tente novamente.",
-          variant: "destructive",
-        });
+        toast({ title: "Código inválido", description: "O código de verificação está incorreto ou expirou. Tente novamente.", variant: "destructive" });
         setOtpCode("");
         setStep("verify-code");
       } else {
@@ -126,10 +95,7 @@ const ResetPassword = () => {
       }
     } else {
       setStep("done");
-      toast({
-        title: "Senha definida com sucesso!",
-        description: "Você será redirecionado ao painel.",
-      });
+      toast({ title: "Senha definida com sucesso!", description: "Você será redirecionado ao painel." });
       setTimeout(() => navigate("/dashboard", { replace: true }), 1500);
     }
   };
@@ -147,7 +113,7 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "#18181A" }}>
+    <div className="min-h-screen flex items-center justify-center px-4 bg-background">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -156,75 +122,46 @@ const ResetPassword = () => {
       >
         {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="h-10 w-10 rounded-lg flex items-center justify-center" style={{ background: "#412402" }}>
-            <Hexagon className="h-6 w-6" style={{ color: "#BA7517" }} />
+          <div className="h-10 w-10 rounded-lg flex items-center justify-center bg-primary/20">
+            <Hexagon className="h-6 w-6 text-primary" />
           </div>
-          <h1 className="text-xl font-semibold" style={{ color: "#F5F5F0" }}>
-            Receita<span style={{ color: "#FAC775" }}>Flow</span>
+          <h1 className="text-xl font-semibold text-foreground">
+            Receita<span className="text-primary">Flow</span>
           </h1>
         </div>
 
         <div className="card-elevated p-6">
           <AnimatePresence mode="wait">
-            {/* Step: Loading / Sending Code */}
+            {/* Loading / Sending Code */}
             {(step === "loading" || step === "sending-code") && (
-              <motion.div
-                key="loading"
-                variants={stepVariants}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                transition={{ duration: 0.25 }}
-                className="flex flex-col items-center gap-4 py-8"
-              >
-                <Loader2 className="h-8 w-8 animate-spin" style={{ color: "#BA7517" }} />
-                <p className="text-sm" style={{ color: "#888780" }}>
+              <motion.div key="loading" variants={stepVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.25 }} className="flex flex-col items-center gap-4 py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">
                   {step === "loading" ? "Verificando sessão..." : "Enviando código de verificação..."}
                 </p>
               </motion.div>
             )}
 
-            {/* Step: Verify Code */}
+            {/* Verify Code */}
             {step === "verify-code" && (
-              <motion.div
-                key="verify"
-                variants={stepVariants}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                transition={{ duration: 0.25 }}
-              >
+              <motion.div key="verify" variants={stepVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.25 }}>
                 <div className="flex flex-col items-center mb-6">
-                  <div
-                    className="h-12 w-12 rounded-full flex items-center justify-center mb-4"
-                    style={{ background: "rgba(186, 117, 23, 0.15)" }}
-                  >
-                    <Mail className="h-6 w-6" style={{ color: "#BA7517" }} />
+                  <div className="h-12 w-12 rounded-full flex items-center justify-center mb-4 bg-primary/20">
+                    <Mail className="h-6 w-6 text-primary" />
                   </div>
-                  <h2 className="text-lg font-semibold text-center mb-1" style={{ color: "#F5F5F0" }}>
-                    Verifique seu email
-                  </h2>
-                  <p className="text-xs text-center" style={{ color: "#888780" }}>
-                    Enviamos um código de 6 dígitos para
-                  </p>
-                  <p className="text-xs text-center font-medium mt-1" style={{ color: "#FAC775" }}>
-                    {email}
-                  </p>
+                  <h2 className="text-lg font-semibold text-center mb-1 text-foreground">Verifique seu email</h2>
+                  <p className="text-xs text-center text-muted-foreground">Enviamos um código de 6 dígitos para</p>
+                  <p className="text-xs text-center font-medium mt-1 text-primary">{email}</p>
                 </div>
-
                 <form onSubmit={handleVerifyCode} className="space-y-5">
                   <div className="flex justify-center">
-                    <InputOTP
-                      maxLength={6}
-                      value={otpCode}
-                      onChange={(value) => setOtpCode(value)}
-                    >
+                    <InputOTP maxLength={6} value={otpCode} onChange={(value) => setOtpCode(value)}>
                       <InputOTPGroup>
                         <InputOTPSlot index={0} />
                         <InputOTPSlot index={1} />
                         <InputOTPSlot index={2} />
                       </InputOTPGroup>
-                      <span className="mx-2" style={{ color: "#5F5E5A" }}>-</span>
+                      <span className="mx-2 text-muted-foreground">-</span>
                       <InputOTPGroup>
                         <InputOTPSlot index={3} />
                         <InputOTPSlot index={4} />
@@ -232,22 +169,13 @@ const ResetPassword = () => {
                       </InputOTPGroup>
                     </InputOTP>
                   </div>
-
-                  <Button
-                    type="submit"
-                    className="w-full gradient-btn border-0 h-10 text-sm"
-                    disabled={otpCode.length !== 6}
-                  >
+                  <Button type="submit" className="w-full gradient-btn border-0 h-10 text-sm" disabled={otpCode.length !== 6}>
                     Verificar código
                   </Button>
-
                   <button
                     type="button"
                     onClick={handleResendCode}
-                    className="w-full text-xs text-center py-2 transition-colors"
-                    style={{ color: "#888780" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = "#FAC775")}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = "#888780")}
+                    className="w-full text-xs text-center py-2 text-muted-foreground hover:text-foreground transition-colors"
                   >
                     Não recebeu? Reenviar código
                   </button>
@@ -255,88 +183,50 @@ const ResetPassword = () => {
               </motion.div>
             )}
 
-            {/* Step: Set Password */}
+            {/* Set Password */}
             {step === "set-password" && (
-              <motion.div
-                key="password"
-                variants={stepVariants}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                transition={{ duration: 0.25 }}
-              >
+              <motion.div key="password" variants={stepVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.25 }}>
                 <div className="flex flex-col items-center mb-6">
-                  <div
-                    className="h-12 w-12 rounded-full flex items-center justify-center mb-4"
-                    style={{ background: "rgba(186, 117, 23, 0.15)" }}
-                  >
-                    <ShieldCheck className="h-6 w-6" style={{ color: "#BA7517" }} />
+                  <div className="h-12 w-12 rounded-full flex items-center justify-center mb-4 bg-primary/20">
+                    <ShieldCheck className="h-6 w-6 text-primary" />
                   </div>
-                  <h2 className="text-lg font-semibold text-center mb-1" style={{ color: "#F5F5F0" }}>
-                    Defina sua senha
-                  </h2>
-                  <p className="text-xs text-center" style={{ color: "#888780" }}>
-                    Email verificado! Agora crie sua senha de acesso.
-                  </p>
+                  <h2 className="text-lg font-semibold text-center mb-1 text-foreground">Defina sua senha</h2>
+                  <p className="text-xs text-center text-muted-foreground">Email verificado! Agora crie sua senha de acesso.</p>
                 </div>
-
                 <form onSubmit={handleSetPassword} className="space-y-4">
                   <div className="space-y-2">
-                    <Label className="text-[11px]" style={{ color: "#5F5E5A" }}>Nova senha</Label>
+                    <Label className="text-[11px] text-muted-foreground">Nova senha</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: "#5F5E5A" }} />
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         type={showPassword ? "text" : "password"}
                         placeholder="Mínimo 6 caracteres"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="pl-10 pr-10 border-[#2C2C2A] bg-[#18181A] h-10"
-                        style={{ color: "#B4B2A9" }}
+                        className="pl-10 pr-10 border-border bg-muted/50 h-10"
                         required
                         minLength={6}
                       />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2"
-                        style={{ color: "#5F5E5A" }}
-                      >
+                      <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
                   </div>
-                  <Button
-                    type="submit"
-                    className="w-full gradient-btn border-0 h-10 text-sm"
-                    disabled={loading}
-                  >
+                  <Button type="submit" className="w-full gradient-btn border-0 h-10 text-sm" disabled={loading}>
                     {loading ? "Salvando..." : "Definir senha"}
                   </Button>
                 </form>
               </motion.div>
             )}
 
-            {/* Step: Done */}
+            {/* Done */}
             {step === "done" && (
-              <motion.div
-                key="done"
-                variants={stepVariants}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                transition={{ duration: 0.25 }}
-                className="flex flex-col items-center gap-4 py-8"
-              >
-                <div
-                  className="h-12 w-12 rounded-full flex items-center justify-center"
-                  style={{ background: "rgba(34, 197, 94, 0.15)" }}
-                >
-                  <ShieldCheck className="h-6 w-6" style={{ color: "#22c55e" }} />
+              <motion.div key="done" variants={stepVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.25 }} className="flex flex-col items-center gap-4 py-8">
+                <div className="h-12 w-12 rounded-full flex items-center justify-center bg-success/20">
+                  <ShieldCheck className="h-6 w-6 text-success-foreground" />
                 </div>
-                <h2 className="text-lg font-semibold" style={{ color: "#F5F5F0" }}>Tudo pronto!</h2>
-                <p className="text-xs text-center" style={{ color: "#888780" }}>
-                  Sua conta foi ativada. Redirecionando...
-                </p>
+                <h2 className="text-lg font-semibold text-foreground">Tudo pronto!</h2>
+                <p className="text-xs text-center text-muted-foreground">Sua conta foi ativada. Redirecionando...</p>
               </motion.div>
             )}
           </AnimatePresence>

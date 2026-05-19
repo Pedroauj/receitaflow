@@ -56,30 +56,30 @@ const Cadastro = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "#18181A" }}>
+    <div className="min-h-screen flex items-center justify-center px-4 bg-background">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
         className="w-full max-w-sm"
       >
+        {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="h-10 w-10 rounded-lg flex items-center justify-center" style={{ background: "#412402" }}>
-            <Hexagon className="h-6 w-6" style={{ color: "#BA7517" }} />
+          <div className="h-10 w-10 rounded-lg flex items-center justify-center bg-primary/20">
+            <Hexagon className="h-6 w-6 text-primary" />
           </div>
-          <h1 className="text-xl font-semibold" style={{ color: "#F5F5F0" }}>
-            Receita<span style={{ color: "#FAC775" }}>Flow</span>
+          <h1 className="text-xl font-semibold text-foreground">
+            Receita<span className="text-primary">Flow</span>
           </h1>
         </div>
 
         <div className="card-elevated p-6">
-          <h2 className="text-lg font-semibold text-center mb-1" style={{ color: "#F5F5F0" }}>Criar conta</h2>
-          <p className="text-xs text-center mb-6" style={{ color: "#888780" }}>Cadastre-se para começar</p>
+          <h2 className="text-lg font-semibold text-center mb-1 text-foreground">Criar conta</h2>
+          <p className="text-xs text-center mb-6 text-muted-foreground">Cadastre-se para começar</p>
 
           <Button
             variant="outline"
-            className="w-full h-10 text-sm border-[#2C2C2A] bg-[#1E1E20] hover:bg-[#2C2C2A] mb-4"
-            style={{ color: "#B4B2A9" }}
+            className="w-full h-10 text-sm border-border bg-muted/50 hover:bg-muted mb-4 text-foreground"
             onClick={handleGoogleSignup}
             disabled={loading}
           >
@@ -93,34 +93,34 @@ const Cadastro = () => {
           </Button>
 
           <div className="flex items-center gap-3 mb-4">
-            <div className="flex-1 h-px" style={{ background: "#2C2C2A" }} />
-            <span className="text-[10px] uppercase tracking-wider" style={{ color: "#5F5E5A" }}>ou</span>
-            <div className="flex-1 h-px" style={{ background: "#2C2C2A" }} />
+            <div className="flex-1 h-px bg-border" />
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">ou</span>
+            <div className="flex-1 h-px bg-border" />
           </div>
 
           <form onSubmit={handleSignup} className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-[11px]" style={{ color: "#5F5E5A" }}>Nome completo</Label>
+              <Label className="text-[11px] text-muted-foreground">Nome completo</Label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: "#5F5E5A" }} />
-                <Input type="text" placeholder="Seu nome" value={name} onChange={(e) => setName(e.target.value)} className="pl-10 border-[#2C2C2A] bg-[#18181A] h-10" style={{ color: "#B4B2A9" }} required />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input type="text" placeholder="Seu nome" value={name} onChange={(e) => setName(e.target.value)} className="pl-10 border-border bg-muted/50 h-10" required />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-[11px]" style={{ color: "#5F5E5A" }}>Email</Label>
+              <Label className="text-[11px] text-muted-foreground">Email</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: "#5F5E5A" }} />
-                <Input type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10 border-[#2C2C2A] bg-[#18181A] h-10" style={{ color: "#B4B2A9" }} required />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10 border-border bg-muted/50 h-10" required />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-[11px]" style={{ color: "#5F5E5A" }}>Senha</Label>
+              <Label className="text-[11px] text-muted-foreground">Senha</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: "#5F5E5A" }} />
-                <Input type={showPassword ? "text" : "password"} placeholder="Mínimo 6 caracteres" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10 pr-10 border-[#2C2C2A] bg-[#18181A] h-10" style={{ color: "#B4B2A9" }} required minLength={6} />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: "#5F5E5A" }}>
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input type={showPassword ? "text" : "password"} placeholder="Mínimo 6 caracteres" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10 pr-10 border-border bg-muted/50 h-10" required minLength={6} />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
@@ -132,9 +132,9 @@ const Cadastro = () => {
           </form>
         </div>
 
-        <p className="text-center text-xs mt-5" style={{ color: "#888780" }}>
+        <p className="text-center text-xs mt-5 text-muted-foreground">
           Já tem conta?{" "}
-          <Link to="/login" className="font-medium hover:underline" style={{ color: "#FAC775" }}>
+          <Link to="/login" className="font-medium text-primary hover:underline">
             Entrar
           </Link>
         </p>

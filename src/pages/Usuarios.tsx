@@ -569,37 +569,47 @@ const Usuarios = () => {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.22 }}
-          className="rfu-panel rounded-[24px] p-5 md:p-6"
+          className="relative overflow-hidden rounded-[28px] border border-border bg-card shadow-[0_18px_48px_rgba(0,0,0,0.28)]"
         >
-          <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-            <div className="space-y-3">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-white/50">
-                <Shield className="h-3.5 w-3.5" />
-                Painel administrativo
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.12),transparent_32%),radial-gradient(circle_at_bottom_right,hsl(var(--primary)/0.08),transparent_28%)]" />
+          <div className="relative p-6 lg:p-8">
+            <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+              <div className="space-y-3">
+                <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">
+                  <Shield className="h-3.5 w-3.5" />
+                  Painel administrativo
+                </div>
+                <div>
+                  <h1 className="text-[28px] font-semibold leading-none tracking-tight text-foreground lg:text-[32px]">
+                    Gestão de Usuários
+                  </h1>
+                  <p className="mt-3 max-w-3xl text-[15px] leading-7 text-muted-foreground">
+                    Gerencie empresas, permissões, convites e acessos dos usuários do sistema
+                    dentro de uma única central administrativa.
+                  </p>
+                </div>
               </div>
 
-              <div>
-                <h1 className="text-[24px] font-black tracking-[-0.04em] text-white md:text-[30px]">
-                  Gestão de Usuários
-                </h1>
-                <p className="mt-2 max-w-3xl text-sm leading-relaxed text-white/52">
-                  Gerencie empresas, permissões, convites e acessos dos usuários do sistema
-                  dentro de uma única central administrativa.
-                </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="inline-flex h-9 px-3.5 rounded-full border border-border bg-muted/50 text-xs font-semibold items-center text-muted-foreground">
+                  {profiles.length} usuários cadastrados
+                </div>
+                <div className="inline-flex h-9 px-3.5 rounded-full border border-border bg-muted/50 text-xs font-semibold items-center text-muted-foreground">
+                  {companies.length} empresas
+                </div>
               </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="rfu-stat">{profiles.length} usuários cadastrados</div>
-              <div className="rfu-stat">{companies.length} empresas</div>
             </div>
           </div>
         </motion.div>
 
-        <div className="mt-6 flex flex-wrap items-center gap-2 rounded-full border border-white/8 bg-white/[0.025] p-1.5 w-fit">
+        <div className="mt-6 flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-card p-1.5 w-fit shadow-[0_4px_12px_rgba(0,0,0,0.12)]">
           <button
             onClick={() => setActiveTab("users")}
-            className={`rfu-tab ${activeTab === "users" ? "is-active" : ""}`}
+            className={`inline-flex h-[38px] px-4 rounded-xl border text-[13px] font-semibold items-center gap-2 transition-all duration-200 ${
+              activeTab === "users"
+                ? "bg-primary/15 text-foreground border-primary/25 shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.2)]"
+                : "border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+            }`}
             type="button"
           >
             <Users className="h-3.5 w-3.5" />
@@ -608,7 +618,11 @@ const Usuarios = () => {
 
           <button
             onClick={() => setActiveTab("companies")}
-            className={`rfu-tab ${activeTab === "companies" ? "is-active" : ""}`}
+            className={`inline-flex h-[38px] px-4 rounded-xl border text-[13px] font-semibold items-center gap-2 transition-all duration-200 ${
+              activeTab === "companies"
+                ? "bg-primary/15 text-foreground border-primary/25 shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.2)]"
+                : "border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+            }`}
             type="button"
           >
             <Building2 className="h-3.5 w-3.5" />
@@ -627,13 +641,13 @@ const Usuarios = () => {
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
                   <p className="text-sm font-semibold text-white">Empresas cadastradas</p>
-                  <p className="mt-1 text-xs text-white/46">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     Organize seus usuários por empresa e gerencie identidade visual.
                   </p>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <span className="text-xs font-semibold text-white/46">
+                  <span className="text-xs font-semibold text-muted-foreground">
                     {companies.length} empresa{companies.length !== 1 ? "s" : ""}
                   </span>
 
@@ -662,7 +676,7 @@ const Usuarios = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="text-base font-bold text-white">Nova empresa</h3>
-                        <p className="mt-1 text-xs text-white/44">
+                        <p className="mt-1 text-xs text-muted-foreground">
                           Cadastre uma nova empresa e opcionalmente defina a logo.
                         </p>
                       </div>
@@ -682,7 +696,7 @@ const Usuarios = () => {
 
                     <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.3fr_1fr]">
                       <div className="space-y-2">
-                        <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/42">
+                        <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                           Nome da empresa
                         </Label>
                         <Input
@@ -694,7 +708,7 @@ const Usuarios = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/42">
+                        <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                           Logo da empresa
                         </Label>
 
@@ -707,8 +721,8 @@ const Usuarios = () => {
                         />
 
                         {logoPreview ? (
-                          <div className="flex items-center gap-3 rounded-[16px] border border-white/8 bg-white/[0.025] p-3">
-                            <div className="h-14 w-24 rounded-xl border border-white/8 bg-black/20 flex items-center justify-center overflow-hidden">
+                          <div className="flex items-center gap-3 rounded-[16px] border border-border bg-muted/30 p-3">
+                            <div className="h-14 w-24 rounded-xl border border-border bg-black/20 flex items-center justify-center overflow-hidden">
                               <img
                                 src={logoPreview}
                                 alt="Preview"
@@ -731,7 +745,7 @@ const Usuarios = () => {
                           <button
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
-                            className="flex h-14 w-full items-center gap-2 rounded-[16px] border border-dashed border-white/10 bg-white/[0.025] px-4 text-sm font-medium text-white/56 transition-colors hover:bg-white/[0.04] hover:text-white/82"
+                            className="flex h-14 w-full items-center gap-2 rounded-[16px] border border-dashed border-border bg-muted/30 px-4 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
                           >
                             <Upload className="h-4 w-4" />
                             Fazer upload do logo
@@ -773,9 +787,9 @@ const Usuarios = () => {
                   return (
                     <div
                       key={company.id}
-                      className="group flex items-center gap-4 px-5 py-4 transition-colors hover:bg-white/[0.03]"
+                      className="group flex items-center gap-4 px-5 py-4 transition-colors hover:bg-muted/40"
                     >
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-[14px] border border-white/8 bg-white/[0.03]">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-[14px] border border-border bg-muted/40">
                         {company.logo_url ? (
                           <img
                             src={company.logo_url}
@@ -783,7 +797,7 @@ const Usuarios = () => {
                             className="h-full w-full object-contain p-1"
                           />
                         ) : (
-                          <ImageIcon className="h-4 w-4 text-white/34" />
+                          <ImageIcon className="h-4 w-4 text-muted-foreground/60" />
                         )}
                       </div>
 
@@ -791,7 +805,7 @@ const Usuarios = () => {
                         <p className="truncate text-sm font-semibold text-white">
                           {company.name}
                         </p>
-                        <p className="mt-1 text-[11px] text-white/42">
+                        <p className="mt-1 text-[11px] text-muted-foreground">
                           {userCount} usuário{userCount !== 1 ? "s" : ""}
                         </p>
                       </div>
@@ -821,10 +835,10 @@ const Usuarios = () => {
 
                 {companies.length === 0 && (
                   <div className="px-5 py-14 text-center">
-                    <p className="text-sm font-medium text-white/78">
+                    <p className="text-sm font-medium text-foreground/80">
                       Nenhuma empresa cadastrada.
                     </p>
-                    <p className="mt-1 text-xs text-white/42">
+                    <p className="mt-1 text-xs text-muted-foreground">
                       Crie a primeira empresa para começar a organizar os usuários.
                     </p>
                   </div>
@@ -852,7 +866,7 @@ const Usuarios = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="text-base font-bold text-white">Editar empresa</h3>
-                        <p className="mt-1 text-xs text-white/42">
+                        <p className="mt-1 text-xs text-muted-foreground">
                           Atualize o nome e a logo da empresa.
                         </p>
                       </div>
@@ -867,7 +881,7 @@ const Usuarios = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/42">
+                      <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                         Nome
                       </Label>
                       <Input
@@ -878,7 +892,7 @@ const Usuarios = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/42">
+                      <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                         Logo
                       </Label>
 
@@ -891,8 +905,8 @@ const Usuarios = () => {
                       />
 
                       {editLogoPreview ? (
-                        <div className="flex items-center gap-3 rounded-[16px] border border-white/8 bg-white/[0.025] p-3">
-                          <div className="h-14 w-24 rounded-xl border border-white/8 bg-black/20 flex items-center justify-center overflow-hidden">
+                        <div className="flex items-center gap-3 rounded-[16px] border border-border bg-muted/30 p-3">
+                          <div className="h-14 w-24 rounded-xl border border-border bg-black/20 flex items-center justify-center overflow-hidden">
                             <img
                               src={editLogoPreview}
                               alt="Preview"
@@ -915,7 +929,7 @@ const Usuarios = () => {
                         <button
                           type="button"
                           onClick={() => editFileInputRef.current?.click()}
-                          className="flex h-14 w-full items-center gap-2 rounded-[16px] border border-dashed border-white/10 bg-white/[0.025] px-4 text-sm font-medium text-white/56 transition-colors hover:bg-white/[0.04] hover:text-white/82"
+                          className="flex h-14 w-full items-center gap-2 rounded-[16px] border border-dashed border-border bg-muted/30 px-4 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
                         >
                           <Upload className="h-4 w-4" />
                           Fazer upload do logo
@@ -975,7 +989,7 @@ const Usuarios = () => {
                   >
                     <div>
                       <h3 className="text-base font-bold text-white">Excluir empresa</h3>
-                      <p className="mt-2 text-xs leading-relaxed text-white/46">
+                      <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                         Esta ação é irreversível. Todos os usuários vinculados a{" "}
                         <span className="font-semibold text-white">
                           {deletingCompany.name}
@@ -985,7 +999,7 @@ const Usuarios = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/42">
+                      <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                         Digite {deletingCompany.name} para confirmar
                       </Label>
                       <Input
@@ -1037,7 +1051,7 @@ const Usuarios = () => {
             <div className="rfu-glass rounded-[22px] p-4 md:p-5">
               <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                 <div className="relative w-full max-w-md">
-                  <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/34" />
+                  <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/60" />
                   <input
                     type="text"
                     placeholder="Buscar por nome ou email..."
@@ -1048,7 +1062,7 @@ const Usuarios = () => {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                  <span className="text-xs font-semibold text-white/46">
+                  <span className="text-xs font-semibold text-muted-foreground">
                     {filtered.length} usuário{filtered.length !== 1 ? "s" : ""}
                   </span>
 
@@ -1080,7 +1094,7 @@ const Usuarios = () => {
                           <Mail className="h-4 w-4 text-violet-300" />
                           Convidar usuário
                         </h3>
-                        <p className="mt-1 text-xs text-white/42">
+                        <p className="mt-1 text-xs text-muted-foreground">
                           Envie um convite e associe o usuário a uma empresa, se necessário.
                         </p>
                       </div>
@@ -1096,7 +1110,7 @@ const Usuarios = () => {
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div className="space-y-2">
-                        <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/42">
+                        <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                           Email do convidado
                         </Label>
                         <Input
@@ -1109,7 +1123,7 @@ const Usuarios = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/42">
+                        <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                           Empresa (opcional)
                         </Label>
                         <select
@@ -1128,9 +1142,9 @@ const Usuarios = () => {
                     </div>
 
                     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                      <p className="text-[11px] text-white/42">
+                      <p className="text-[11px] text-muted-foreground">
                         O convite será enviado via{" "}
-                        <span className="font-semibold text-white/80">
+                        <span className="font-semibold text-foreground/80">
                           notify.receitaflow.com
                         </span>
                       </p>
@@ -1161,7 +1175,7 @@ const Usuarios = () => {
 
             {loading ? (
               <div className="rfu-panel rounded-[22px] py-20">
-                <div className="flex items-center justify-center gap-3 text-white/54">
+                <div className="flex items-center justify-center gap-3 text-muted-foreground">
                   <div className="h-6 w-6 rounded-full border-2 border-violet-300/70 border-t-transparent animate-spin" />
                   <span className="text-sm font-medium">Carregando usuários...</span>
                 </div>
@@ -1217,7 +1231,7 @@ const Usuarios = () => {
 
                               <td className="px-4 py-3">
                                 <div className="flex items-center gap-3">
-                                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] border border-white/8 bg-violet-500/12 text-[11px] font-extrabold text-violet-200">
+                                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] border border-border bg-violet-500/12 text-[11px] font-extrabold text-violet-200">
                                     {initials}
                                   </div>
                                   <span className="text-sm font-semibold text-white">
@@ -1226,7 +1240,7 @@ const Usuarios = () => {
                                 </div>
                               </td>
 
-                              <td className="px-4 py-3 text-sm text-white/56">
+                              <td className="px-4 py-3 text-sm text-muted-foreground">
                                 {profile.email || "—"}
                               </td>
 
@@ -1235,7 +1249,7 @@ const Usuarios = () => {
                                   value={profile.company_id || ""}
                                   onChange={(e) => assignCompany(profile, e.target.value || null)}
                                   disabled={updating === profile.id}
-                                  className="h-9 max-w-[180px] rounded-[12px] border border-white/8 bg-white/[0.03] px-3 text-[12px] font-medium text-white/84 outline-none transition-all focus:border-violet-400/40 focus:ring-4 focus:ring-violet-500/10 disabled:opacity-50"
+                                  className="h-9 max-w-[180px] rounded-[12px] border border-border bg-muted/40 px-3 text-[12px] font-medium text-white/84 outline-none transition-all focus:border-violet-400/40 focus:ring-4 focus:ring-violet-500/10 disabled:opacity-50"
                                 >
                                   <option value="">Sem empresa</option>
                                   {companies.map((c) => (
@@ -1344,14 +1358,14 @@ const Usuarios = () => {
                                             <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-white/38">
                                               Permissões por módulo
                                             </p>
-                                            <p className="mt-1 text-xs text-white/42">
+                                            <p className="mt-1 text-xs text-muted-foreground">
                                               Controle de visualização e edição por usuário.
                                             </p>
                                           </div>
                                         </div>
 
                                         {permLoading === profile.user_id ? (
-                                          <div className="flex items-center gap-2 py-3 text-sm text-white/52">
+                                          <div className="flex items-center gap-2 py-3 text-sm text-muted-foreground">
                                             <div className="h-4 w-4 rounded-full border-2 border-violet-300/70 border-t-transparent animate-spin" />
                                             Carregando...
                                           </div>
@@ -1365,12 +1379,12 @@ const Usuarios = () => {
                                               return (
                                                 <div
                                                   key={mod.key}
-                                                  className="rounded-[16px] border border-white/7 bg-white/[0.03] p-3"
+                                                  className="rounded-[16px] border border-white/7 bg-muted/40 p-3"
                                                 >
                                                   <div className="flex items-center justify-between gap-3">
                                                     <div className="flex min-w-0 items-center gap-2.5">
-                                                      <mod.icon className="h-3.5 w-3.5 shrink-0 text-white/42" />
-                                                      <span className="truncate text-[12px] font-semibold text-white/82">
+                                                      <mod.icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                                                      <span className="truncate text-[12px] font-semibold text-foreground">
                                                         {mod.label}
                                                       </span>
                                                     </div>
@@ -1439,7 +1453,7 @@ const Usuarios = () => {
                             <p className="text-sm font-medium text-white/76">
                               Nenhum usuário encontrado.
                             </p>
-                            <p className="mt-1 text-xs text-white/42">
+                            <p className="mt-1 text-xs text-muted-foreground">
                               Tente ajustar a busca por nome ou email.
                             </p>
                           </td>
@@ -1472,7 +1486,7 @@ const Usuarios = () => {
               >
                 <div>
                   <h3 className="text-base font-bold text-white">Excluir usuário</h3>
-                  <p className="mt-2 text-xs leading-relaxed text-white/46">
+                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                     Tem certeza que deseja excluir o usuário{" "}
                     <span className="font-semibold text-white">
                       {deletingUser.full_name || deletingUser.display_name || deletingUser.email}
