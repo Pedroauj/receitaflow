@@ -823,7 +823,7 @@ const Usuarios = () => {
                         <button
                           type="button"
                           onClick={() => setDeletingCompany(company)}
-                          className="rfu-mini-btn border-red-500/20 bg-red-500/[0.06] text-red-300 hover:bg-red-500/[0.12] hover:text-red-200"
+                          className="rfu-mini-btn border-destructive/25 bg-destructive/10 text-destructive hover:bg-destructive/15 hover:text-destructive"
                           title="Excluir empresa"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -1091,7 +1091,7 @@ const Usuarios = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="flex items-center gap-2 text-base font-bold text-white">
-                          <Mail className="h-4 w-4 text-violet-300" />
+                          <Mail className="h-4 w-4 text-primary" />
                           Convidar usuário
                         </h3>
                         <p className="mt-1 text-xs text-muted-foreground">
@@ -1176,7 +1176,7 @@ const Usuarios = () => {
             {loading ? (
               <div className="rfu-panel rounded-[22px] py-20">
                 <div className="flex items-center justify-center gap-3 text-muted-foreground">
-                  <div className="h-6 w-6 rounded-full border-2 border-violet-300/70 border-t-transparent animate-spin" />
+                  <div className="h-6 w-6 rounded-full border-2 border-primary/25 border-t-transparent animate-spin" />
                   <span className="text-sm font-medium">Carregando usuários...</span>
                 </div>
               </div>
@@ -1231,7 +1231,7 @@ const Usuarios = () => {
 
                               <td className="px-4 py-3">
                                 <div className="flex items-center gap-3">
-                                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] border border-border bg-violet-500/12 text-[11px] font-extrabold text-violet-200">
+                                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] border border-border bg-primary/10 text-[11px] font-extrabold text-primary">
                                     {initials}
                                   </div>
                                   <span className="text-sm font-semibold text-white">
@@ -1249,7 +1249,7 @@ const Usuarios = () => {
                                   value={profile.company_id || ""}
                                   onChange={(e) => assignCompany(profile, e.target.value || null)}
                                   disabled={updating === profile.id}
-                                  className="h-9 max-w-[180px] rounded-[12px] border border-border bg-muted/40 px-3 text-[12px] font-medium text-white/84 outline-none transition-all focus:border-violet-400/40 focus:ring-4 focus:ring-violet-500/10 disabled:opacity-50"
+                                  className="h-9 max-w-[180px] rounded-[12px] border border-border bg-muted/40 px-3 text-[12px] font-medium text-white/84 outline-none transition-all focus:border-primary/25 focus:ring-4 focus:ring-violet-500/10 disabled:opacity-50"
                                 >
                                   <option value="">Sem empresa</option>
                                   {companies.map((c) => (
@@ -1264,7 +1264,7 @@ const Usuarios = () => {
                                 <span
                                   className={`rfu-badge ${
                                     profile.role === "master"
-                                      ? "bg-violet-500/14 text-violet-200"
+                                      ? "bg-primary/10 text-primary"
                                       : "bg-white/[0.05] text-white/60"
                                   }`}
                                 >
@@ -1281,8 +1281,8 @@ const Usuarios = () => {
                                 <span
                                   className={`rfu-badge ${
                                     profile.active
-                                      ? "bg-emerald-500/14 text-emerald-300"
-                                      : "bg-red-500/14 text-red-300"
+                                      ? "bg-success/10 text-success-foreground"
+                                      : "bg-destructive/10 text-destructive"
                                   }`}
                                 >
                                   {profile.active ? "Ativo" : "Inativo"}
@@ -1320,8 +1320,8 @@ const Usuarios = () => {
                                       disabled={updating === profile.id}
                                       className={`rfu-mini-btn ${
                                         profile.active
-                                          ? "border-red-500/18 bg-red-500/[0.06] text-red-300 hover:bg-red-500/[0.12] hover:text-red-200"
-                                          : "border-emerald-500/18 bg-emerald-500/[0.06] text-emerald-300 hover:bg-emerald-500/[0.12] hover:text-emerald-200"
+                                          ? "border-destructive/25 bg-destructive/10 text-destructive hover:bg-destructive/15 hover:text-destructive"
+                                          : "border-success/25 bg-success/10 text-success-foreground hover:bg-success/15 hover:text-success-foreground"
                                       }`}
                                     >
                                       {profile.active ? "Desativar" : "Ativar"}
@@ -1331,7 +1331,7 @@ const Usuarios = () => {
                                       type="button"
                                       onClick={() => setDeletingUser(profile)}
                                       disabled={updating === profile.id}
-                                      className="rfu-mini-btn border-red-500/18 bg-red-500/[0.06] text-red-300 hover:bg-red-500/[0.12] hover:text-red-200"
+                                      className="rfu-mini-btn border-destructive/25 bg-destructive/10 text-destructive hover:bg-destructive/15 hover:text-destructive"
                                       title="Excluir usuário"
                                     >
                                       <Trash2 className="h-3.5 w-3.5" />
@@ -1366,7 +1366,7 @@ const Usuarios = () => {
 
                                         {permLoading === profile.user_id ? (
                                           <div className="flex items-center gap-2 py-3 text-sm text-muted-foreground">
-                                            <div className="h-4 w-4 rounded-full border-2 border-violet-300/70 border-t-transparent animate-spin" />
+                                            <div className="h-4 w-4 rounded-full border-2 border-primary/25 border-t-transparent animate-spin" />
                                             Carregando...
                                           </div>
                                         ) : (
@@ -1401,7 +1401,7 @@ const Usuarios = () => {
                                                         }
                                                         className={`rfu-mini-btn h-7 rounded-lg px-2.5 text-[10px] ${
                                                           canView
-                                                            ? "border-violet-400/20 bg-violet-500/14 text-violet-200"
+                                                            ? "border-primary/25 bg-primary/10 text-primary"
                                                             : ""
                                                         }`}
                                                         title="Visualizar"
@@ -1422,7 +1422,7 @@ const Usuarios = () => {
                                                         disabled={!canView}
                                                         className={`rfu-mini-btn h-7 rounded-lg px-2.5 text-[10px] ${
                                                           canEdit
-                                                            ? "border-emerald-400/20 bg-emerald-500/14 text-emerald-300"
+                                                            ? "border-success/25 bg-success/10 text-success-foreground"
                                                             : ""
                                                         }`}
                                                         title="Editar"

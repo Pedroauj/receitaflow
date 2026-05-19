@@ -11,10 +11,10 @@ const iconMap = {
 };
 
 const severityStyles = {
-  info: "border-blue-500/20 bg-blue-500/5 text-blue-300",
+  info: "border-primary/25 bg-primary/10 text-primary",
   warning: "border-yellow-500/20 bg-yellow-500/5 text-yellow-300",
-  critical: "border-red-500/20 bg-red-500/5 text-red-300",
-  success: "border-emerald-500/20 bg-emerald-500/5 text-emerald-300",
+  critical: "border-destructive/25 bg-destructive/10 text-destructive",
+  success: "border-success/25 bg-success/10 text-success-foreground",
 };
 
 interface Props {

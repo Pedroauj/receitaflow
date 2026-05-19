@@ -278,7 +278,7 @@ const MartinBrower = () => {
                     { key: "valorBrutoConvertido", label: "Valor Bruto", render: (row) => row.valorBrutoConvertido != null ? formatBRL(row.valorBrutoConvertido) : "—" },
                     { key: "status", label: "Status", render: (row) => {
                       const s = row.status;
-                      const color = s === "válida" ? "text-emerald-400" : s === "erro" ? "text-red-400" : "text-amber-400";
+                      const color = s === "válida" ? "text-success-foreground" : s === "erro" ? "text-destructive" : "text-warning-foreground";
                       return <span className={color}>{s}</span>;
                     }},
                   ]}

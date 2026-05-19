@@ -4,38 +4,38 @@ type ColorVariant = "emerald" | "amber" | "red" | "blue" | "primary" | "neutral"
 
 const colorMap: Record<ColorVariant, { border: string; bg: string; text: string; sub: string }> = {
   emerald: {
-    border: "border-emerald-500/15",
-    bg: "bg-emerald-500/8",
-    text: "text-emerald-300",
-    sub: "text-emerald-200/80",
+    border: "border-success/30",
+    bg: "bg-success/10",
+    text: "text-success-foreground",
+    sub: "text-success-foreground/70",
   },
   amber: {
-    border: "border-amber-500/15",
-    bg: "bg-amber-500/8",
-    text: "text-amber-300",
-    sub: "text-amber-200/80",
+    border: "border-warning/30",
+    bg: "bg-warning/10",
+    text: "text-warning-foreground",
+    sub: "text-warning-foreground/70",
   },
   red: {
-    border: "border-red-500/15",
-    bg: "bg-red-500/8",
-    text: "text-red-300",
-    sub: "text-red-200/80",
+    border: "border-destructive/30",
+    bg: "bg-destructive/10",
+    text: "text-destructive",
+    sub: "text-destructive/70",
   },
   blue: {
-    border: "border-blue-500/15",
-    bg: "bg-blue-500/8",
-    text: "text-blue-300",
-    sub: "text-blue-200/80",
+    border: "border-primary/25",
+    bg: "bg-primary/10",
+    text: "text-primary",
+    sub: "text-primary/70",
   },
   primary: {
-    border: "border-primary/15",
-    bg: "bg-primary/8",
+    border: "border-primary/25",
+    bg: "bg-primary/10",
     text: "text-primary",
-    sub: "text-primary/80",
+    sub: "text-primary/70",
   },
   neutral: {
-    border: "border-white/10",
-    bg: "bg-white/[0.03]",
+    border: "border-border",
+    bg: "bg-muted/30",
     text: "text-foreground",
     sub: "text-muted-foreground",
   },
@@ -57,7 +57,7 @@ const HighlightCard = ({ label, value, description, color = "neutral", index = 0
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, delay: index * 0.04 }}
-      className={`rounded-3xl border ${c.border} ${c.bg} p-4`}
+      className={`rounded-[22px] border ${c.border} ${c.bg} p-4`}
     >
       <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
       <p className={`mt-2 text-3xl font-semibold tracking-tight ${c.text}`}>{value}</p>

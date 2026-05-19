@@ -218,7 +218,7 @@ const Index = () => {
               <p className="text-[34px] font-black leading-none tracking-[-0.06em] text-foreground md:text-[56px]">
                 {formatCurrency(stats.valorTotalProcessado)}
               </p>
-              <span className="mb-1 rounded-full bg-emerald-500/10 px-3 py-1 text-[12px] font-bold text-emerald-400">
+              <span className="mb-1 rounded-full bg-success/10 px-3 py-1 text-[12px] font-bold text-success-foreground">
                 +12,67%
               </span>
             </div>

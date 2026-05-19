@@ -97,7 +97,7 @@ const ContasAPagar = () => {
               </p>
             </div>
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-border bg-muted/50">
-              <FileSpreadsheet className="h-5 w-5 text-emerald-400" />
+              <FileSpreadsheet className="h-5 w-5 text-success-foreground" />
             </div>
           </div>
 
@@ -168,7 +168,7 @@ const ContasAPagar = () => {
               </p>
             </div>
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-border bg-muted/50">
-              <Landmark className="h-5 w-5 text-blue-400" />
+              <Landmark className="h-5 w-5 text-primary" />
             </div>
           </div>
 

@@ -14,13 +14,14 @@ import {
   TrendingUp,
 } from "lucide-react";
 
+// Cores únicas por cliente — mantidas para identidade visual individual dos cards
 const clientColors: Record<string, string> = {
-  "martin-brower": "#D4A64F",
-  minerva: "#60A5FA",
-  danone: "#4ADE80",
-  platlog: "#A78BFA",
-  jbs: "#F87171",
-  natura: "#34D399",
+  "martin-brower": "hsl(40 70% 50%)",   // primary do tema
+  minerva:         "hsl(40 70% 50%)",
+  danone:          "hsl(40 70% 50%)",
+  platlog:         "hsl(40 70% 50%)",
+  jbs:             "hsl(40 70% 50%)",
+  natura:          "hsl(40 70% 50%)",
 };
 
 const clientInitials: Record<string, string> = {
@@ -47,9 +48,8 @@ const MotorCliente = () => {
 
   const enrichedClients = useMemo(() => {
     return clients.map((client) => {
-      const color = clientColors[client.id] || "#8B5CF6";
-      const initials =
-        clientInitials[client.id] || client.name.slice(0, 2).toUpperCase();
+      const color = clientColors[client.id] || "hsl(40 70% 50%)";
+      const initials = clientInitials[client.id] || client.name.slice(0, 2).toUpperCase();
 
       const normalizedClientId = normalizeText(client.id.replace(/-/g, " "));
       const normalizedClientName = normalizeText(client.name);
@@ -67,20 +67,13 @@ const MotorCliente = () => {
         0
       );
 
-      return {
-        ...client,
-        color,
-        initials,
-        docCount,
-        isActive: docCount > 0,
-      };
+      return { ...client, color, initials, docCount, isActive: docCount > 0 };
     });
   }, [records]);
 
   const filteredClients = useMemo(() => {
     const term = normalizeText(search.trim());
     if (!term) return enrichedClients;
-
     return enrichedClients.filter(
       (client) =>
         normalizeText(client.name).includes(term) ||
@@ -88,39 +81,19 @@ const MotorCliente = () => {
     );
   }, [enrichedClients, search]);
 
-  const activeClientsList = filteredClients.filter((client) => client.isActive);
-  const pendingClientsList = filteredClients.filter((client) => !client.isActive);
+  const activeClientsList = filteredClients.filter((c) => c.isActive);
+  const pendingClientsList = filteredClients.filter((c) => !c.isActive);
 
   const totalClients = enrichedClients.length;
-  const activeClients = enrichedClients.filter((client) => client.isActive).length;
+  const activeClients = enrichedClients.filter((c) => c.isActive).length;
   const pendingClients = totalClients - activeClients;
-  const totalDocs = enrichedClients.reduce((sum, client) => sum + client.docCount, 0);
+  const totalDocs = enrichedClients.reduce((sum, c) => sum + c.docCount, 0);
 
   const stats = [
-    {
-      label: "Total de clientes",
-      value: formatNumber(totalClients),
-      icon: Users,
-      helper: "Base operacional disponível",
-    },
-    {
-      label: "Clientes ativos",
-      value: formatNumber(activeClients),
-      icon: TrendingUp,
-      helper: "Com movimentação registrada",
-    },
-    {
-      label: "Pendentes",
-      value: formatNumber(pendingClients),
-      icon: Clock3,
-      helper: "Sem documentos vinculados",
-    },
-    {
-      label: "Documentos mapeados",
-      value: formatNumber(totalDocs),
-      icon: FileText,
-      helper: "Volume consolidado",
-    },
+    { label: "Total de clientes",    value: formatNumber(totalClients),  icon: Users,      helper: "Base operacional disponível" },
+    { label: "Clientes ativos",      value: formatNumber(activeClients),  icon: TrendingUp, helper: "Com movimentação registrada" },
+    { label: "Pendentes",            value: formatNumber(pendingClients), icon: Clock3,     helper: "Sem documentos vinculados" },
+    { label: "Documentos mapeados",  value: formatNumber(totalDocs),     icon: FileText,   helper: "Volume consolidado" },
   ];
 
   const topClients = [...filteredClients]
@@ -130,14 +103,15 @@ const MotorCliente = () => {
   return (
     <div className="w-full px-6 pb-8 pt-2">
       <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-6">
+
         {/* HERO */}
         <motion.section
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.28 }}
-          className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(135deg,rgba(19,27,52,0.96)_0%,rgba(10,14,28,0.98)_45%,rgba(7,10,20,1)_100%)] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.35)]"
+          className="relative overflow-hidden rounded-[28px] border border-border bg-card p-6 shadow-[0_20px_60px_rgba(0,0,0,0.28)]"
         >
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.18),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.14),transparent_28%)]" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.14),transparent_32%),radial-gradient(circle_at_bottom_right,hsl(var(--primary)/0.08),transparent_28%)]" />
 
           <div className="relative grid gap-6 xl:grid-cols-[1.2fr_420px]">
             <div className="min-w-0">
@@ -146,85 +120,71 @@ const MotorCliente = () => {
                 Gestão centralizada de clientes
               </div>
 
-              <h1 className="mt-4 text-3xl font-semibold tracking-tight text-white">
+              <h1 className="mt-4 text-3xl font-semibold tracking-tight text-foreground">
                 Central de clientes
               </h1>
 
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
                 Visualize a operação de ponta a ponta, identifique rapidamente clientes
-                ativos e acesse cada fluxo com uma interface mais clara, dinâmica e
-                alinhada ao novo padrão visual do sistema.
+                ativos e acesse cada fluxo com uma interface clara e alinhada ao padrão visual do sistema.
               </p>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 {stats.map((stat) => (
                   <div
                     key={stat.label}
-                    className="rounded-2xl border border-white/8 bg-white/[0.04] p-4 backdrop-blur-sm"
+                    className="rounded-2xl border border-border bg-muted/40 p-4"
                   >
                     <div className="mb-3 flex items-center justify-between">
-                      <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-slate-400">
+                      <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
                         {stat.label}
                       </span>
                       <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 text-primary">
                         <stat.icon className="h-4 w-4" />
                       </div>
                     </div>
-
-                    <div className="text-2xl font-semibold text-white">{stat.value}</div>
-                    <p className="mt-1 text-xs text-slate-400">{stat.helper}</p>
+                    <div className="text-2xl font-semibold text-foreground">{stat.value}</div>
+                    <p className="mt-1 text-xs text-muted-foreground">{stat.helper}</p>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="flex flex-col gap-4 rounded-[24px] border border-white/8 bg-white/[0.04] p-5 backdrop-blur-sm">
+            <div className="flex flex-col gap-4 rounded-[24px] border border-border bg-muted/40 p-5">
               <div>
-                <p className="text-sm font-medium text-white">Busca inteligente</p>
-                <p className="mt-1 text-xs leading-5 text-slate-400">
+                <p className="text-sm font-medium text-foreground">Busca inteligente</p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
                   Localize rapidamente um cliente por nome ou identificação operacional.
                 </p>
               </div>
 
               <div className="relative">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Buscar cliente..."
-                  className="h-12 w-full rounded-2xl border border-white/10 bg-black/20 pl-11 pr-4 text-sm text-white outline-none transition-all placeholder:text-slate-500 focus:border-primary/35 focus:ring-2 focus:ring-primary/15"
+                  className="h-12 w-full rounded-2xl border border-border bg-background pl-11 pr-4 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary/35 focus:ring-2 focus:ring-primary/15"
                 />
               </div>
 
               <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
-                <div className="rounded-2xl border border-emerald-500/15 bg-emerald-500/8 p-4">
-                  <p className="text-[11px] uppercase tracking-[0.14em] text-emerald-300/80">
-                    Ativos
-                  </p>
-                  <p className="mt-2 text-xl font-semibold text-white">{activeClients}</p>
-                  <p className="mt-1 text-xs text-slate-400">
-                    Clientes com movimentação disponível
-                  </p>
+                <div className="rounded-2xl border border-success/25 bg-success/10 p-4">
+                  <p className="text-[11px] uppercase tracking-[0.14em] text-success-foreground/70">Ativos</p>
+                  <p className="mt-2 text-xl font-semibold text-foreground">{activeClients}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Clientes com movimentação disponível</p>
                 </div>
 
-                <div className="rounded-2xl border border-amber-500/15 bg-amber-500/8 p-4">
-                  <p className="text-[11px] uppercase tracking-[0.14em] text-amber-300/80">
-                    Pendentes
-                  </p>
-                  <p className="mt-2 text-xl font-semibold text-white">{pendingClients}</p>
-                  <p className="mt-1 text-xs text-slate-400">
-                    Operações aguardando vínculo documental
-                  </p>
+                <div className="rounded-2xl border border-warning/25 bg-warning/10 p-4">
+                  <p className="text-[11px] uppercase tracking-[0.14em] text-warning-foreground/70">Pendentes</p>
+                  <p className="mt-2 text-xl font-semibold text-foreground">{pendingClients}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Operações aguardando vínculo documental</p>
                 </div>
 
-                <div className="rounded-2xl border border-blue-500/15 bg-blue-500/8 p-4">
-                  <p className="text-[11px] uppercase tracking-[0.14em] text-blue-300/80">
-                    Documentos
-                  </p>
-                  <p className="mt-2 text-xl font-semibold text-white">{formatNumber(totalDocs)}</p>
-                  <p className="mt-1 text-xs text-slate-400">
-                    Total agregado entre todos os clientes
-                  </p>
+                <div className="rounded-2xl border border-primary/25 bg-primary/10 p-4">
+                  <p className="text-[11px] uppercase tracking-[0.14em] text-primary/70">Documentos</p>
+                  <p className="mt-2 text-xl font-semibold text-foreground">{formatNumber(totalDocs)}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Total agregado entre todos os clientes</p>
                 </div>
               </div>
             </div>
@@ -244,66 +204,44 @@ const MotorCliente = () => {
                 key={client.id}
                 type="button"
                 onClick={() => navigate(client.route)}
-                className="group relative overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(20,24,37,0.98)_0%,rgba(14,17,28,0.98)_100%)] p-5 text-left transition-all duration-200 hover:-translate-y-[3px] hover:border-primary/20 hover:shadow-[0_18px_50px_rgba(0,0,0,0.28)]"
+                className="group relative overflow-hidden rounded-[24px] border border-border bg-card p-5 text-left transition-all duration-200 hover:-translate-y-[3px] hover:border-primary/25 hover:shadow-[0_18px_50px_rgba(0,0,0,0.25)]"
               >
-                <div
-                  className="pointer-events-none absolute inset-0 opacity-[0.14] transition-opacity duration-200 group-hover:opacity-[0.2]"
-                  style={{
-                    background: `radial-gradient(circle at top right, ${client.color} 0%, transparent 38%)`,
-                  }}
-                />
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,hsl(var(--primary)/0.12),transparent_38%)] opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
 
                 <div className="relative">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex min-w-0 items-center gap-3">
-                      <div
-                        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-sm font-bold"
-                        style={{
-                          backgroundColor: `${client.color}18`,
-                          color: client.color,
-                          boxShadow: `inset 0 0 0 1px ${client.color}22`,
-                        }}
-                      >
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-sm font-bold text-primary border border-primary/20">
                         {client.initials}
                       </div>
 
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="truncate text-base font-semibold text-white">
-                            {client.name}
-                          </p>
-                          <span className="rounded-full border border-primary/15 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+                          <p className="truncate text-base font-semibold text-foreground">{client.name}</p>
+                          <span className="rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
                             Top {index + 1}
                           </span>
                         </div>
-                        <p className="mt-1 text-xs text-slate-400">
-                          Cliente com maior volume no painel atual
-                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">Cliente com maior volume no painel atual</p>
                       </div>
                     </div>
 
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/8 bg-white/[0.04] transition-all duration-200 group-hover:border-primary/25 group-hover:bg-primary/10">
-                      <ArrowRight className="h-4 w-4 text-slate-400 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-primary" />
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-border bg-muted/40 transition-all duration-200 group-hover:border-primary/25 group-hover:bg-primary/10">
+                      <ArrowRight className="h-4 w-4 text-muted-foreground transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-primary" />
                     </div>
                   </div>
 
                   <div className="mt-6 flex items-end justify-between gap-4">
                     <div>
-                      <p className="text-[11px] uppercase tracking-[0.15em] text-slate-500">
-                        Documentos vinculados
-                      </p>
-                      <p className="mt-2 text-3xl font-semibold tracking-tight text-white">
-                        {formatNumber(client.docCount)}
-                      </p>
+                      <p className="text-[11px] uppercase tracking-[0.15em] text-muted-foreground">Documentos vinculados</p>
+                      <p className="mt-2 text-3xl font-semibold tracking-tight text-foreground">{formatNumber(client.docCount)}</p>
                     </div>
 
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-medium ${
-                        client.isActive
-                          ? "bg-emerald-500/12 text-emerald-300"
-                          : "bg-rose-500/12 text-rose-300"
-                      }`}
-                    >
+                    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-medium border ${
+                      client.isActive
+                        ? "border-success/25 bg-success/10 text-success-foreground"
+                        : "border-destructive/25 bg-destructive/10 text-destructive"
+                    }`}>
                       {client.isActive ? "Operação ativa" : "Operação pendente"}
                     </span>
                   </div>
@@ -319,17 +257,14 @@ const MotorCliente = () => {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.08, duration: 0.28 }}
-            className="rounded-[26px] border border-white/10 bg-[linear-gradient(180deg,rgba(16,20,32,0.98)_0%,rgba(10,13,22,0.98)_100%)] p-5"
+            className="rounded-[26px] border border-border bg-card p-5"
           >
             <div className="mb-5 flex items-center justify-between gap-4">
               <div>
-                <h2 className="text-lg font-semibold text-white">Todos os clientes</h2>
-                <p className="mt-1 text-sm text-slate-400">
-                  Visão completa dos acessos e operações disponíveis.
-                </p>
+                <h2 className="text-lg font-semibold text-foreground">Todos os clientes</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Visão completa dos acessos e operações disponíveis.</p>
               </div>
-
-              <div className="rounded-full border border-white/8 bg-white/[0.04] px-3 py-1 text-xs text-slate-400">
+              <div className="rounded-full border border-border bg-muted/40 px-3 py-1 text-xs text-muted-foreground">
                 {filteredClients.length} resultado{filteredClients.length !== 1 ? "s" : ""}
               </div>
             </div>
@@ -341,57 +276,44 @@ const MotorCliente = () => {
                     key={client.id}
                     type="button"
                     onClick={() => navigate(client.route)}
-                    className="group rounded-[22px] border border-white/8 bg-white/[0.03] p-4 text-left transition-all duration-200 hover:-translate-y-[2px] hover:border-primary/18 hover:bg-white/[0.05]"
+                    className="group rounded-[22px] border border-border bg-muted/30 p-4 text-left transition-all duration-200 hover:-translate-y-[2px] hover:border-primary/20 hover:bg-muted/50"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex min-w-0 items-start gap-3">
-                        <div
-                          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-xs font-bold"
-                          style={{
-                            backgroundColor: `${client.color}16`,
-                            color: client.color,
-                            boxShadow: `inset 0 0 0 1px ${client.color}20`,
-                          }}
-                        >
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-xs font-bold text-primary border border-primary/20">
                           {client.initials}
                         </div>
 
                         <div className="min-w-0">
-                          <p className="truncate text-[15px] font-semibold text-white">
-                            {client.name}
-                          </p>
+                          <p className="truncate text-[15px] font-semibold text-foreground">{client.name}</p>
 
                           <div className="mt-2 flex flex-wrap items-center gap-2">
-                            <span
-                              className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-medium ${
-                                client.isActive
-                                  ? "bg-emerald-500/12 text-emerald-300"
-                                  : "bg-rose-500/12 text-rose-300"
-                              }`}
-                            >
+                            <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-medium border ${
+                              client.isActive
+                                ? "border-success/25 bg-success/10 text-success-foreground"
+                                : "border-destructive/25 bg-destructive/10 text-destructive"
+                            }`}>
                               {client.isActive ? "Ativo" : "Pendente"}
                             </span>
 
-                            <span className="text-[11px] text-slate-400">
+                            <span className="text-[11px] text-muted-foreground">
                               {formatDocsLabel(client.docCount)}
                             </span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/8 bg-black/20 transition-all duration-200 group-hover:border-primary/20 group-hover:bg-primary/10">
-                        <ArrowRight className="h-4 w-4 text-slate-400 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-primary" />
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/40 transition-all duration-200 group-hover:border-primary/20 group-hover:bg-primary/10">
+                        <ArrowRight className="h-4 w-4 text-muted-foreground transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-primary" />
                       </div>
                     </div>
                   </button>
                 ))}
               </div>
             ) : (
-              <div className="rounded-[22px] border border-dashed border-white/10 bg-white/[0.03] px-6 py-10 text-center">
-                <p className="text-sm font-medium text-white">Nenhum cliente encontrado</p>
-                <p className="mt-1 text-xs text-slate-400">
-                  Tente pesquisar por nome ou identificação.
-                </p>
+              <div className="rounded-[22px] border border-dashed border-border bg-muted/20 px-6 py-10 text-center">
+                <p className="text-sm font-medium text-foreground">Nenhum cliente encontrado</p>
+                <p className="mt-1 text-xs text-muted-foreground">Tente pesquisar por nome ou identificação.</p>
               </div>
             )}
           </motion.section>
@@ -402,72 +324,72 @@ const MotorCliente = () => {
             transition={{ delay: 0.12, duration: 0.28 }}
             className="flex flex-col gap-4"
           >
-            <div className="rounded-[26px] border border-white/10 bg-[linear-gradient(180deg,rgba(16,20,32,0.98)_0%,rgba(10,13,22,0.98)_100%)] p-5">
+            <div className="rounded-[26px] border border-border bg-card p-5">
               <div className="mb-4 flex items-center gap-2">
                 <Activity className="h-4 w-4 text-primary" />
-                <h3 className="text-sm font-semibold text-white">Resumo operacional</h3>
+                <h3 className="text-sm font-semibold text-foreground">Resumo operacional</h3>
               </div>
 
               <div className="space-y-3">
-                <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
+                <div className="rounded-2xl border border-border bg-muted/30 p-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-400">Base total</span>
-                    <span className="text-sm font-semibold text-white">{totalClients}</span>
+                    <span className="text-xs text-muted-foreground">Base total</span>
+                    <span className="text-sm font-semibold text-foreground">{totalClients}</span>
                   </div>
-                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/5">
+                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted/50">
                     <div
                       className="h-full rounded-full bg-primary"
                       style={{ width: `${totalClients ? (activeClients / totalClients) * 100 : 0}%` }}
                     />
                   </div>
-                  <p className="mt-2 text-[11px] text-slate-500">
+                  <p className="mt-2 text-[11px] text-muted-foreground">
                     {activeClients} de {totalClients} clientes já possuem atividade.
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
+                <div className="rounded-2xl border border-success/25 bg-success/10 p-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-400">Clientes ativos</span>
-                    <span className="text-sm font-semibold text-emerald-300">{activeClients}</span>
+                    <span className="text-xs text-muted-foreground">Clientes ativos</span>
+                    <span className="text-sm font-semibold text-success-foreground">{activeClients}</span>
                   </div>
-                  <p className="mt-2 text-[11px] text-slate-500">
+                  <p className="mt-2 text-[11px] text-muted-foreground">
                     Operações com documentos efetivamente mapeados.
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
+                <div className="rounded-2xl border border-warning/25 bg-warning/10 p-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-400">Clientes pendentes</span>
-                    <span className="text-sm font-semibold text-amber-300">{pendingClients}</span>
+                    <span className="text-xs text-muted-foreground">Clientes pendentes</span>
+                    <span className="text-sm font-semibold text-warning-foreground">{pendingClients}</span>
                   </div>
-                  <p className="mt-2 text-[11px] text-slate-500">
+                  <p className="mt-2 text-[11px] text-muted-foreground">
                     Itens que ainda podem receber configuração ou integração.
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-[26px] border border-white/10 bg-[linear-gradient(180deg,rgba(16,20,32,0.98)_0%,rgba(10,13,22,0.98)_100%)] p-5">
-              <h3 className="text-sm font-semibold text-white">Situação atual</h3>
+            <div className="rounded-[26px] border border-border bg-card p-5">
+              <h3 className="text-sm font-semibold text-foreground">Situação atual</h3>
 
               <div className="mt-4 space-y-3">
-                <div className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3">
-                  <span className="text-sm text-slate-300">Ativos</span>
-                  <span className="rounded-full bg-emerald-500/12 px-2.5 py-1 text-xs font-medium text-emerald-300">
+                <div className="flex items-center justify-between rounded-2xl border border-border bg-muted/30 px-4 py-3">
+                  <span className="text-sm text-foreground">Ativos</span>
+                  <span className="rounded-full border border-success/25 bg-success/10 px-2.5 py-1 text-xs font-medium text-success-foreground">
                     {activeClientsList.length}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3">
-                  <span className="text-sm text-slate-300">Pendentes</span>
-                  <span className="rounded-full bg-rose-500/12 px-2.5 py-1 text-xs font-medium text-rose-300">
+                <div className="flex items-center justify-between rounded-2xl border border-border bg-muted/30 px-4 py-3">
+                  <span className="text-sm text-foreground">Pendentes</span>
+                  <span className="rounded-full border border-destructive/25 bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive">
                     {pendingClientsList.length}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3">
-                  <span className="text-sm text-slate-300">Documentos</span>
-                  <span className="rounded-full bg-primary/12 px-2.5 py-1 text-xs font-medium text-primary">
+                <div className="flex items-center justify-between rounded-2xl border border-border bg-muted/30 px-4 py-3">
+                  <span className="text-sm text-foreground">Documentos</span>
+                  <span className="rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
                     {formatNumber(totalDocs)}
                   </span>
                 </div>
