@@ -42,29 +42,29 @@ function temPlacaNoXML(xml: string): boolean {
   return /placa\s*:/i.test(infCplMatch[1]);
 }
 
-function inserirPlacaNoXML(xml: string, placa: string): string {
-  const placaStr = `Placa: ${placa.toUpperCase().trim()}`;
+function inserirPlacaNoXML(xml: string, valor: string): string {
+  const texto = valor.trim();
 
   // Caso 1: <infCpl> existe — insere no início do conteúdo
   if (/<infCpl>/i.test(xml)) {
     return xml.replace(
       /<infCpl>([\s\S]*?)<\/infCpl>/i,
-      (_, conteudo) => `<infCpl>${placaStr} ${conteudo.trim()}</infCpl>`
+      (_, conteudo) => `<infCpl>${texto} ${conteudo.trim()}</infCpl>`
     );
   }
 
-  // Caso 2: <infAdic> existe mas sem <infCpl> — insere dentro
+  // Caso 2: <infAdic> existe mas sem <infCpl> — cria dentro
   if (/<infAdic>/i.test(xml)) {
     return xml.replace(
       /<infAdic>/i,
-      `<infAdic><infCpl>${placaStr}</infCpl>`
+      `<infAdic><infCpl>${texto}</infCpl>`
     );
   }
 
-  // Caso 3: nem <infAdic> existe — insere antes de </infNFe>
+  // Caso 3: nem <infAdic> existe — cria antes de </infNFe>
   return xml.replace(
     /<\/infNFe>/i,
-    `<infAdic><infCpl>${placaStr}</infCpl></infAdic></infNFe>`
+    `<infAdic><infCpl>${texto}</infCpl></infAdic></infNFe>`
   );
 }
 
@@ -330,13 +330,12 @@ const Abastecimento = () => {
                             </p>
                           ) : (
                             <Input
-                              placeholder="ex: ABC1D23"
+                              placeholder="Digite o conteúdo para o infCpl"
                               value={nota.placa}
                               onChange={(e) =>
-                                atualizarPlaca(nota.id, e.target.value.toUpperCase())
+                                atualizarPlaca(nota.id, e.target.value)
                               }
-                              maxLength={8}
-                              className={`h-9 rounded-xl border bg-white/[0.04] text-sm font-mono uppercase text-white placeholder:normal-case placeholder:font-sans placeholder:text-slate-600 transition-colors focus:outline-none ${
+                              className={`h-9 rounded-xl border bg-white/[0.04] text-sm text-white placeholder:text-slate-600 transition-colors focus:outline-none ${
                                 nota.placa.trim()
                                   ? "border-violet-500/30 focus:border-violet-500/50"
                                   : "border-amber-500/30 focus:border-amber-500/50"
