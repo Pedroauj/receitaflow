@@ -76,13 +76,13 @@ const EfficiencyDonut = ({ dist, pm }: Props) => {
         ))}
       </div>
       <div className="grid grid-cols-2 gap-3 mt-4">
-        <div className="rounded-lg border border-success/25 bg-success/10 p-3 text-center">
+        <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3 text-center">
           <p className="text-xs text-muted-foreground">Acima da meta</p>
-          <p className="text-lg font-bold text-success-foreground">{pctAbove}%</p>
+          <p className="text-lg font-bold text-emerald-400">{pctAbove}%</p>
         </div>
-        <div className="rounded-lg border border-destructive/25 bg-destructive/10 p-3 text-center">
+        <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-3 text-center">
           <p className="text-xs text-muted-foreground">Abaixo da meta</p>
-          <p className="text-lg font-bold text-destructive">{pctBelow}%</p>
+          <p className="text-lg font-bold text-red-400">{pctBelow}%</p>
         </div>
       </div>
     </motion.div>

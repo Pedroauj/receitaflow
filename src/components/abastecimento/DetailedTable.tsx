@@ -70,15 +70,15 @@ const DetailedTable = ({ records, pm }: Props) => {
   };
 
   const statusLabel = (eff: number) => {
-    if (eff >= 103) return { text: "Acima", cls: "text-success-foreground" };
+    if (eff >= 103) return { text: "Acima", cls: "text-emerald-400" };
     if (eff >= 97) return { text: "Na meta", cls: "text-primary" };
-    return { text: "Abaixo", cls: "text-destructive" };
+    return { text: "Abaixo", cls: "text-red-400" };
   };
 
   const getRowStyle = (eff: number) => {
     if (!pm) return "";
-    if (eff < 97) return "bg-destructive/10";
-    if (eff >= 103) return "bg-success/10";
+    if (eff < 97) return "bg-red-500/5";
+    if (eff >= 103) return "bg-emerald-500/5";
     return "";
   };
 
@@ -165,7 +165,7 @@ const DetailedTable = ({ records, pm }: Props) => {
 
                   <TableCell
                     className={`text-right font-semibold ${
-                      r.ganhoPerda >= 0 ? "text-success-foreground" : "text-destructive"
+                      r.ganhoPerda >= 0 ? "text-emerald-400" : "text-red-400"
                     }`}
                   >
                     {r.ganhoPerda >= 0 ? "+" : ""}
@@ -174,7 +174,7 @@ const DetailedTable = ({ records, pm }: Props) => {
 
                   <TableCell
                     className={`text-right font-semibold ${
-                      r.eficiencia >= 100 ? "text-success-foreground" : "text-destructive"
+                      r.eficiencia >= 100 ? "text-emerald-400" : "text-red-400"
                     }`}
                   >
                     {r.eficiencia.toFixed(1)}%

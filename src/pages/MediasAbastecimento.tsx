@@ -149,7 +149,7 @@ const MediasAbastecimento = () => {
       label: "Total de KM",
       value: fmtNum(Math.round(globalKpis.totalKm)),
       icon: Truck,
-      color: "text-primary",
+      color: "text-purple-400",
     },
     {
       label: "Média Geral",
@@ -170,7 +170,7 @@ const MediasAbastecimento = () => {
       label: "Economia Total",
       value: `+${fmtNum(Math.round(globalKpis.ganhoTotal))} L`,
       icon: Leaf,
-      color: "text-success-foreground",
+      color: "text-emerald-400",
       highlight: true,
     },
     {
@@ -183,13 +183,13 @@ const MediasAbastecimento = () => {
       label: "Veículos",
       value: String(globalKpis.totalVeiculos),
       icon: Truck,
-      color: "text-primary",
+      color: "text-blue-400",
     },
     {
       label: "Motoristas",
       value: String(globalKpis.totalMotoristas),
       icon: Users,
-      color: "text-primary",
+      color: "text-blue-400",
     },
   ];
 
@@ -460,7 +460,7 @@ const MediasAbastecimento = () => {
                 value={`${highlights.worstEfficiency.mediaKmL.toFixed(2)} km/l`}
                 subValue={highlights.worstEfficiency.placa}
                 icon={TrendingUp}
-                color="text-destructive"
+                color="text-red-400"
                 pm={pm}
               />
             )}
@@ -471,7 +471,7 @@ const MediasAbastecimento = () => {
                 value={`${highlights.bestEfficiency.mediaKmL.toFixed(2)} km/l`}
                 subValue={highlights.bestEfficiency.placa}
                 icon={TrendingUp}
-                color="text-success-foreground"
+                color="text-emerald-400"
                 pm={pm}
               />
             )}
@@ -482,7 +482,7 @@ const MediasAbastecimento = () => {
                 value={`${Math.round(highlights.highestConsumption.litros)} L`}
                 subValue={highlights.highestConsumption.placa}
                 icon={Fuel}
-                color="text-destructive"
+                color="text-red-400"
                 pm={pm}
               />
             )}
@@ -493,7 +493,7 @@ const MediasAbastecimento = () => {
                 value={fmtNum(Math.round(highlights.highestKm.km))}
                 subValue={highlights.highestKm.placa}
                 icon={Truck}
-                color="text-primary"
+                color="text-blue-400"
                 pm={pm}
               />
             )}
@@ -504,7 +504,7 @@ const MediasAbastecimento = () => {
                 value={`-${fmtNum(Math.abs(highlights.biggestLoss.ganhoPerda))} L`}
                 subValue={highlights.biggestLoss.placa}
                 icon={TrendingUp}
-                color="text-destructive"
+                color="text-red-500"
                 pm={pm}
               />
             )}
@@ -515,7 +515,7 @@ const MediasAbastecimento = () => {
                 value={`+${fmtNum(highlights.biggestGain.ganhoPerda)} L`}
                 subValue={highlights.biggestGain.placa}
                 icon={Leaf}
-                color="text-success-foreground"
+                color="text-emerald-500"
                 pm={pm}
               />
             )}
@@ -581,7 +581,7 @@ const MediasAbastecimento = () => {
                     onClick={() => handleExport("PDF")}
                     className="inline-flex h-11 items-center gap-2 rounded-xl border border-border bg-muted/40 px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted/60"
                   >
-                    <FileText className="h-4 w-4 text-destructive" />
+                    <FileText className="h-4 w-4 text-red-400" />
                     Exportar PDF
                   </button>
 
@@ -589,7 +589,7 @@ const MediasAbastecimento = () => {
                     onClick={() => handleExport("Excel")}
                     className="inline-flex h-11 items-center gap-2 rounded-xl border border-border bg-muted/40 px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted/60"
                   >
-                    <Download className="h-4 w-4 text-success-foreground" />
+                    <Download className="h-4 w-4 text-emerald-400" />
                     Exportar Excel
                   </button>
                 </div>

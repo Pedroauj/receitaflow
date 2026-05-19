@@ -5,34 +5,34 @@ type StatusVariant = "success" | "error" | "warning" | "info" | "neutral";
 
 const variantMap: Record<StatusVariant, { border: string; bg: string; text: string; sub: string }> = {
   success: {
-    border: "border-success/30",
-    bg: "bg-success/10",
-    text: "text-success-foreground",
-    sub: "text-success-foreground/70",
+    border: "border-emerald-500/20",
+    bg: "bg-emerald-500/10",
+    text: "text-emerald-300",
+    sub: "text-emerald-200/80",
   },
   error: {
-    border: "border-destructive/30",
-    bg: "bg-destructive/10",
-    text: "text-destructive",
-    sub: "text-destructive/70",
+    border: "border-red-500/20",
+    bg: "bg-red-500/10",
+    text: "text-red-300",
+    sub: "text-red-200/80",
   },
   warning: {
-    border: "border-warning/30",
-    bg: "bg-warning/10",
-    text: "text-warning-foreground",
-    sub: "text-warning-foreground/70",
+    border: "border-amber-500/20",
+    bg: "bg-amber-500/10",
+    text: "text-amber-300",
+    sub: "text-amber-200/80",
   },
   info: {
-    border: "border-primary/25",
-    bg: "bg-primary/10",
-    text: "text-primary",
-    sub: "text-primary/70",
+    border: "border-blue-500/20",
+    bg: "bg-blue-500/10",
+    text: "text-blue-300",
+    sub: "text-blue-200/80",
   },
   neutral: {
-    border: "border-border",
-    bg: "bg-muted/30",
+    border: "border-white/10",
+    bg: "bg-white/[0.03]",
     text: "text-muted-foreground",
-    sub: "text-muted-foreground/70",
+    sub: "text-muted-foreground/80",
   },
 };
 
@@ -53,7 +53,7 @@ const StatusCard = ({ icon: Icon, title, description, variant = "neutral", badge
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
-      className={`rounded-[22px] border ${v.border} ${v.bg} p-4`}
+      className={`rounded-3xl border ${v.border} ${v.bg} p-4`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">

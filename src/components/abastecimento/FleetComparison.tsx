@@ -85,11 +85,11 @@ const FleetComparison = ({ summaries, pm }: Props) => {
                   <TableCell className="text-right">{fmt(s.litrosTotal)}</TableCell>
                   <TableCell className="text-right">{fmtKmL(s.mediaKmL)}</TableCell>
                   <TableCell className="text-right">{fmtKmL(s.metaKmL)}</TableCell>
-                  <TableCell className={`text-right font-medium ${s.eficiencia >= 100 ? "text-success-foreground" : "text-destructive"}`}>
+                  <TableCell className={`text-right font-medium ${s.eficiencia >= 100 ? "text-emerald-400" : "text-red-400"}`}>
                     {s.eficiencia.toFixed(1)}%
                   </TableCell>
                   <TableCell className="text-right">{s.participacao.toFixed(1)}%</TableCell>
-                  <TableCell className={`text-right font-medium ${s.ganhoPerda >= 0 ? "text-success-foreground" : "text-destructive"}`}>
+                  <TableCell className={`text-right font-medium ${s.ganhoPerda >= 0 ? "text-emerald-400" : "text-red-400"}`}>
                     {s.ganhoPerda >= 0 ? "+" : ""}{s.ganhoPerda.toFixed(0)}
                   </TableCell>
                 </TableRow>

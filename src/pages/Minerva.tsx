@@ -304,11 +304,11 @@ const pickBestCandidate = (current: CandidateRow | undefined, incoming: Candidat
 const getStatusBadgeClass = (status: PreviewRowStatus) => {
   switch (status) {
     case "válida":
-      return "bg-success/10 text-success-foreground border border-success/25";
+      return "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20";
     case "não localizado":
-      return "bg-warning/10 text-warning-foreground border border-warning/25";
+      return "bg-amber-500/10 text-amber-300 border border-amber-500/20";
     case "sem valor":
-      return "bg-muted/50 text-muted-foreground border border-border";
+      return "bg-slate-500/10 text-slate-300 border border-slate-500/20";
     case "removida por pagamento":
       return "bg-zinc-500/10 text-zinc-300 border border-zinc-500/20";
     case "duplicado ignorado":
@@ -888,7 +888,7 @@ const Minerva = () => {
 
               <div className="relative">
                 <div className="mb-5 flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/25 bg-primary/10 text-primary">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-violet-400/20 bg-violet-500/10 text-violet-200">
                     <UploadCloud className="h-5 w-5" />
                   </div>
 
@@ -902,11 +902,11 @@ const Minerva = () => {
                   </div>
                 </div>
 
-                <div className="rounded-[26px] border border-dashed border-primary/25 bg-[linear-gradient(180deg,rgba(139,92,246,0.06),rgba(255,255,255,0.02))] px-6 py-14 text-center transition-all duration-200 hover:border-primary/25 hover:bg-[linear-gradient(180deg,rgba(139,92,246,0.12),rgba(255,255,255,0.03))]">
+                <div className="rounded-[26px] border border-dashed border-violet-400/20 bg-[linear-gradient(180deg,rgba(139,92,246,0.06),rgba(255,255,255,0.02))] px-6 py-14 text-center transition-all duration-200 hover:border-violet-400/45 hover:bg-[linear-gradient(180deg,rgba(139,92,246,0.12),rgba(255,255,255,0.03))]">
                   {planilhaZeroFile ? (
                     <div className="flex flex-col items-center justify-center gap-4">
-                      <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-primary/25 bg-primary/10">
-                        <FileCheck className="h-7 w-7 text-primary" />
+                      <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-violet-400/25 bg-violet-500/12">
+                        <FileCheck className="h-7 w-7 text-violet-200" />
                       </div>
 
                       <div>
@@ -918,8 +918,8 @@ const Minerva = () => {
                     </div>
                   ) : (
                     <>
-                      <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[24px] border border-primary/25 bg-primary/10">
-                        <UploadCloud className="h-8 w-8 text-primary" />
+                      <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[24px] border border-violet-400/20 bg-violet-500/10">
+                        <UploadCloud className="h-8 w-8 text-violet-200" />
                       </div>
 
                       <p className="text-xl font-semibold text-white">
@@ -970,22 +970,22 @@ const Minerva = () => {
                     </p>
 
                     <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                      <div className="rounded-3xl border border-success/25 bg-success/10 p-4">
+                      <div className="rounded-3xl border border-emerald-500/15 bg-emerald-500/8 p-4">
                         <p className={metricTitleClass}>Válidas finais</p>
-                        <p className="mt-2 text-3xl font-semibold tracking-tight text-success-foreground">
+                        <p className="mt-2 text-3xl font-semibold tracking-tight text-emerald-300">
                           {summary.finalValidCount}
                         </p>
-                        <p className="mt-1 text-xs text-success-foreground/80">
+                        <p className="mt-1 text-xs text-emerald-200/80">
                           Documentos prontos para importação
                         </p>
                       </div>
 
-                      <div className="rounded-3xl border border-primary/25 bg-primary/10 p-4">
+                      <div className="rounded-3xl border border-violet-500/15 bg-violet-500/8 p-4">
                         <p className={metricTitleClass}>Total processado</p>
-                        <p className="mt-2 text-3xl font-semibold tracking-tight text-primary">
+                        <p className="mt-2 text-3xl font-semibold tracking-tight text-violet-200">
                           {formatCurrencyBR(summary.totalProcessed)}
                         </p>
-                        <p className="mt-1 text-xs text-primary/80">
+                        <p className="mt-1 text-xs text-violet-200/80">
                           Somatório das linhas consideradas válidas
                         </p>
                       </div>
@@ -993,21 +993,21 @@ const Minerva = () => {
                       <div
                         className={`rounded-3xl border p-4 ${
                           summary.status === "ok"
-                            ? "border-success/25 bg-success/10"
-                            : "border-destructive/25 bg-destructive/10"
+                            ? "border-emerald-500/20 bg-emerald-500/8"
+                            : "border-red-500/20 bg-red-500/8"
                         }`}
                       >
                         <p className={metricTitleClass}>Diferença</p>
                         <p
                           className={`mt-2 text-3xl font-semibold tracking-tight ${
-                            summary.status === "ok" ? "text-success-foreground" : "text-destructive"
+                            summary.status === "ok" ? "text-emerald-300" : "text-red-300"
                           }`}
                         >
                           {formatSignedCurrencyBR(summary.difference)}
                         </p>
                         <p
                           className={`mt-1 text-xs ${
-                            summary.status === "ok" ? "text-success-foreground/80" : "text-destructive/80"
+                            summary.status === "ok" ? "text-emerald-200/80" : "text-red-200/80"
                           }`}
                         >
                           {summary.status === "ok"
@@ -1027,13 +1027,13 @@ const Minerva = () => {
                           </p>
                           <div className="mt-3 flex items-center gap-2">
                             {summary.status === "ok" ? (
-                              <CheckCircle2 className="h-5 w-5 text-success-foreground" />
+                              <CheckCircle2 className="h-5 w-5 text-emerald-300" />
                             ) : (
-                              <XCircle className="h-5 w-5 text-destructive" />
+                              <XCircle className="h-5 w-5 text-red-300" />
                             )}
                             <p
                               className={`text-lg font-semibold ${
-                                summary.status === "ok" ? "text-success-foreground" : "text-destructive"
+                                summary.status === "ok" ? "text-emerald-300" : "text-red-300"
                               }`}
                             >
                               {summary.status === "ok"
@@ -1046,8 +1046,8 @@ const Minerva = () => {
                         <div
                           className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${
                             summary.status === "ok"
-                              ? "border-success/25 bg-success/10 text-success-foreground"
-                              : "border-destructive/25 bg-destructive/10 text-destructive"
+                              ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300"
+                              : "border-red-500/20 bg-red-500/10 text-red-300"
                           }`}
                         >
                           {summary.status === "ok" ? "OK" : "DIVERGE"}
@@ -1157,7 +1157,7 @@ const Minerva = () => {
                     className={`rounded-3xl border p-4 ${
                       summary.finalValidCount === 0
                         ? "border-white/10 bg-white/[0.03] text-white/55"
-                        : "border-success/25 bg-success/10 text-success-foreground"
+                        : "border-emerald-500/15 bg-emerald-500/8 text-emerald-200"
                     }`}
                   >
                     <div className="flex items-start gap-3">
@@ -1291,26 +1291,26 @@ const Minerva = () => {
 
             <div className={`${sectionCardClass} p-5 sm:p-6`}>
               {summary.missingDocs.length === 0 ? (
-                <div className="flex items-start gap-3 text-success-foreground">
+                <div className="flex items-start gap-3 text-emerald-300">
                   <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
                   <div>
                     <p className="text-sm font-semibold">
                       Todos os conhecimentos foram localizados.
                     </p>
-                    <p className="mt-1 text-xs text-success-foreground/80">
+                    <p className="mt-1 text-xs text-emerald-200/80">
                       Nenhum documento ficou pendente após o cruzamento com a Planilha 0.
                     </p>
                   </div>
                 </div>
               ) : (
                 <>
-                  <div className="mb-4 flex items-start gap-3 text-warning-foreground">
+                  <div className="mb-4 flex items-start gap-3 text-amber-300">
                     <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
                     <div>
                       <p className="text-sm font-semibold">
                         {summary.missingDocs.length} documento(s) não localizado(s)
                       </p>
-                      <p className="mt-1 text-xs text-warning-foreground/80">
+                      <p className="mt-1 text-xs text-amber-200/80">
                         Esses conhecimentos ficaram de fora da importação e merecem conferência manual.
                       </p>
                     </div>
@@ -1321,7 +1321,7 @@ const Minerva = () => {
                       {summary.missingDocs.map((doc) => (
                         <span
                           key={doc}
-                          className="inline-flex items-center rounded-xl border border-warning/25 bg-warning/10 px-2.5 py-1 text-xs font-medium text-warning-foreground"
+                          className="inline-flex items-center rounded-xl border border-amber-500/15 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-300"
                         >
                           {doc}
                         </span>

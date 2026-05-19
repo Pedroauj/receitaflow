@@ -88,16 +88,16 @@ const Natura = () => {
     v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
   const statusIcon = (status: string) => {
-    if (status === "encontrado") return <CheckCircle2 className="h-3.5 w-3.5 text-success-foreground" />;
-    if (status === "não encontrado") return <XCircle className="h-3.5 w-3.5 text-destructive" />;
-    return <AlertTriangle className="h-3.5 w-3.5 text-warning-foreground" />;
+    if (status === "encontrado") return <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />;
+    if (status === "não encontrado") return <XCircle className="h-3.5 w-3.5 text-red-400" />;
+    return <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />;
   };
 
   const statusBadge = (status: string) => {
     const styles: Record<string, string> = {
-      encontrado: "bg-success/10 text-success-foreground border-success/25",
-      "não encontrado": "bg-destructive/10 text-destructive border-destructive/25",
-      "sem valor": "bg-warning/10 text-warning-foreground border-warning/25",
+      encontrado: "bg-emerald-500/10 text-emerald-300 border-emerald-500/20",
+      "não encontrado": "bg-red-500/10 text-red-300 border-red-500/20",
+      "sem valor": "bg-amber-500/10 text-amber-300 border-amber-500/20",
     };
     return (
       <Badge variant="outline" className={`gap-1 border text-[10px] font-medium ${styles[status] ?? "border-border bg-muted text-muted-foreground"}`}>
