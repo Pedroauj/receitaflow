@@ -73,11 +73,11 @@ const Historico = () => {
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25, delay: i * 0.03 }}
-            className="rounded-[22px] border border-border bg-card p-4 shadow-[0_8px_24px_rgba(0,0,0,0.18)] transition-all duration-200 hover:-translate-y-0.5 hover:border-white/15"
+            className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(16,20,32,0.98),rgba(10,13,22,0.98))] p-4 shadow-[0_8px_24px_rgba(0,0,0,0.28)] transition-all duration-200 hover:-translate-y-0.5 hover:border-violet-500/20"
           >
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0 bg-primary/10">
-                <stat.icon className="h-4 w-4 text-primary" />
+              <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0 bg-violet-500/10">
+                <stat.icon className="h-4 w-4 text-violet-300" />
               </div>
               <div>
                 <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{stat.label}</p>
@@ -170,7 +170,7 @@ const Historico = () => {
                       <td className="px-5 py-3 text-sm tabular-nums text-foreground/70">{formatDate(r.dataProcessamento)}</td>
                       <td className="px-5 py-3 text-sm tabular-nums text-foreground/70">{formatDateShort(r.dataVencimento)}</td>
                       <td className="px-5 py-3 text-sm tabular-nums text-right text-foreground/70">{r.quantidadeDocumentos}</td>
-                      <td className="px-5 py-3 text-sm tabular-nums text-right font-medium text-primary">{formatBRL(r.valorTotal)}</td>
+                      <td className="px-5 py-3 text-sm tabular-nums text-right font-medium text-violet-300">{formatBRL(r.valorTotal)}</td>
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-1.5">
                           {r.statusConferencia === "confere" ? (

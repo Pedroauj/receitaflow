@@ -24,7 +24,7 @@ const Conciliacao = () => {
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05, duration: 0.3 }}
-          className="mb-6 inline-flex w-fit items-center gap-2 rounded-2xl border border-border bg-card p-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.18)]"
+          className="mb-6 inline-flex w-fit items-center gap-2 rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(16,20,32,0.98),rgba(10,13,22,0.98))] p-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.28)]"
         >
           {([
             { key: "nfs" as const, icon: ReceiptText, label: "NFS" },
@@ -36,7 +36,7 @@ const Conciliacao = () => {
               onClick={() => setActiveTab(key)}
               className={`inline-flex min-w-[110px] items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-semibold transition-all duration-200 ${
                 activeTab === key
-                  ? "bg-primary/15 text-foreground shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.25)]"
+                  ? "bg-violet-500/15 text-white shadow-[inset_0_0_0_1px_rgba(139,92,246,0.3)]"
                   : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
               }`}
             >

@@ -155,7 +155,7 @@ const MediasAbastecimento = () => {
       label: "Média Geral",
       value: `${globalKpis.mediaGeral.toFixed(2)} km/l`,
       icon: TrendingUp,
-      color: "text-primary",
+      color: "text-violet-300",
       highlight: true,
       subValue: "Ponderada por KM",
     },
@@ -163,7 +163,7 @@ const MediasAbastecimento = () => {
       label: "Eficiência Geral",
       value: `${globalKpis.eficienciaGeral.toFixed(1)}%`,
       icon: Gauge,
-      color: "text-primary",
+      color: "text-violet-300",
       highlight: true,
     },
     {
@@ -177,7 +177,7 @@ const MediasAbastecimento = () => {
       label: "Custo Total",
       value: fmtBRL(globalKpis.custoTotal),
       icon: DollarSign,
-      color: "text-primary",
+      color: "text-violet-300",
     },
     {
       label: "Veículos",
@@ -202,10 +202,10 @@ const MediasAbastecimento = () => {
     >
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="flex-1">
-          <div className="relative overflow-hidden rounded-[28px] border border-border bg-card shadow-[0_18px_48px_rgba(0,0,0,0.28)]">
+          <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(135deg,rgba(19,27,52,0.96),rgba(10,14,28,0.98))] shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.12),transparent_32%),radial-gradient(circle_at_bottom_right,hsl(var(--primary)/0.08),transparent_28%)]" />
             <div className="relative p-6 lg:p-8">
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] text-white/70">
                 <Sparkles className="h-3.5 w-3.5" />
                 Painel executivo
               </div>
@@ -240,8 +240,8 @@ const MediasAbastecimento = () => {
             title={pm ? "Sair do modo apresentação (ESC)" : "Entrar no modo apresentação (F)"}
             className={`inline-flex h-11 items-center gap-2 rounded-2xl border px-4 text-sm font-semibold transition-all duration-300 ${
               pm
-                ? "border-primary/30 bg-primary/12 text-primary shadow-[0_0_24px_-8px_hsl(var(--primary)/0.45)] hover:bg-primary/18"
-                : "border-border bg-card text-muted-foreground hover:border-border/80 hover:bg-muted hover:text-foreground"
+                ? "border-violet-500/30 bg-violet-500/12 text-violet-300 shadow-[0_0_24px_-8px_rgba(139,92,246,0.45)] hover:bg-violet-500/18"
+                : "border-white/10 bg-white/[0.04] text-slate-400 hover:border-white/15 hover:bg-white/[0.06] hover:text-white"
             }`}
           >
             {pm ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
@@ -256,7 +256,7 @@ const MediasAbastecimento = () => {
             initial={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0, marginBottom: 0, overflow: "hidden" }}
             transition={{ duration: 0.35, ease: "easeInOut" }}
-            className="rounded-[24px] border border-border bg-card p-5 shadow-[0_14px_34px_rgba(0,0,0,0.18)]"
+            className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(16,20,32,0.98),rgba(10,13,22,0.98))] p-5 shadow-[0_14px_34px_rgba(0,0,0,0.28)]"
           >
             <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
               <div>
@@ -268,7 +268,7 @@ const MediasAbastecimento = () => {
                 </p>
               </div>
 
-              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] text-white/70">
                 <Filter className="h-3.5 w-3.5" />
                 Base operacional
               </div>
@@ -283,15 +283,15 @@ const MediasAbastecimento = () => {
               onDrop={handleDrop}
               className={`relative rounded-[20px] border-2 border-dashed p-8 transition-all duration-300 ${
                 dragOver
-                  ? "border-primary/60 bg-primary/6"
-                  : "border-border bg-white/[0.02]"
+                  ? "border-violet-500/40 bg-violet-500/8"
+                  : "border-white/10 bg-white/[0.02]"
               }`}
             >
               {file ? (
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-border bg-muted/50">
-                      <FileSpreadsheet className="h-6 w-6 text-primary" />
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/8 bg-white/[0.04]">
+                      <FileSpreadsheet className="h-6 w-6 text-violet-300" />
                     </div>
 
                     <div className="min-w-0">
@@ -304,14 +304,14 @@ const MediasAbastecimento = () => {
 
                   <button
                     onClick={() => setFile(null)}
-                    className="inline-flex h-10 items-center justify-center rounded-xl border border-border bg-muted/40 px-3 text-sm font-medium text-foreground/70 transition-colors hover:bg-muted/60 hover:text-foreground"
+                    className="inline-flex h-10 items-center justify-center rounded-xl border border-white/8 bg-white/[0.03] px-3 text-sm font-medium text-foreground/70 transition-colors hover:bg-muted/60 hover:text-foreground"
                   >
                     <X className="h-4 w-4" />
                   </button>
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center gap-3 text-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-[20px] border border-border bg-muted/50">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-[20px] border border-white/8 bg-white/[0.04]">
                     <UploadCloud className="h-8 w-8 text-muted-foreground" />
                   </div>
 
@@ -325,7 +325,7 @@ const MediasAbastecimento = () => {
                     </p>
                   </div>
 
-                  <label className="mt-1 inline-flex h-11 cursor-pointer items-center rounded-xl border border-primary/25 bg-primary/12 px-4 text-sm font-semibold text-primary transition-colors hover:bg-primary/18">
+                  <label className="mt-1 inline-flex h-11 cursor-pointer items-center rounded-xl border border-violet-500/25 bg-violet-500/12 px-4 text-sm font-semibold text-violet-300 transition-colors hover:bg-violet-500/18">
                     Selecionar arquivo
                     <input
                       type="file"
@@ -350,7 +350,7 @@ const MediasAbastecimento = () => {
                   type="date"
                   value={periodoInicio}
                   onChange={(e) => setPeriodoInicio(e.target.value)}
-                  className="h-11 w-full rounded-xl border border-border bg-muted/40 px-3 text-sm text-foreground outline-none transition-colors placeholder:text-white/22 focus:border-primary/35"
+                  className="h-11 w-full rounded-xl border border-white/8 bg-white/[0.03] px-3 text-sm text-foreground outline-none transition-colors placeholder:text-white/22 focus:border-violet-500/35"
                 />
               </div>
 
@@ -363,7 +363,7 @@ const MediasAbastecimento = () => {
                   type="date"
                   value={periodoFim}
                   onChange={(e) => setPeriodoFim(e.target.value)}
-                  className="h-11 w-full rounded-xl border border-border bg-muted/40 px-3 text-sm text-foreground outline-none transition-colors placeholder:text-white/22 focus:border-primary/35"
+                  className="h-11 w-full rounded-xl border border-white/8 bg-white/[0.03] px-3 text-sm text-foreground outline-none transition-colors placeholder:text-white/22 focus:border-violet-500/35"
                 />
               </div>
 
@@ -373,7 +373,7 @@ const MediasAbastecimento = () => {
                   Tipo de frota
                 </label>
                 <Select value={tipoFrota} onValueChange={setTipoFrota}>
-                  <SelectTrigger className="h-11 w-full rounded-xl border-border bg-muted/40 text-foreground">
+                  <SelectTrigger className="h-11 w-full rounded-xl border-white/8 bg-white/[0.03] text-foreground">
                     <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
                   <SelectContent>
@@ -423,7 +423,7 @@ const MediasAbastecimento = () => {
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="h-auto flex-wrap rounded-2xl border border-border bg-muted/40 p-1">
+              <TabsList className="h-auto flex-wrap rounded-2xl border border-white/8 bg-white/[0.03] p-1">
                 {availableTypes.map((t) => (
                   <TabsTrigger
                     key={t}
@@ -557,7 +557,7 @@ const MediasAbastecimento = () => {
                 initial={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0, overflow: "hidden" }}
                 transition={{ duration: 0.3 }}
-                className="rounded-[24px] border border-border bg-[linear-gradient(180deg,rgba(10,14,25,0.88),rgba(8,12,22,0.94))] p-5"
+                className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(16,20,32,0.98),rgba(10,13,22,0.98))] p-5"
               >
                 <div className="mb-4">
                   <h3 className="text-base font-semibold tracking-[-0.02em] text-foreground">
@@ -571,15 +571,15 @@ const MediasAbastecimento = () => {
                 <div className="flex flex-wrap gap-3">
                   <button
                     onClick={() => handleExport("PowerPoint")}
-                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-border bg-muted/40 px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted/60"
+                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/8 bg-white/[0.03] px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted/60"
                   >
-                    <Presentation className="h-4 w-4 text-primary" />
+                    <Presentation className="h-4 w-4 text-violet-300" />
                     Gerar apresentação
                   </button>
 
                   <button
                     onClick={() => handleExport("PDF")}
-                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-border bg-muted/40 px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted/60"
+                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/8 bg-white/[0.03] px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted/60"
                   >
                     <FileText className="h-4 w-4 text-red-400" />
                     Exportar PDF
@@ -587,7 +587,7 @@ const MediasAbastecimento = () => {
 
                   <button
                     onClick={() => handleExport("Excel")}
-                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-border bg-muted/40 px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted/60"
+                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/8 bg-white/[0.03] px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted/60"
                   >
                     <Download className="h-4 w-4 text-emerald-400" />
                     Exportar Excel

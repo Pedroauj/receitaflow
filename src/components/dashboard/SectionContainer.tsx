@@ -25,7 +25,7 @@ const SectionContainer = ({
     initial={{ opacity: 0, y: 8 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.3, delay }}
-    className={`rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(24,24,27,0.96),rgba(16,16,18,0.94))] shadow-[0_18px_60px_rgba(0,0,0,0.35)] backdrop-blur-xl ${
+    className={`rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(16,20,32,0.98)_0%,rgba(10,13,22,0.98)_100%)] shadow-[0_18px_60px_rgba(0,0,0,0.35)] ${
       noPadding ? "" : "p-5 sm:p-6"
     } ${className}`}
   >
@@ -33,15 +33,15 @@ const SectionContainer = ({
       <div className={`flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between ${noPadding ? "px-5 py-4 sm:px-6" : "mb-5"}`}>
         <div>
           {title && (
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
               {title}
             </p>
           )}
-          {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
+          {subtitle && <p className="mt-1 text-sm text-slate-400">{subtitle}</p>}
         </div>
         <div className="flex items-center gap-2">
           {badge && (
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-muted-foreground">
+            <span className="rounded-full border border-white/8 bg-white/[0.04] px-3 py-1 text-xs font-medium text-slate-400">
               {badge}
             </span>
           )}

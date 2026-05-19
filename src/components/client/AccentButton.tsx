@@ -10,7 +10,7 @@ const AccentButton = forwardRef<HTMLButtonElement, AccentButtonProps>(
     <button
       ref={ref}
       className={cn(
-        "inline-flex h-11 items-center justify-center gap-2 rounded-2xl border-0 bg-[linear-gradient(135deg,hsl(var(--primary)),hsl(var(--primary)/0.75))] px-5 text-sm font-semibold text-primary-foreground shadow-[0_10px_30px_hsl(var(--primary)/0.25)] transition-all duration-200 hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50",
+        "inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-violet-500/30 bg-[linear-gradient(135deg,rgba(99,102,241,0.85),rgba(139,92,246,0.75))] px-5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(99,102,241,0.25)] transition-all duration-200 hover:opacity-95 hover:shadow-[0_14px_36px_rgba(99,102,241,0.35)] disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}
       {...props}

@@ -31,7 +31,7 @@ const fadeUp = {
 
 /* ─── placeholder KPI data ─── */
 const placeholderKpis = [
-  { label: "Total de títulos", value: "—", icon: FileText, color: "text-primary" },
+  { label: "Total de títulos", value: "—", icon: FileText, color: "text-violet-300" },
   { label: "Conciliados", value: "—", icon: CheckCircle2, color: "text-success-foreground" },
   { label: "Divergentes", value: "—", icon: AlertTriangle, color: "text-warning-foreground" },
   { label: "Não encontrados", value: "—", icon: XCircle, color: "text-destructive" },
@@ -62,7 +62,7 @@ const ContasAPagar = () => {
 
   /* ─── shared card style ─── */
   const cardBase =
-    "rounded-[24px] border border-border bg-card shadow-[0_14px_34px_rgba(0,0,0,0.18)]";
+    "rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(16,20,32,0.98),rgba(10,13,22,0.98))] shadow-[0_14px_34px_rgba(0,0,0,0.28)]";
 
   return (
     <motion.div
@@ -96,7 +96,7 @@ const ContasAPagar = () => {
                 Importe o arquivo Excel (.xlsx) exportado pelo sistema financeiro.
               </p>
             </div>
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-border bg-muted/50">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/8 bg-white/[0.04]">
               <FileSpreadsheet className="h-5 w-5 text-emerald-400" />
             </div>
           </div>
@@ -109,15 +109,15 @@ const ContasAPagar = () => {
             }}
             className={`relative rounded-[20px] border-2 border-dashed p-8 text-center transition-all duration-300 ${
               dragSistema
-                ? "border-primary/60 bg-primary/6"
-                : "border-border bg-white/[0.02]"
+                ? "border-violet-500/40 bg-violet-500/8"
+                : "border-white/10 bg-white/[0.02]"
             }`}
           >
             {sistemaFile ? (
               <div className="flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-3">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-border bg-muted/50">
-                    <FileSpreadsheet className="h-6 w-6 text-primary" />
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/8 bg-white/[0.04]">
+                    <FileSpreadsheet className="h-6 w-6 text-violet-300" />
                   </div>
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-foreground">{sistemaFile.name}</p>
@@ -128,20 +128,20 @@ const ContasAPagar = () => {
                 </div>
                 <button
                   onClick={() => setSistemaFile(null)}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/50 text-muted-foreground transition-colors hover:bg-white/[0.08] hover:text-foreground"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/8 bg-white/[0.04] text-muted-foreground transition-colors hover:bg-white/[0.08] hover:text-foreground"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
             ) : (
               <label className="flex cursor-pointer flex-col items-center gap-3">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-muted/50">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/8 bg-white/[0.04]">
                   <UploadCloud className="h-7 w-7 text-white/40" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">
                     Arraste o arquivo ou{" "}
-                    <span className="text-primary underline underline-offset-2">selecione</span>
+                    <span className="text-violet-300 underline underline-offset-2">selecione</span>
                   </p>
                   <p className="mt-1 text-xs text-white/40">Formatos aceitos: .xlsx, .xls</p>
                 </div>
@@ -167,7 +167,7 @@ const ContasAPagar = () => {
                 Importe o extrato bancário em formato CSV para cruzamento de dados.
               </p>
             </div>
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-border bg-muted/50">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/8 bg-white/[0.04]">
               <Landmark className="h-5 w-5 text-blue-400" />
             </div>
           </div>
@@ -180,15 +180,15 @@ const ContasAPagar = () => {
             }}
             className={`relative rounded-[20px] border-2 border-dashed p-8 text-center transition-all duration-300 ${
               dragExtrato
-                ? "border-primary/60 bg-primary/6"
-                : "border-border bg-white/[0.02]"
+                ? "border-violet-500/40 bg-violet-500/8"
+                : "border-white/10 bg-white/[0.02]"
             }`}
           >
             {extratoFile ? (
               <div className="flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-3">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-border bg-muted/50">
-                    <FileText className="h-6 w-6 text-primary" />
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/8 bg-white/[0.04]">
+                    <FileText className="h-6 w-6 text-violet-300" />
                   </div>
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-foreground">{extratoFile.name}</p>
@@ -199,20 +199,20 @@ const ContasAPagar = () => {
                 </div>
                 <button
                   onClick={() => setExtratoFile(null)}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/50 text-muted-foreground transition-colors hover:bg-white/[0.08] hover:text-foreground"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/8 bg-white/[0.04] text-muted-foreground transition-colors hover:bg-white/[0.08] hover:text-foreground"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
             ) : (
               <label className="flex cursor-pointer flex-col items-center gap-3">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-muted/50">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/8 bg-white/[0.04]">
                   <UploadCloud className="h-7 w-7 text-white/40" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">
                     Arraste o arquivo ou{" "}
-                    <span className="text-primary underline underline-offset-2">selecione</span>
+                    <span className="text-violet-300 underline underline-offset-2">selecione</span>
                   </p>
                   <p className="mt-1 text-xs text-white/40">Formatos aceitos: .csv</p>
                 </div>
@@ -231,8 +231,8 @@ const ContasAPagar = () => {
       {/* ═══════════ ACTION BAR ═══════════ */}
       <section className={`${cardBase} flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between`}>
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-border bg-muted/50">
-            <ArrowDownUp className="h-4.5 w-4.5 text-primary" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/8 bg-white/[0.04]">
+            <ArrowDownUp className="h-4.5 w-4.5 text-violet-300" />
           </div>
           <div>
             <p className="text-sm font-semibold text-foreground">Processar conciliação</p>
@@ -246,7 +246,7 @@ const ContasAPagar = () => {
 
         <button
           disabled={!sistemaFile || !extratoFile}
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-primary/30 bg-primary/12 px-6 text-sm font-semibold text-primary shadow-[0_0_24px_-8px_hsl(var(--primary)/0.35)] transition-all duration-300 hover:bg-primary/18 disabled:pointer-events-none disabled:opacity-40"
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-primary/30 bg-primary/12 px-6 text-sm font-semibold text-violet-300 shadow-[0_0_24px_-8px_hsl(var(--primary)/0.35)] transition-all duration-300 hover:bg-primary/18 disabled:pointer-events-none disabled:opacity-40"
         >
           <ArrowDownUp className="h-4 w-4" />
           Conciliar dados
@@ -291,7 +291,7 @@ const ContasAPagar = () => {
             variants={fadeUp}
             className={`${cardBase} flex items-center gap-4 p-5`}
           >
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-border bg-muted/50">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/8 bg-white/[0.04]">
               <kpi.icon className={`h-5 w-5 ${kpi.color}`} />
             </div>
             <div>
@@ -321,13 +321,13 @@ const ContasAPagar = () => {
                 type="text"
                 placeholder="Buscar título..."
                 disabled
-                className="h-10 w-56 rounded-xl border border-border bg-muted/40 pl-9 pr-3 text-sm text-foreground/70 placeholder:text-white/30 transition-colors focus:border-primary/40 focus:outline-none disabled:opacity-50"
+                className="h-10 w-56 rounded-xl border border-border bg-muted/40 pl-9 pr-3 text-sm text-foreground/70 placeholder:text-white/30 transition-colors focus:border-violet-500/40 focus:outline-none disabled:opacity-50"
               />
             </div>
 
             <button
               disabled
-              className="inline-flex h-10 items-center gap-2 rounded-xl border border-border bg-muted/50 px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/60 disabled:opacity-40"
+              className="inline-flex h-10 items-center gap-2 rounded-xl border border-white/8 bg-white/[0.04] px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/60 disabled:opacity-40"
             >
               <Download className="h-4 w-4" />
               Exportar
@@ -347,7 +347,7 @@ const ContasAPagar = () => {
 
           {/* ── empty state ── */}
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-border bg-muted/50">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/8 bg-white/[0.04]">
               <Table2 className="h-8 w-8 text-white/25" />
             </div>
             <p className="text-sm font-medium text-white/50">Nenhum dado para exibir</p>

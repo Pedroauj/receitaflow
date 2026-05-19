@@ -25,47 +25,21 @@ const UploadZone = ({
   multiple,
 }: UploadZoneProps) => (
   <label
-    className="relative block cursor-pointer overflow-hidden rounded-[28px] border border-border bg-card p-6 shadow-[0_14px_40px_rgba(0,0,0,0.22)] transition-colors hover:border-primary/20"
+    className="relative block cursor-pointer overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(16,20,32,0.98)_0%,rgba(10,13,22,0.98)_100%)] p-6 shadow-[0_14px_40px_rgba(0,0,0,0.28)] transition-all duration-200 hover:border-violet-500/25 hover:shadow-[0_18px_48px_rgba(0,0,0,0.32)]"
     onDragOver={(e) => e.preventDefault()}
     onDrop={onDrop}
   >
-    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.08),transparent_28%)]" />
+    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.08),transparent_32%)]" />
 
     <div className="relative">
       <div className="mb-5 flex items-center gap-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-violet-500/20 bg-violet-500/10 text-violet-300">
           <Icon className="h-5 w-5" />
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-foreground">{title}</h2>
-          <p className="text-sm text-muted-foreground">{description}</p>
+          <h2 className="text-lg font-semibold text-white">{title}</h2>
+          <p className="text-sm text-slate-400">{description}</p>
         </div>
-      </div>
-
-      <div className="rounded-[22px] border border-dashed border-primary/15 bg-primary/[0.04] px-6 py-14 text-center transition-all duration-200 hover:border-primary/30 hover:bg-primary/[0.07]">
-        {file ? (
-          <div className="flex flex-col items-center justify-center gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-primary/20 bg-primary/10">
-              <FileCheck className="h-7 w-7 text-primary" />
-            </div>
-            <div>
-              <p className="text-lg font-semibold text-foreground">{file.name}</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Arquivo carregado. Clique para trocar.
-              </p>
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[24px] border border-primary/15 bg-primary/8">
-              <Icon className="h-8 w-8 text-primary" />
-            </div>
-            <p className="text-xl font-semibold text-foreground">
-              Arraste ou clique para selecionar
-            </p>
-            <p className="mt-3 text-sm text-muted-foreground">{description}</p>
-          </>
-        )}
       </div>
 
       <input
@@ -73,9 +47,25 @@ const UploadZone = ({
         type="file"
         accept={accept}
         className="hidden"
-        multiple={multiple}
         onChange={onChange}
+        multiple={multiple}
       />
+
+      {file ? (
+        <div className="flex items-center gap-3 rounded-2xl border border-violet-500/20 bg-violet-500/8 px-4 py-3">
+          <FileCheck className="h-5 w-5 shrink-0 text-violet-300" />
+          <div className="min-w-0">
+            <p className="truncate text-sm font-medium text-white">{file.name}</p>
+            <p className="text-xs text-slate-400">{(file.size / 1024).toFixed(0)} KB</p>
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-2xl border-2 border-dashed border-white/10 px-6 py-10 text-center transition-all duration-200 hover:border-violet-500/25 hover:bg-violet-500/5">
+          <Icon className="mx-auto mb-3 h-8 w-8 text-slate-500" />
+          <p className="text-sm font-medium text-slate-300">Arraste ou clique para selecionar</p>
+          <p className="mt-1 text-xs text-slate-500">{description}</p>
+        </div>
+      )}
     </div>
   </label>
 );

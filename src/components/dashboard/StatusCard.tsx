@@ -29,8 +29,8 @@ const variantMap: Record<StatusVariant, { border: string; bg: string; text: stri
     sub: "text-blue-200/80",
   },
   neutral: {
-    border: "border-white/10",
-    bg: "bg-white/[0.03]",
+    border: "border-white/8",
+    bg: "bg-white/[0.04]",
     text: "text-muted-foreground",
     sub: "text-muted-foreground/80",
   },

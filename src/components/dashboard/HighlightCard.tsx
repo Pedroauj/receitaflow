@@ -28,10 +28,10 @@ const colorMap: Record<ColorVariant, { border: string; bg: string; text: string;
     sub: "text-blue-200/80",
   },
   primary: {
-    border: "border-primary/15",
-    bg: "bg-primary/8",
-    text: "text-primary",
-    sub: "text-primary/80",
+    border: "border-violet-500/20",
+    bg: "bg-violet-500/10",
+    text: "text-violet-300",
+    sub: "text-violet-300/70",
   },
   neutral: {
     border: "border-white/10",
