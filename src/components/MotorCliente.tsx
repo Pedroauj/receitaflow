@@ -72,7 +72,7 @@ const MotorCliente = () => {
         color,
         initials,
         docCount,
-        isActive: docCount > 0,
+        isActive: true,
       };
     });
   }, [records]);
@@ -196,24 +196,14 @@ const MotorCliente = () => {
                 />
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
-                <div className="rounded-2xl border border-emerald-500/15 bg-emerald-500/8 p-4">
-                  <p className="text-[11px] uppercase tracking-[0.14em] text-emerald-300/80">
-                    Ativos
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                <div className="rounded-2xl border border-violet-500/15 bg-violet-500/8 p-4">
+                  <p className="text-[11px] uppercase tracking-[0.14em] text-violet-300/80">
+                    Clientes
                   </p>
-                  <p className="mt-2 text-xl font-semibold text-white">{activeClients}</p>
+                  <p className="mt-2 text-xl font-semibold text-white">{totalClients}</p>
                   <p className="mt-1 text-xs text-slate-400">
-                    Clientes com movimentação disponível
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-amber-500/15 bg-amber-500/8 p-4">
-                  <p className="text-[11px] uppercase tracking-[0.14em] text-amber-300/80">
-                    Pendentes
-                  </p>
-                  <p className="mt-2 text-xl font-semibold text-white">{pendingClients}</p>
-                  <p className="mt-1 text-xs text-slate-400">
-                    Operações aguardando vínculo documental
+                    Cadastrados e disponíveis no sistema
                   </p>
                 </div>
 
@@ -297,14 +287,8 @@ const MotorCliente = () => {
                       </p>
                     </div>
 
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-medium ${
-                        client.isActive
-                          ? "bg-emerald-500/12 text-emerald-300"
-                          : "bg-rose-500/12 text-rose-300"
-                      }`}
-                    >
-                      {client.isActive ? "Operação ativa" : "Operação pendente"}
+                    <span className="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-medium bg-white/[0.06] text-slate-400">
+                      {formatNumber(client.docCount)} docs
                     </span>
                   </div>
                 </div>
@@ -362,16 +346,6 @@ const MotorCliente = () => {
                           </p>
 
                           <div className="mt-2 flex flex-wrap items-center gap-2">
-                            <span
-                              className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-medium ${
-                                client.isActive
-                                  ? "bg-emerald-500/12 text-emerald-300"
-                                  : "bg-rose-500/12 text-rose-300"
-                              }`}
-                            >
-                              {client.isActive ? "Ativo" : "Pendente"}
-                            </span>
-
                             <span className="text-[11px] text-slate-400">
                               {formatDocsLabel(client.docCount)}
                             </span>
@@ -411,37 +385,21 @@ const MotorCliente = () => {
               <div className="space-y-3">
                 <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-400">Base total</span>
+                    <span className="text-xs text-slate-400">Total de clientes</span>
                     <span className="text-sm font-semibold text-white">{totalClients}</span>
                   </div>
-                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/5">
-                    <div
-                      className="h-full rounded-full bg-primary"
-                      style={{ width: `${totalClients ? (activeClients / totalClients) * 100 : 0}%` }}
-                    />
-                  </div>
                   <p className="mt-2 text-[11px] text-slate-500">
-                    {activeClients} de {totalClients} clientes já possuem atividade.
+                    Clientes cadastrados e disponíveis no sistema.
                   </p>
                 </div>
 
                 <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-400">Clientes ativos</span>
-                    <span className="text-sm font-semibold text-emerald-300">{activeClients}</span>
+                    <span className="text-xs text-slate-400">Documentos processados</span>
+                    <span className="text-sm font-semibold text-violet-300">{formatNumber(totalDocs)}</span>
                   </div>
                   <p className="mt-2 text-[11px] text-slate-500">
-                    Operações com documentos efetivamente mapeados.
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-400">Clientes pendentes</span>
-                    <span className="text-sm font-semibold text-amber-300">{pendingClients}</span>
-                  </div>
-                  <p className="mt-2 text-[11px] text-slate-500">
-                    Itens que ainda podem receber configuração ou integração.
+                    Total agregado entre todos os clientes.
                   </p>
                 </div>
               </div>
@@ -452,22 +410,15 @@ const MotorCliente = () => {
 
               <div className="mt-4 space-y-3">
                 <div className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3">
-                  <span className="text-sm text-slate-300">Ativos</span>
-                  <span className="rounded-full bg-emerald-500/12 px-2.5 py-1 text-xs font-medium text-emerald-300">
-                    {activeClientsList.length}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3">
-                  <span className="text-sm text-slate-300">Pendentes</span>
-                  <span className="rounded-full bg-rose-500/12 px-2.5 py-1 text-xs font-medium text-rose-300">
-                    {pendingClientsList.length}
+                  <span className="text-sm text-slate-300">Clientes</span>
+                  <span className="rounded-full bg-violet-500/12 px-2.5 py-1 text-xs font-medium text-violet-300">
+                    {totalClients}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3">
                   <span className="text-sm text-slate-300">Documentos</span>
-                  <span className="rounded-full bg-primary/12 px-2.5 py-1 text-xs font-medium text-primary">
+                  <span className="rounded-full bg-violet-500/12 px-2.5 py-1 text-xs font-medium text-violet-300">
                     {formatNumber(totalDocs)}
                   </span>
                 </div>
