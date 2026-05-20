@@ -304,7 +304,7 @@ function detectHeaderRow(rows: unknown[][], kind: SpreadsheetKind) {
   const targets =
     kind === "system"
       ? ["data", "nf", "nota/cnpj/cpf", "valor doc", "chave"]
-      : ["chave da nfe", "num nfe", "data emissao", "cnpj emit", "valor", "tags"];
+      : ["emissao", "nota fiscal", "fornecedor", "valor nfe", "chave nfe", "doc fornecedor"];
 
   let bestIndex = -1;
   let bestScore = -1;
@@ -497,33 +497,25 @@ function mapSystemColumns(headers: string[], rows: MappedRow[]): ColumnIndexes {
 }
 
 function mapGovernmentColumns(headers: string[]): ColumnIndexes {
-  const chaveIndex = findColumnIndex(headers, ["Chave da NFe"]);
-  const nfIndex = findColumnIndex(headers, ["Num NFe"]);
-  const dataIndex = findColumnIndex(headers, ["Data Emissão", "Data Emissao"]);
-  const cnpjIndex = findColumnIndex(headers, ["CNPJ Emit"]);
-  const valorIndex = findColumnIndex(headers, ["Valor"]);
-  const fornecedorIndex = findColumnIndex(headers, [
-    "Razão Soc. Emit",
-    "Razao Soc. Emit",
-    "Nome Fant. Emit",
-  ]);
-  const tagsIndex = findColumnIndex(headers, ["Tags"]);
-  const statusIndex = findColumnIndex(headers, [
-    "Situação", "Situacao", "Status", "Situação da NF", "Situacao da NF", "Sit",
-  ]);
+  // Portal NFE: Emissão | Doc Fornecedor | Fornecedor | Série | Nota Fiscal | Valor NFe | Lançado no VR | Chave NFe | ...
+  const chaveIndex = findColumnIndex(headers, ["Chave NFe", "Chave da NFe", "Chave NF-e", "Chave"]);
+  const nfIndex = findColumnIndex(headers, ["Nota Fiscal", "Num NFe", "Número NF", "NF"]);
+  const dataIndex = findColumnIndex(headers, ["Emissão", "Emissao", "Data Emissão", "Data Emissao", "Data"]);
+  const cnpjIndex = findColumnIndex(headers, ["Doc Fornecedor", "CNPJ Emit", "CNPJ"]);
+  const valorIndex = findColumnIndex(headers, ["Valor NFe", "Valor NF-e", "Valor Serviço (R$) (vServ)", "Valor Serviço (vServ)", "Valor"]);
+  const fornecedorIndex = findColumnIndex(headers, ["Fornecedor", "Razão Soc. Emit", "Razao Soc. Emit", "Nome Fant. Emit", "Nome"]);
+  const tagsIndex = findColumnIndex(headers, ["Tags", "Lançado no VR", "Lancado no VR"]);
+  const statusIndex = findColumnIndex(headers, ["Situação", "Situacao", "Status"]);
 
   const missing: string[] = [];
-  if (chaveIndex === -1) missing.push("Chave da NFe");
-  if (nfIndex === -1) missing.push("Num NFe");
-  if (dataIndex === -1) missing.push("Data Emissão");
-  if (cnpjIndex === -1) missing.push("CNPJ Emit");
-  if (valorIndex === -1) missing.push("Valor");
-  if (fornecedorIndex === -1) missing.push("Razão Soc. Emit / Nome Fant. Emit");
-  if (tagsIndex === -1) missing.push("Tags");
+  if (nfIndex === -1) missing.push("Nota Fiscal");
+  if (dataIndex === -1) missing.push("Emissão");
+  if (valorIndex === -1) missing.push("Valor NFe");
+  if (fornecedorIndex === -1) missing.push("Fornecedor");
 
   if (missing.length > 0) {
     throw new Error(
-      `Na planilha do SIEG não encontrei estas colunas esperadas: ${missing.join(", ")}.`,
+      `Na planilha do portal não encontrei estas colunas esperadas: ${missing.join(", ")}.`,
     );
   }
 
@@ -615,13 +607,13 @@ function parseGovernmentRecords(rows: MappedRow[], indexes: ColumnIndexes): Pars
     .map((row) => {
       const values = getRowValues(row);
 
-      const originalChave = values[indexes.chaveIndex];
+      const originalChave = indexes.chaveIndex >= 0 ? values[indexes.chaveIndex] : "";
       const originalNF = values[indexes.nfIndex];
       const originalData = values[indexes.dataIndex];
-      const originalCNPJ = values[indexes.cnpjIndex];
+      const originalCNPJ = indexes.cnpjIndex >= 0 ? values[indexes.cnpjIndex] : "";
       const originalValor = values[indexes.valorIndex];
       const originalFornecedor = values[indexes.fornecedorIndex];
-      const originalTags = values[indexes.tagsIndex];
+      const originalTags = indexes.tagsIndex >= 0 ? values[indexes.tagsIndex] : "";
 
       const rawTags = String(originalTags ?? "").trim();
 
@@ -639,7 +631,7 @@ function parseGovernmentRecords(rows: MappedRow[], indexes: ColumnIndexes): Pars
             ? originalValor
             : String(originalValor ?? "").trim(),
         rawTags,
-        ativoImobilizado: isAtivoImobilizado(rawTags),
+        ativoImobilizado: false,
 
         normalizedChave: normalizeAccessKey(originalChave),
         normalizedNumeroNF: normalizeNF(originalNF),
@@ -655,8 +647,7 @@ function parseGovernmentRecords(rows: MappedRow[], indexes: ColumnIndexes): Pars
         row.normalizedCnpjEmitente ||
         row.normalizedDataEmissao ||
         row.normalizedValor > 0,
-    )
-    .filter((row) => !shouldExcludeSiegRecord(row.rawTags));
+    );
 }
 
 export async function parseSpreadsheetFile(
@@ -995,7 +986,7 @@ export function compareReports(
         govRecord,
         null,
         "Não lançada",
-        "Nota encontrada no SIEG e não localizada no sistema.",
+        "Nota encontrada no portal e não localizada no sistema.",
         id,
       ),
     );
