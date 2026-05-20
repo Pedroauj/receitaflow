@@ -326,7 +326,7 @@ function mapGovernmentColumns(headers: string[]): ColumnIndexes {
   const nfIndex = findColumnIndex(headers, ["Número (nNFSe)"]);
   const dataIndex = findColumnIndex(headers, ["Data da Emissão (dhEmi)"]);
   const cnpjIndex = findColumnIndex(headers, ["Prestador (CNPJ / CPF)"]);
-  const valorIndex = findColumnIndex(headers, ["Valor Serviço (vServ)"]);
+  const valorIndex = findColumnIndex(headers, ["Valor Serviço (R$) (vServ)", "Valor Serviço (vServ)"]);
   const nomeIndex = findColumnIndex(headers, [
     "Razão Social",
     "Razao Social",
