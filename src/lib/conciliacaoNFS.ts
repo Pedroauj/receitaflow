@@ -326,7 +326,17 @@ function mapGovernmentColumns(headers: string[]): ColumnIndexes {
   const nfIndex = findColumnIndex(headers, ["Número (nNFSe)"]);
   const dataIndex = findColumnIndex(headers, ["Data da Emissão (dhEmi)"]);
   const cnpjIndex = findColumnIndex(headers, ["Prestador (CNPJ / CPF)"]);
-  const valorIndex = findColumnIndex(headers, ["Valor Serviço (R$) (vServ)", "Valor Serviço (vServ)"]);
+  const valorIndex = findColumnIndex(headers, [
+    "Valor Serviço (R$) (vServ)",
+    "Valor Servico (R$) (vServ)",
+    "Valor Serviço (vServ)",
+    "Valor Servico (vServ)",
+    "Valor Serviço (R$)",
+    "Valor Servico (R$)",
+    "vServ",
+    "Valor Serviço",
+    "Valor Servico",
+  ]);
   const nomeIndex = findColumnIndex(headers, [
     "Razão Social",
     "Razao Social",
@@ -429,6 +439,7 @@ export async function parseSpreadsheetFile(file: File, kind: SpreadsheetKind) {
   }
 
   const headers = Object.keys(mappedRows[0] ?? {});
+  console.log(`[parseSpreadsheetFile] kind=${kind} headers:`, headers);
   const indexes = kind === "system" ? mapSystemColumns(headers) : mapGovernmentColumns(headers);
 
   return parseRecordsByKind(mappedRows, indexes);
