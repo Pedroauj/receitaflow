@@ -271,18 +271,22 @@ const ConciliacaoNFS = () => {
     setResults([]);
     setSummary(emptySummary);
     setSearchTerm("");
-    setErrorMessage("");
     setCurrentPage(1);
+  };
+
+  const resetFull = () => {
+    reset();
+    setErrorMessage("");
   };
 
   const handleSystemFileChange = (file: File | null) => {
     setSystemFile(file);
-    reset();
+    resetFull();
   };
 
   const handleGovernmentFileChange = (file: File | null) => {
     setGovernmentFile(file);
-    reset();
+    resetFull();
   };
 
   const handleDrop = (
@@ -328,9 +332,9 @@ const ConciliacaoNFS = () => {
       setSearchTerm("");
       setCurrentPage(1);
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Erro ao processar as planilhas.",
-      );
+      console.error("[ConciliacaoNFS] Erro ao comparar:", error);
+      const msg = error instanceof Error ? error.message : "Erro ao processar as planilhas.";
+      setErrorMessage(msg);
       reset();
     } finally {
       setIsProcessing(false);
