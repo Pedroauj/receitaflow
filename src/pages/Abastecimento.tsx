@@ -1,3 +1,4 @@
+import JSZip from "jszip";
 import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -153,38 +154,45 @@ const Abastecimento = () => {
   };
 
   // Gera e baixa os XMLs corrigidos
-  const confirmar = () => {
+  const confirmar = async () => {
     const semPlaca = notas.filter((n) => !n.temPlaca && !n.placa.trim());
     if (semPlaca.length > 0) {
       toast({
-        title: "Placa não preenchida",
-        description: `${semPlaca.length} nota(s) sem placa informada.`,
+        title: "Conteúdo não preenchido",
+        description: `${semPlaca.length} nota(s) sem conteúdo informado.`,
         variant: "destructive",
       });
       return;
     }
 
-    let baixados = 0;
-    for (const nota of notas) {
-      // Só modifica notas que não têm placa ou que têm placa nova informada
-      const xmlFinal =
-        nota.placa.trim()
-          ? inserirPlacaNoXML(nota.rawContent, nota.placa)
-          : nota.rawContent;
+    const zip = new JSZip();
 
-      const blob = new Blob([xmlFinal], { type: "application/xml" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = nota.fileName;
-      a.click();
-      URL.revokeObjectURL(url);
-      baixados++;
+    for (const nota of notas) {
+      const xmlFinal = nota.placa.trim()
+        ? inserirPlacaNoXML(nota.rawContent, nota.placa)
+        : nota.rawContent;
+
+      // Garante extensão .xml no nome do arquivo
+      const nomeArquivo = nota.fileName.toLowerCase().endsWith(".xml")
+        ? nota.fileName
+        : `${nota.fileName}.xml`;
+
+      zip.file(nomeArquivo, xmlFinal);
     }
 
+    const blob = await zip.generateAsync({ type: "blob" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `xmls-corrigidos-${new Date().toISOString().slice(0, 10)}.zip`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
     toast({
-      title: `${baixados} XML${baixados > 1 ? "s" : ""} gerado${baixados > 1 ? "s" : ""}`,
-      description: "Arquivos corrigidos baixados com sucesso.",
+      title: `${notas.length} XML${notas.length > 1 ? "s" : ""} exportado${notas.length > 1 ? "s" : ""}`,
+      description: "Arquivo ZIP gerado com todos os XMLs corrigidos.",
     });
   };
 
