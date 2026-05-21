@@ -21,12 +21,13 @@ import { AccentButton } from "@/components/client";
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 
 interface NotaItem {
-  id: string;          // chave única (nNF + índice)
-  nNF: string;         // número da nota
-  fileName: string;    // nome do arquivo original
-  rawContent: string;  // conteúdo XML bruto
-  placa: string;       // placa preenchida pelo usuário
-  temPlaca: boolean;   // se já tem placa no infCpl original
+  id: string;
+  nNF: string;
+  fileName: string;
+  rawContent: string;
+  placa: string;
+  temPlaca: boolean;
+  posto: string;
 }
 
 // ─── Helpers XML ─────────────────────────────────────────────────────────────
@@ -34,6 +35,11 @@ interface NotaItem {
 function extrairNNF(xml: string): string {
   const match = xml.match(/<nNF>(\d+)<\/nNF>/);
   return match ? match[1] : "—";
+}
+
+function extrairPosto(xml: string): string {
+  const match = xml.match(/<emit>[\s\S]*?<xNome>([\s\S]*?)<\/xNome>/i);
+  return match ? match[1].trim() : "—";
 }
 
 function temPlacaNoXML(xml: string): boolean {
@@ -95,6 +101,7 @@ const Abastecimento = () => {
       const raw = await file.text();
       const nNF = extrairNNF(raw);
       const temPlaca = temPlacaNoXML(raw);
+      const posto = extrairPosto(raw);
 
       novas.push({
         id: `${file.name}_${nNF}`,
@@ -103,6 +110,7 @@ const Abastecimento = () => {
         rawContent: raw,
         placa: "",
         temPlaca,
+        posto,
       });
     }
 
@@ -281,10 +289,11 @@ const Abastecimento = () => {
               {/* Tabela */}
               <div className="overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(16,20,32,0.98),rgba(10,13,22,0.98))] shadow-[0_18px_60px_rgba(0,0,0,0.35)]">
                 {/* Cabeçalho */}
-                <div className="grid grid-cols-[1fr_1.8fr_1.5fr_40px] items-center border-b border-white/8 bg-white/[0.02] px-5 py-3">
+                <div className="grid grid-cols-[1fr_1.4fr_1.6fr_1.5fr_40px] items-center border-b border-white/8 bg-white/[0.02] px-5 py-3">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Nº Nota</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Posto</p>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Arquivo</p>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Placa</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Conteúdo infCpl</p>
                   <div />
                 </div>
 
@@ -298,7 +307,7 @@ const Abastecimento = () => {
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 8 }}
                         transition={{ duration: 0.2, delay: idx * 0.02 }}
-                        className="grid grid-cols-[1fr_1.8fr_1.5fr_40px] items-center gap-4 px-5 py-3.5 transition-colors hover:bg-white/[0.02]"
+                        className="grid grid-cols-[1fr_1.4fr_1.6fr_1.5fr_40px] items-center gap-4 px-5 py-3.5 transition-colors hover:bg-white/[0.02]"
                       >
                         {/* Nº Nota */}
                         <div className="flex items-center gap-2.5">
@@ -312,17 +321,22 @@ const Abastecimento = () => {
                           </span>
                           {nota.temPlaca && (
                             <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
-                              já tem placa
+                              já tem
                             </span>
                           )}
                         </div>
+
+                        {/* Posto */}
+                        <p className="truncate text-xs font-medium text-slate-300" title={nota.posto}>
+                          {nota.posto}
+                        </p>
 
                         {/* Arquivo */}
                         <p className="truncate text-xs text-slate-400" title={nota.fileName}>
                           {nota.fileName}
                         </p>
 
-                        {/* Campo placa */}
+                        {/* Campo infCpl */}
                         <div>
                           {nota.temPlaca ? (
                             <p className="text-xs text-slate-500 italic">
