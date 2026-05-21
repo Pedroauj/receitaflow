@@ -13,8 +13,8 @@ const ProtectedRoute = ({ children, moduleKey }: ProtectedRouteProps) => {
 
   if (loading || permLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "#18181A" }}>
-        <div className="h-8 w-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "#BA7517", borderTopColor: "transparent" }} />
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "#0a0d16" }}>
+        <div className="h-7 w-7 rounded-full animate-spin border-2 border-violet-500/20 border-t-violet-400" />
       </div>
     );
   }
