@@ -56,7 +56,7 @@ const Cadastro = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-background">
+    <div className="min-h-screen flex items-center justify-center px-4 bg-[#0a0d16]">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -65,21 +65,21 @@ const Cadastro = () => {
       >
         {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="h-10 w-10 rounded-lg flex items-center justify-center bg-primary/20">
-            <Hexagon className="h-6 w-6 text-primary" />
+          <div className="h-10 w-10 rounded-lg flex items-center justify-center bg-violet-500/15">
+            <Hexagon className="h-6 w-6 text-violet-400" />
           </div>
           <h1 className="text-xl font-semibold text-foreground">
-            Receita<span className="text-primary">Flow</span>
+            Receita<span className="text-violet-400">Flow</span>
           </h1>
         </div>
 
-        <div className="card-elevated p-6">
+        <div className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(16,18,30,0.97),rgba(10,12,22,0.99))] shadow-[0_20px_60px_rgba(0,0,0,0.4)] p-6">
           <h2 className="text-lg font-semibold text-center mb-1 text-foreground">Criar conta</h2>
           <p className="text-xs text-center mb-6 text-muted-foreground">Cadastre-se para começar</p>
 
           <Button
             variant="outline"
-            className="w-full h-10 text-sm border-border bg-muted/50 hover:bg-muted mb-4 text-foreground"
+            className="w-full h-10 text-sm border-white/8 bg-white/[0.04] hover:bg-muted mb-4 text-foreground"
             onClick={handleGoogleSignup}
             disabled={loading}
           >
@@ -103,7 +103,7 @@ const Cadastro = () => {
               <Label className="text-[11px] text-muted-foreground">Nome completo</Label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input type="text" placeholder="Seu nome" value={name} onChange={(e) => setName(e.target.value)} className="pl-10 border-border bg-muted/50 h-10" required />
+                <Input type="text" placeholder="Seu nome" value={name} onChange={(e) => setName(e.target.value)} className="pl-10 border-white/8 bg-white/[0.04] h-10" required />
               </div>
             </div>
 
@@ -111,7 +111,7 @@ const Cadastro = () => {
               <Label className="text-[11px] text-muted-foreground">Email</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10 border-border bg-muted/50 h-10" required />
+                <Input type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10 border-white/8 bg-white/[0.04] h-10" required />
               </div>
             </div>
 
@@ -119,14 +119,14 @@ const Cadastro = () => {
               <Label className="text-[11px] text-muted-foreground">Senha</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input type={showPassword ? "text" : "password"} placeholder="Mínimo 6 caracteres" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10 pr-10 border-border bg-muted/50 h-10" required minLength={6} />
+                <Input type={showPassword ? "text" : "password"} placeholder="Mínimo 6 caracteres" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10 pr-10 border-white/8 bg-white/[0.04] h-10" required minLength={6} />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
 
-            <Button type="submit" className="w-full gradient-btn border-0 h-10 text-sm" disabled={loading}>
+            <Button type="submit" className="w-full bg-[linear-gradient(135deg,rgba(99,102,241,0.9),rgba(139,92,246,0.8))] border-0 text-white shadow-[0_12px_28px_rgba(99,102,241,0.25)] hover:opacity-95 h-10 text-sm" disabled={loading}>
               {loading ? "Criando..." : "Criar conta"}
             </Button>
           </form>
@@ -134,7 +134,7 @@ const Cadastro = () => {
 
         <p className="text-center text-xs mt-5 text-muted-foreground">
           Já tem conta?{" "}
-          <Link to="/login" className="font-medium text-primary hover:underline">
+          <Link to="/login" className="font-medium text-violet-400 hover:underline">
             Entrar
           </Link>
         </p>

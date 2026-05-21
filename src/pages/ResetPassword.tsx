@@ -113,7 +113,7 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-background">
+    <div className="min-h-screen flex items-center justify-center px-4 bg-[#0a0d16]">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -122,20 +122,20 @@ const ResetPassword = () => {
       >
         {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="h-10 w-10 rounded-lg flex items-center justify-center bg-primary/20">
-            <Hexagon className="h-6 w-6 text-primary" />
+          <div className="h-10 w-10 rounded-lg flex items-center justify-center bg-violet-500/15">
+            <Hexagon className="h-6 w-6 text-violet-400" />
           </div>
           <h1 className="text-xl font-semibold text-foreground">
-            Receita<span className="text-primary">Flow</span>
+            Receita<span className="text-violet-400">Flow</span>
           </h1>
         </div>
 
-        <div className="card-elevated p-6">
+        <div className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(16,18,30,0.97),rgba(10,12,22,0.99))] shadow-[0_20px_60px_rgba(0,0,0,0.4)] p-6">
           <AnimatePresence mode="wait">
             {/* Loading / Sending Code */}
             {(step === "loading" || step === "sending-code") && (
               <motion.div key="loading" variants={stepVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.25 }} className="flex flex-col items-center gap-4 py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
                 <p className="text-sm text-muted-foreground">
                   {step === "loading" ? "Verificando sessão..." : "Enviando código de verificação..."}
                 </p>
@@ -146,12 +146,12 @@ const ResetPassword = () => {
             {step === "verify-code" && (
               <motion.div key="verify" variants={stepVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.25 }}>
                 <div className="flex flex-col items-center mb-6">
-                  <div className="h-12 w-12 rounded-full flex items-center justify-center mb-4 bg-primary/20">
-                    <Mail className="h-6 w-6 text-primary" />
+                  <div className="h-12 w-12 rounded-full flex items-center justify-center mb-4 bg-violet-500/15">
+                    <Mail className="h-6 w-6 text-violet-400" />
                   </div>
                   <h2 className="text-lg font-semibold text-center mb-1 text-foreground">Verifique seu email</h2>
                   <p className="text-xs text-center text-muted-foreground">Enviamos um código de 6 dígitos para</p>
-                  <p className="text-xs text-center font-medium mt-1 text-primary">{email}</p>
+                  <p className="text-xs text-center font-medium mt-1 text-violet-400">{email}</p>
                 </div>
                 <form onSubmit={handleVerifyCode} className="space-y-5">
                   <div className="flex justify-center">
@@ -169,7 +169,7 @@ const ResetPassword = () => {
                       </InputOTPGroup>
                     </InputOTP>
                   </div>
-                  <Button type="submit" className="w-full gradient-btn border-0 h-10 text-sm" disabled={otpCode.length !== 6}>
+                  <Button type="submit" className="w-full bg-[linear-gradient(135deg,rgba(99,102,241,0.9),rgba(139,92,246,0.8))] border-0 text-white shadow-[0_12px_28px_rgba(99,102,241,0.25)] hover:opacity-95 h-10 text-sm" disabled={otpCode.length !== 6}>
                     Verificar código
                   </Button>
                   <button
@@ -187,8 +187,8 @@ const ResetPassword = () => {
             {step === "set-password" && (
               <motion.div key="password" variants={stepVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.25 }}>
                 <div className="flex flex-col items-center mb-6">
-                  <div className="h-12 w-12 rounded-full flex items-center justify-center mb-4 bg-primary/20">
-                    <ShieldCheck className="h-6 w-6 text-primary" />
+                  <div className="h-12 w-12 rounded-full flex items-center justify-center mb-4 bg-violet-500/15">
+                    <ShieldCheck className="h-6 w-6 text-violet-400" />
                   </div>
                   <h2 className="text-lg font-semibold text-center mb-1 text-foreground">Defina sua senha</h2>
                   <p className="text-xs text-center text-muted-foreground">Email verificado! Agora crie sua senha de acesso.</p>
@@ -203,7 +203,7 @@ const ResetPassword = () => {
                         placeholder="Mínimo 6 caracteres"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="pl-10 pr-10 border-border bg-muted/50 h-10"
+                        className="pl-10 pr-10 border-white/8 bg-white/[0.04] h-10"
                         required
                         minLength={6}
                       />
@@ -212,7 +212,7 @@ const ResetPassword = () => {
                       </button>
                     </div>
                   </div>
-                  <Button type="submit" className="w-full gradient-btn border-0 h-10 text-sm" disabled={loading}>
+                  <Button type="submit" className="w-full bg-[linear-gradient(135deg,rgba(99,102,241,0.9),rgba(139,92,246,0.8))] border-0 text-white shadow-[0_12px_28px_rgba(99,102,241,0.25)] hover:opacity-95 h-10 text-sm" disabled={loading}>
                     {loading ? "Salvando..." : "Definir senha"}
                   </Button>
                 </form>
