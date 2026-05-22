@@ -197,6 +197,37 @@ const Index = () => {
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+
+            {/* Card SGT — primeiro e destacado */}
+            <motion.a
+              href="https://dashboardsgt.lovable.app/login"
+              target="_blank"
+              rel="noopener noreferrer"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+              className="group relative overflow-hidden rounded-[22px] border border-teal-500/30 bg-[linear-gradient(135deg,rgba(16,24,36,0.98)_0%,rgba(10,22,20,0.98)_100%)] p-5 shadow-[0_10px_30px_rgba(0,0,0,0.28),0_0_0_1px_rgba(59,191,160,0.08)] transition-all duration-200 hover:-translate-y-0.5 hover:border-teal-400/50 hover:shadow-[0_16px_40px_rgba(0,0,0,0.35),0_0_24px_rgba(59,191,160,0.12)]"
+            >
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,191,160,0.10),transparent_55%)]" />
+
+              <div className="relative z-10 flex items-start justify-between gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-500/15 ring-1 ring-teal-500/20">
+                  <ExternalLink className="h-4.5 w-4.5 text-teal-400" />
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="rounded-full border border-teal-500/25 bg-teal-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-teal-400">
+                    Workspace
+                  </span>
+                  <ArrowUpRight className="h-4 w-4 text-slate-600 transition-all duration-200 group-hover:text-teal-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </div>
+              </div>
+
+              <div className="relative z-10 mt-4">
+                <p className="text-[15px] font-semibold tracking-tight text-white">SGT</p>
+                <p className="mt-1.5 text-xs leading-5 text-slate-500">Acesso ao workspace SGT</p>
+              </div>
+            </motion.a>
+
             {accessibleModules.map((mod, i) => (
               <motion.button
                 key={mod.key}
@@ -204,7 +235,7 @@ const Index = () => {
                 onClick={() => navigate(mod.path)}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 + i * 0.04, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ delay: 0.14 + i * 0.04, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
                 className="group relative overflow-hidden rounded-[22px] border border-white/8 bg-[linear-gradient(180deg,rgba(16,20,32,0.98),rgba(10,13,22,0.98))] p-5 text-left shadow-[0_10px_30px_rgba(0,0,0,0.22)] transition-all duration-200 hover:-translate-y-0.5 hover:border-white/12 hover:shadow-[0_16px_40px_rgba(0,0,0,0.30)]"
               >
                 <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
@@ -226,32 +257,6 @@ const Index = () => {
                 </div>
               </motion.button>
             ))}
-
-            {/* Card externo: SGT */}
-            <motion.a
-              href="https://dashboardsgt.lovable.app/login"
-              target="_blank"
-              rel="noopener noreferrer"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 + accessibleModules.length * 0.04, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className="group relative overflow-hidden rounded-[22px] border border-white/8 bg-[linear-gradient(180deg,rgba(16,20,32,0.98),rgba(10,13,22,0.98))] p-5 shadow-[0_10px_30px_rgba(0,0,0,0.22)] transition-all duration-200 hover:-translate-y-0.5 hover:border-white/12 hover:shadow-[0_16px_40px_rgba(0,0,0,0.30)]"
-            >
-              <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-                style={{ background: "radial-gradient(circle at top left, #3BBFA012, transparent 55%)" }} />
-
-              <div className="relative z-10 flex items-start justify-between gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ background: "#3BBFA018" }}>
-                  <ExternalLink className="h-4.5 w-4.5" style={{ color: "#3BBFA0" }} />
-                </div>
-                <ArrowUpRight className="h-4 w-4 text-slate-600 transition-all duration-200 group-hover:text-violet-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 shrink-0" />
-              </div>
-
-              <div className="relative z-10 mt-4">
-                <p className="text-[15px] font-semibold tracking-tight text-white">SGT</p>
-                <p className="mt-1.5 text-xs leading-5 text-slate-500">Workspace SGT</p>
-              </div>
-            </motion.a>
           </div>
         </motion.section>
       )}
