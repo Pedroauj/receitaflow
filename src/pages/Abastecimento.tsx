@@ -1,429 +1,692 @@
-import JSZip from "jszip";
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Upload,
-  Download,
-  FileCheck,
-  FileX,
-  Fuel,
-  CheckCircle2,
-  AlertTriangle,
-  X,
-  FileCode,
-  Car,
+  Upload, Download, FileCheck, FileX, Fuel, CheckCircle2,
+  AlertTriangle, X, FileCode, Building2, Plus, Search,
+  Tag, Trash2, ChevronRight, Store,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import PageHeader from "@/components/dashboard/PageHeader";
-import { AccentButton } from "@/components/client";
+import JSZip from "jszip";
 
-// ─── Tipos ───────────────────────────────────────────────────────────────────
+// ─── Tipos ────────────────────────────────────────────────────────────────────
+
+interface Posto {
+  cnpj: string;
+  nome: string;
+  tags: string[];         // tags de placa cadastradas
+  firstSeen: string;      // ISO date
+}
 
 interface NotaItem {
   id: string;
   nNF: string;
   fileName: string;
   rawContent: string;
-  placa: string;
+  infCpl: string;         // conteúdo digitado pelo usuário (só a placa)
   temPlaca: boolean;
   posto: string;
+  cnpj: string;
+}
+
+// ─── Persistência (localStorage) ─────────────────────────────────────────────
+
+const STORAGE_KEY = "receitaflow:postos";
+
+function loadPostos(): Posto[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function savePostos(postos: Posto[]) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(postos));
 }
 
 // ─── Helpers XML ─────────────────────────────────────────────────────────────
 
 function extrairNNF(xml: string): string {
-  const match = xml.match(/<nNF>(\d+)<\/nNF>/);
-  return match ? match[1] : "—";
+  const m = xml.match(/<nNF>(\d+)<\/nNF>/);
+  return m ? m[1] : "—";
 }
 
-function extrairPosto(xml: string): string {
-  const match = xml.match(/<emit>[\s\S]*?<xNome>([\s\S]*?)<\/xNome>/i);
-  return match ? match[1].trim() : "—";
+function extrairPosto(xml: string): { nome: string; cnpj: string } {
+  const nome = xml.match(/<emit>[\s\S]*?<xNome>([\s\S]*?)<\/xNome>/i)?.[1]?.trim() ?? "—";
+  const cnpj = xml.match(/<emit>[\s\S]*?<CNPJ>(\d+)<\/CNPJ>/i)?.[1]?.trim() ?? "";
+  return { nome, cnpj };
 }
 
 function temPlacaNoXML(xml: string): boolean {
-  const infCplMatch = xml.match(/<infCpl>([\s\S]*?)<\/infCpl>/i);
-  if (!infCplMatch) return false;
-  return /placa\s*:/i.test(infCplMatch[1]);
+  const m = xml.match(/<infCpl>([\s\S]*?)<\/infCpl>/i);
+  return m ? /placa\s*/i.test(m[1]) : false;
 }
 
-function inserirPlacaNoXML(xml: string, valor: string): string {
-  const texto = valor.trim();
+function montarInfCpl(tags: string[], placa: string): string {
+  if (!tags.length) return placa.trim();
+  return tags.map(tag => `${tag}${placa.trim()}`).join(" ");
+}
 
-  // Caso 1: <infCpl> existe — insere no início do conteúdo
+function inserirNaXML(xml: string, conteudo: string): string {
   if (/<infCpl>/i.test(xml)) {
     return xml.replace(
       /<infCpl>([\s\S]*?)<\/infCpl>/i,
-      (_, conteudo) => `<infCpl>${texto} ${conteudo.trim()}</infCpl>`
+      (_, existente) => `<infCpl>${conteudo} ${existente.trim()}</infCpl>`
     );
   }
-
-  // Caso 2: <infAdic> existe mas sem <infCpl> — cria dentro
   if (/<infAdic>/i.test(xml)) {
-    return xml.replace(
-      /<infAdic>/i,
-      `<infAdic><infCpl>${texto}</infCpl>`
-    );
+    return xml.replace(/<infAdic>/i, `<infAdic><infCpl>${conteudo}</infCpl>`);
   }
-
-  // Caso 3: nem <infAdic> existe — cria antes de </infNFe>
-  return xml.replace(
-    /<\/infNFe>/i,
-    `<infAdic><infCpl>${texto}</infCpl></infAdic></infNFe>`
-  );
+  return xml.replace(/<\/infNFe>/i, `<infAdic><infCpl>${conteudo}</infCpl></infAdic></infNFe>`);
 }
 
-// ─── Componente principal ────────────────────────────────────────────────────
+function formatCNPJ(cnpj: string): string {
+  const d = cnpj.replace(/\D/g, "");
+  if (d.length !== 14) return cnpj;
+  return `${d.slice(0,2)}.${d.slice(2,5)}.${d.slice(5,8)}/${d.slice(8,12)}-${d.slice(12)}`;
+}
+
+// ─── Componente ───────────────────────────────────────────────────────────────
+
+type Tab = "correcao" | "postos";
 
 const Abastecimento = () => {
+  const [tab, setTab] = useState<Tab>("correcao");
+
+  // ── Estado correção ──
   const [notas, setNotas] = useState<NotaItem[]>([]);
-  const [processando, setProcessando] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Lê e parseia os arquivos XML
+  // ── Estado postos ──
+  const [postos, setPostos] = useState<Posto[]>([]);
+  const [searchPosto, setSearchPosto] = useState("");
+
+  // ── Estado modal nova tag ──
+  const [showTagModal, setShowTagModal] = useState(false);
+  const [tagInput, setTagInput] = useState("");
+  const [searchPostoModal, setSearchPostoModal] = useState("");
+  const [postoSelecionado, setPostoSelecionado] = useState<Posto | null>(null);
+
+  useEffect(() => { setPostos(loadPostos()); }, []);
+
+  // ── Merge postos extraídos dos XMLs ──
+  const mergePostos = useCallback((novasNotas: { nome: string; cnpj: string }[]) => {
+    setPostos(prev => {
+      const mapa = new Map(prev.map(p => [p.cnpj || p.nome, p]));
+      novasNotas.forEach(({ nome, cnpj }) => {
+        const key = cnpj || nome;
+        if (!key || key === "—") return;
+        if (!mapa.has(key)) {
+          mapa.set(key, { cnpj, nome, tags: [], firstSeen: new Date().toISOString() });
+        }
+      });
+      const updated = Array.from(mapa.values());
+      savePostos(updated);
+      return updated;
+    });
+  }, []);
+
+  // ── Leitura de XMLs ──
   const processarArquivos = useCallback(async (files: FileList | File[]) => {
-    const lista = Array.from(files).filter((f) =>
-      f.name.toLowerCase().endsWith(".xml")
-    );
-
-    if (lista.length === 0) {
-      toast({ title: "Nenhum XML encontrado", variant: "destructive" });
-      return;
-    }
-
-    setProcessando(true);
+    const lista = Array.from(files).filter(f => f.name.toLowerCase().endsWith(".xml"));
+    if (!lista.length) { toast({ title: "Nenhum XML encontrado", variant: "destructive" }); return; }
 
     const novas: NotaItem[] = [];
+    const postosEncontrados: { nome: string; cnpj: string }[] = [];
 
     for (const file of lista) {
       const raw = await file.text();
       const nNF = extrairNNF(raw);
+      const { nome, cnpj } = extrairPosto(raw);
       const temPlaca = temPlacaNoXML(raw);
-      const posto = extrairPosto(raw);
-
-      novas.push({
-        id: `${file.name}_${nNF}`,
-        nNF,
-        fileName: file.name,
-        rawContent: raw,
-        placa: "",
-        temPlaca,
-        posto,
-      });
+      postosEncontrados.push({ nome, cnpj });
+      novas.push({ id: `${file.name}_${nNF}`, nNF, fileName: file.name, rawContent: raw, infCpl: "", temPlaca, posto: nome, cnpj });
     }
 
-    // Merge: mantém placas já preenchidas para arquivos re-importados
-    setNotas((prev) => {
-      const mapa = new Map(prev.map((n) => [n.id, n]));
-      return novas.map((n) => ({
-        ...n,
-        placa: mapa.get(n.id)?.placa ?? n.placa,
-      }));
+    mergePostos(postosEncontrados);
+
+    setNotas(prev => {
+      const mapa = new Map(prev.map(n => [n.id, n]));
+      return novas.map(n => ({ ...n, infCpl: mapa.get(n.id)?.infCpl ?? "" }));
     });
 
-    setProcessando(false);
     toast({
       title: `${novas.length} XML${novas.length > 1 ? "s" : ""} carregado${novas.length > 1 ? "s" : ""}`,
-      description: `${novas.filter((n) => !n.temPlaca).length} sem placa identificados.`,
+      description: `${novas.filter(n => !n.temPlaca).length} sem placa identificados.`,
     });
-  }, []);
+  }, [mergePostos]);
 
-  // Drag & drop
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      setDragOver(false);
-      processarArquivos(e.dataTransfer.files);
-    },
-    [processarArquivos]
-  );
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault(); setDragOver(false);
+    processarArquivos(e.dataTransfer.files);
+  }, [processarArquivos]);
 
-  // Atualiza placa de uma nota
-  const atualizarPlaca = (id: string, placa: string) => {
-    setNotas((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, placa } : n))
-    );
+  const atualizarInfCpl = (id: string, valor: string) =>
+    setNotas(prev => prev.map(n => n.id === id ? { ...n, infCpl: valor } : n));
+
+  const removerNota = (id: string) =>
+    setNotas(prev => prev.filter(n => n.id !== id));
+
+  // ── Gerar preview do infCpl para uma nota ──
+  const getPreview = (nota: NotaItem): string => {
+    if (!nota.infCpl.trim()) return "";
+    const posto = postos.find(p => (p.cnpj && p.cnpj === nota.cnpj) || p.nome === nota.posto);
+    if (posto?.tags.length) return montarInfCpl(posto.tags, nota.infCpl);
+    return nota.infCpl.trim();
   };
 
-  // Remove uma nota da lista
-  const removerNota = (id: string) => {
-    setNotas((prev) => prev.filter((n) => n.id !== id));
-  };
-
-  // Gera e baixa os XMLs corrigidos
+  // ── Exportar ZIP ──
   const confirmar = async () => {
-    const semPlaca = notas.filter((n) => !n.temPlaca && !n.placa.trim());
-    if (semPlaca.length > 0) {
-      toast({
-        title: "Conteúdo não preenchido",
-        description: `${semPlaca.length} nota(s) sem conteúdo informado.`,
-        variant: "destructive",
-      });
+    const semPlaca = notas.filter(n => !n.temPlaca && !n.infCpl.trim());
+    if (semPlaca.length) {
+      toast({ title: "Campo não preenchido", description: `${semPlaca.length} nota(s) sem conteúdo.`, variant: "destructive" });
       return;
     }
-
     const zip = new JSZip();
-
     for (const nota of notas) {
-      const xmlFinal = nota.placa.trim()
-        ? inserirPlacaNoXML(nota.rawContent, nota.placa)
-        : nota.rawContent;
-
-      // Garante extensão .xml no nome do arquivo
-      const nomeArquivo = nota.fileName.toLowerCase().endsWith(".xml")
-        ? nota.fileName
-        : `${nota.fileName}.xml`;
-
-      zip.file(nomeArquivo, xmlFinal);
+      const conteudo = nota.infCpl.trim() ? getPreview(nota) : "";
+      const xmlFinal = conteudo ? inserirNaXML(nota.rawContent, conteudo) : nota.rawContent;
+      const nome = nota.fileName.toLowerCase().endsWith(".xml") ? nota.fileName : `${nota.fileName}.xml`;
+      zip.file(nome, xmlFinal);
     }
-
     const blob = await zip.generateAsync({ type: "blob" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url;
-    a.download = `xmls-corrigidos-${new Date().toISOString().slice(0, 10)}.zip`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    a.href = url; a.download = `xmls-corrigidos-${new Date().toISOString().slice(0,10)}.zip`;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+    toast({ title: `${notas.length} XMLs exportados`, description: "Arquivo ZIP gerado com sucesso." });
+  };
 
-    toast({
-      title: `${notas.length} XML${notas.length > 1 ? "s" : ""} exportado${notas.length > 1 ? "s" : ""}`,
-      description: "Arquivo ZIP gerado com todos os XMLs corrigidos.",
+  // ── Salvar nova tag ──
+  const salvarTag = () => {
+    if (!tagInput.trim()) { toast({ title: "Digite a tag", variant: "destructive" }); return; }
+    if (!postoSelecionado) { toast({ title: "Selecione um posto", variant: "destructive" }); return; }
+    const key = postoSelecionado.cnpj || postoSelecionado.nome;
+    setPostos(prev => {
+      const updated = prev.map(p => {
+        const k = p.cnpj || p.nome;
+        if (k !== key) return p;
+        if (p.tags.includes(tagInput.trim())) return p;
+        return { ...p, tags: [...p.tags, tagInput.trim()] };
+      });
+      savePostos(updated);
+      return updated;
+    });
+    toast({ title: "Tag salva!", description: `"${tagInput.trim()}" adicionada ao posto ${postoSelecionado.nome}.` });
+    setTagInput(""); setPostoSelecionado(null); setSearchPostoModal(""); setShowTagModal(false);
+  };
+
+  const removerTag = (cnpjOrNome: string, tag: string) => {
+    setPostos(prev => {
+      const updated = prev.map(p => {
+        const k = p.cnpj || p.nome;
+        if (k !== cnpjOrNome) return p;
+        return { ...p, tags: p.tags.filter(t => t !== tag) };
+      });
+      savePostos(updated);
+      return updated;
     });
   };
 
-  const semPlacaCount = notas.filter((n) => !n.temPlaca && !n.placa.trim()).length;
+  const postosFiltrados = postos.filter(p =>
+    p.nome.toLowerCase().includes(searchPosto.toLowerCase()) ||
+    p.cnpj.includes(searchPosto)
+  );
+
+  const postosModalFiltrados = postos.filter(p =>
+    p.nome.toLowerCase().includes(searchPostoModal.toLowerCase()) ||
+    p.cnpj.includes(searchPostoModal)
+  );
+
+  const semPlacaCount = notas.filter(n => !n.temPlaca && !n.infCpl.trim()).length;
   const prontoParaConfirmar = notas.length > 0 && semPlacaCount === 0;
 
   return (
     <div className="w-full">
       <div className="mx-auto max-w-[1560px] px-6 py-7">
-        <PageHeader
-          badgeIcon={Fuel}
-          badgeLabel="Abastecimento"
-          title="Correção de XML sem Placa"
-          description="Importe os XMLs de notas de abastecimento que estão com erro por falta de placa. Informe a placa de cada nota e gere os arquivos corrigidos com um clique."
-        />
 
-        {/* ── Upload ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="mb-6"
-        >
-          <div
-            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-            onDragLeave={() => setDragOver(false)}
-            onDrop={handleDrop}
-            onClick={() => inputRef.current?.click()}
-            className={`relative cursor-pointer rounded-[24px] border-2 border-dashed p-10 text-center transition-all duration-300 ${
-              dragOver
-                ? "border-violet-500/60 bg-violet-500/8"
-                : "border-white/10 bg-[linear-gradient(180deg,rgba(16,20,32,0.98),rgba(10,13,22,0.98))] hover:border-violet-500/30 hover:bg-violet-500/5"
-            }`}
-          >
-            <input
-              ref={inputRef}
-              type="file"
-              accept=".xml"
-              multiple
-              className="hidden"
-              onChange={(e) => e.target.files && processarArquivos(e.target.files)}
-            />
-
-            <div className="flex flex-col items-center gap-3">
-              <div className={`flex h-14 w-14 items-center justify-center rounded-2xl border transition-colors duration-300 ${
-                dragOver
-                  ? "border-violet-500/40 bg-violet-500/20 text-violet-300"
-                  : "border-white/10 bg-white/[0.04] text-slate-400"
-              }`}>
-                <FileCode className="h-6 w-6" />
+        {/* ── Header ── */}
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }} className="mb-7">
+          <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(135deg,rgba(19,27,52,0.96)_0%,rgba(10,14,28,0.98)_45%,rgba(7,10,20,1)_100%)] shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.18),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.10),transparent_28%)]" />
+            <div className="relative p-6 lg:p-8">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/70">
+                <Fuel className="h-3.5 w-3.5" /> Abastecimento
               </div>
-              <div>
-                <p className="text-sm font-semibold text-white">
-                  {dragOver ? "Solte os arquivos aqui" : "Arraste os XMLs ou clique para selecionar"}
-                </p>
-                <p className="mt-1 text-xs text-slate-500">
-                  Múltiplos arquivos .xml aceitos
-                </p>
-              </div>
+              <h1 className="text-[28px] font-semibold leading-none tracking-tight text-white lg:text-[32px]">
+                Correção de XML sem Placa
+              </h1>
+              <p className="mt-3 max-w-3xl text-[15px] leading-7 text-slate-400">
+                Importe os XMLs de notas de abastecimento com erro por falta de placa. Cadastre as tags de placa por posto e gere os arquivos corrigidos automaticamente.
+              </p>
             </div>
           </div>
         </motion.div>
 
-        {/* ── Lista de notas ── */}
-        <AnimatePresence>
-          {notas.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3 }}
-              className="space-y-4"
+        {/* ── Tabs ── */}
+        <div className="mb-6 inline-flex items-center gap-1 rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(16,20,32,0.98),rgba(10,13,22,0.98))] p-1.5">
+          {([
+            { key: "correcao", label: "Correção de XML",  icon: FileCode },
+            { key: "postos",   label: "Postos e Tags",    icon: Store },
+          ] as { key: Tab; label: string; icon: React.ElementType }[]).map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              onClick={() => setTab(key)}
+              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-semibold transition-all duration-200 ${
+                tab === key
+                  ? "bg-violet-500/15 text-white shadow-[inset_0_0_0_1px_rgba(139,92,246,0.3)]"
+                  : "text-slate-500 hover:bg-white/[0.04] hover:text-slate-300"
+              }`}
             >
-              {/* Header da lista */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <p className="text-sm font-semibold text-white">
-                    {notas.length} nota{notas.length > 1 ? "s" : ""} carregada{notas.length > 1 ? "s" : ""}
-                  </p>
-                  {semPlacaCount > 0 && (
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/25 bg-amber-500/10 px-2.5 py-1 text-[11px] font-semibold text-amber-300">
-                      <AlertTriangle className="h-3 w-3" />
-                      {semPlacaCount} sem placa
-                    </span>
-                  )}
-                  {semPlacaCount === 0 && (
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-300">
-                      <CheckCircle2 className="h-3 w-3" />
-                      Todas prontas
-                    </span>
-                  )}
-                </div>
+              <Icon className="h-4 w-4" />
+              {label}
+            </button>
+          ))}
+        </div>
 
-                <button
-                  onClick={() => setNotas([])}
-                  className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
-                >
-                  Limpar tudo
-                </button>
+        {/* ════════════════════════════════════════
+            ABA 1 — CORREÇÃO DE XML
+        ════════════════════════════════════════ */}
+        {tab === "correcao" && (
+          <div className="space-y-5">
+            {/* Upload */}
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+              <div
+                onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={handleDrop}
+                onClick={() => inputRef.current?.click()}
+                className={`relative cursor-pointer rounded-[24px] border-2 border-dashed p-10 text-center transition-all duration-300 ${
+                  dragOver
+                    ? "border-violet-500/60 bg-violet-500/8"
+                    : "border-white/10 bg-[linear-gradient(180deg,rgba(16,20,32,0.98),rgba(10,13,22,0.98))] hover:border-violet-500/30 hover:bg-violet-500/5"
+                }`}
+              >
+                <input ref={inputRef} type="file" accept=".xml" multiple className="hidden"
+                  onChange={e => e.target.files && processarArquivos(e.target.files)} />
+                <div className="flex flex-col items-center gap-3">
+                  <div className={`flex h-14 w-14 items-center justify-center rounded-2xl border transition-colors duration-300 ${
+                    dragOver ? "border-violet-500/40 bg-violet-500/20 text-violet-300" : "border-white/10 bg-white/[0.04] text-slate-400"
+                  }`}>
+                    <FileCode className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-white">
+                      {dragOver ? "Solte os arquivos aqui" : "Arraste os XMLs ou clique para selecionar"}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500">Múltiplos arquivos .xml aceitos</p>
+                  </div>
+                </div>
               </div>
+            </motion.div>
 
-              {/* Tabela */}
-              <div className="overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(16,20,32,0.98),rgba(10,13,22,0.98))] shadow-[0_18px_60px_rgba(0,0,0,0.35)]">
-                {/* Cabeçalho */}
-                <div className="grid grid-cols-[1fr_1.4fr_1.6fr_1.5fr_40px] items-center border-b border-white/8 bg-white/[0.02] px-5 py-3">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Nº Nota</p>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Posto</p>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Arquivo</p>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Conteúdo infCpl</p>
-                  <div />
+            {/* Lista de notas */}
+            <AnimatePresence>
+              {notas.length > 0 && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
+                  {/* Cabeçalho lista */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <p className="text-sm font-semibold text-white">{notas.length} nota{notas.length > 1 ? "s" : ""}</p>
+                      {semPlacaCount > 0 ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/25 bg-amber-500/10 px-2.5 py-1 text-[11px] font-semibold text-amber-300">
+                          <AlertTriangle className="h-3 w-3" />{semPlacaCount} sem preencher
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-300">
+                          <CheckCircle2 className="h-3 w-3" />Todas prontas
+                        </span>
+                      )}
+                    </div>
+                    <button onClick={() => setNotas([])} className="text-xs text-slate-500 hover:text-slate-300 transition-colors">
+                      Limpar tudo
+                    </button>
+                  </div>
+
+                  {/* Tabela */}
+                  <div className="overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(16,20,32,0.98),rgba(10,13,22,0.98))] shadow-[0_18px_60px_rgba(0,0,0,0.35)]">
+                    {/* Header tabela */}
+                    <div className="grid grid-cols-[80px_1fr_1.4fr_1.6fr_1.5fr_36px] items-center border-b border-white/8 bg-white/[0.02] px-5 py-3 gap-3">
+                      {["Nº Nota","Posto","Arquivo","Placa","Preview infCpl",""].map((h, i) => (
+                        <p key={i} className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">{h}</p>
+                      ))}
+                    </div>
+
+                    {/* Linhas */}
+                    <div className="divide-y divide-white/[0.05]">
+                      <AnimatePresence>
+                        {notas.map((nota, idx) => {
+                          const preview = getPreview(nota);
+                          const posto = postos.find(p => (p.cnpj && p.cnpj === nota.cnpj) || p.nome === nota.posto);
+                          const temTags = (posto?.tags.length ?? 0) > 0;
+
+                          return (
+                            <motion.div
+                              key={nota.id}
+                              initial={{ opacity: 0, x: -8 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              exit={{ opacity: 0, x: 8 }}
+                              transition={{ duration: 0.2, delay: idx * 0.02 }}
+                              className="grid grid-cols-[80px_1fr_1.4fr_1.6fr_1.5fr_36px] items-center gap-3 px-5 py-3.5 hover:bg-white/[0.02] transition-colors"
+                            >
+                              {/* Nº Nota */}
+                              <div className="flex items-center gap-2">
+                                {nota.temPlaca
+                                  ? <FileCheck className="h-4 w-4 shrink-0 text-emerald-400" />
+                                  : <FileX className="h-4 w-4 shrink-0 text-amber-400" />}
+                                <span className="text-sm font-semibold tabular-nums text-white">{nota.nNF}</span>
+                              </div>
+
+                              {/* Posto */}
+                              <div>
+                                <p className="truncate text-xs font-medium text-slate-300" title={nota.posto}>{nota.posto}</p>
+                                {temTags && (
+                                  <p className="mt-0.5 text-[10px] text-violet-400">{posto!.tags.length} tag{posto!.tags.length > 1 ? "s" : ""}</p>
+                                )}
+                              </div>
+
+                              {/* Arquivo */}
+                              <p className="truncate text-xs text-slate-500" title={nota.fileName}>{nota.fileName}</p>
+
+                              {/* Campo placa */}
+                              <div>
+                                {nota.temPlaca ? (
+                                  <p className="text-xs italic text-slate-600">Placa já registrada</p>
+                                ) : (
+                                  <Input
+                                    placeholder="Digite a placa..."
+                                    value={nota.infCpl}
+                                    onChange={e => atualizarInfCpl(nota.id, e.target.value)}
+                                    className={`h-9 rounded-xl border bg-white/[0.04] text-sm text-white placeholder:text-slate-600 transition-colors focus:outline-none ${
+                                      nota.infCpl.trim() ? "border-violet-500/30 focus:border-violet-500/50" : "border-amber-500/30 focus:border-amber-500/50"
+                                    }`}
+                                  />
+                                )}
+                              </div>
+
+                              {/* Preview */}
+                              <div>
+                                {preview ? (
+                                  <p className="truncate text-[11px] text-violet-300 font-mono" title={preview}>{preview}</p>
+                                ) : (
+                                  <p className="text-[11px] text-slate-600 italic">—</p>
+                                )}
+                              </div>
+
+                              {/* Remover */}
+                              <button
+                                onClick={() => removerNota(nota.id)}
+                                className="flex h-7 w-7 items-center justify-center rounded-lg border border-white/8 bg-white/[0.03] text-slate-500 transition-colors hover:border-red-500/20 hover:bg-red-500/10 hover:text-red-400"
+                              >
+                                <X className="h-3.5 w-3.5" />
+                              </button>
+                            </motion.div>
+                          );
+                        })}
+                      </AnimatePresence>
+                    </div>
+                  </div>
+
+                  {/* Rodapé confirmar */}
+                  <div className="flex items-center justify-between rounded-[20px] border border-white/8 bg-white/[0.02] px-5 py-4">
+                    <p className="text-sm text-slate-400">
+                      {semPlacaCount > 0
+                        ? `Preencha a placa de ${semPlacaCount} nota${semPlacaCount > 1 ? "s" : ""} para continuar`
+                        : "Tudo pronto! Clique em Confirmar para gerar os XMLs"}
+                    </p>
+                    <button
+                      onClick={confirmar}
+                      disabled={!prontoParaConfirmar}
+                      className="inline-flex h-11 items-center gap-2 rounded-2xl border border-violet-500/30 bg-[linear-gradient(135deg,rgba(99,102,241,0.85),rgba(139,92,246,0.75))] px-5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(99,102,241,0.25)] transition-all hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <Download className="h-4 w-4" />
+                      Confirmar e baixar XMLs
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Empty state */}
+            {notas.length === 0 && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center py-16 text-center">
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/8 bg-white/[0.03]">
+                  <Upload className="h-7 w-7 text-slate-600" />
                 </div>
+                <p className="text-sm font-medium text-slate-400">Nenhum XML carregado ainda</p>
+                <p className="mt-1 text-xs text-slate-600">Arraste os arquivos ou clique na área acima para começar</p>
+              </motion.div>
+            )}
+          </div>
+        )}
 
-                {/* Linhas */}
+        {/* ════════════════════════════════════════
+            ABA 2 — POSTOS E TAGS
+        ════════════════════════════════════════ */}
+        {tab === "postos" && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="space-y-5">
+
+            {/* Toolbar */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="relative max-w-sm flex-1">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                <Input
+                  placeholder="Buscar por nome ou CNPJ..."
+                  value={searchPosto}
+                  onChange={e => setSearchPosto(e.target.value)}
+                  className="pl-10 h-10 rounded-xl border border-white/8 bg-white/[0.04] text-sm text-white placeholder:text-slate-600"
+                />
+              </div>
+              <button
+                onClick={() => setShowTagModal(true)}
+                className="inline-flex h-10 items-center gap-2 rounded-xl border border-violet-500/30 bg-violet-500/15 px-4 text-sm font-semibold text-violet-300 transition-all hover:bg-violet-500/20"
+              >
+                <Plus className="h-4 w-4" />
+                Criar tag de placa
+              </button>
+            </div>
+
+            {/* Lista de postos */}
+            {postosFiltrados.length === 0 ? (
+              <div className="flex flex-col items-center py-16 text-center rounded-[24px] border border-white/8 bg-white/[0.02]">
+                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/8 bg-white/[0.03]">
+                  <Building2 className="h-6 w-6 text-slate-600" />
+                </div>
+                <p className="text-sm font-medium text-slate-400">Nenhum posto cadastrado ainda</p>
+                <p className="mt-1 text-xs text-slate-600">Importe XMLs na aba de Correção para os postos aparecerem aqui automaticamente</p>
+              </div>
+            ) : (
+              <div className="overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(16,20,32,0.98),rgba(10,13,22,0.98))] shadow-[0_14px_40px_rgba(0,0,0,0.28)]">
                 <div className="divide-y divide-white/[0.05]">
-                  <AnimatePresence>
-                    {notas.map((nota, idx) => (
-                      <motion.div
-                        key={nota.id}
-                        initial={{ opacity: 0, x: -8 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 8 }}
-                        transition={{ duration: 0.2, delay: idx * 0.02 }}
-                        className="grid grid-cols-[1fr_1.4fr_1.6fr_1.5fr_40px] items-center gap-4 px-5 py-3.5 transition-colors hover:bg-white/[0.02]"
-                      >
-                        {/* Nº Nota */}
-                        <div className="flex items-center gap-2.5">
-                          {nota.temPlaca ? (
-                            <FileCheck className="h-4 w-4 shrink-0 text-emerald-400" />
+                  {postosFiltrados.map((posto, i) => (
+                    <motion.div
+                      key={posto.cnpj || posto.nome}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.03, duration: 0.25 }}
+                      className="px-5 py-4"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        {/* Info do posto */}
+                        <div className="flex items-start gap-3 min-w-0">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/8 bg-white/[0.04]">
+                            <Store className="h-4 w-4 text-slate-400" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-white truncate">{posto.nome}</p>
+                            <p className="text-xs text-slate-500 mt-0.5">{posto.cnpj ? formatCNPJ(posto.cnpj) : "CNPJ não identificado"}</p>
+                          </div>
+                        </div>
+
+                        {/* Badge tags */}
+                        <div className="flex items-center gap-2 shrink-0">
+                          {posto.tags.length > 0 ? (
+                            <span className="rounded-full border border-violet-500/20 bg-violet-500/10 px-2.5 py-1 text-[11px] font-medium text-violet-300">
+                              {posto.tags.length} tag{posto.tags.length > 1 ? "s" : ""}
+                            </span>
                           ) : (
-                            <FileX className="h-4 w-4 shrink-0 text-amber-400" />
-                          )}
-                          <span className="text-sm font-semibold tabular-nums text-white">
-                            {nota.nNF}
-                          </span>
-                          {nota.temPlaca && (
-                            <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
-                              já tem
+                            <span className="rounded-full border border-white/8 bg-white/[0.03] px-2.5 py-1 text-[11px] text-slate-600">
+                              Sem tags
                             </span>
                           )}
+                          <button
+                            onClick={() => { setPostoSelecionado(posto); setShowTagModal(true); }}
+                            className="inline-flex h-8 items-center gap-1.5 rounded-xl border border-white/8 bg-white/[0.04] px-3 text-[12px] font-medium text-slate-400 transition-all hover:border-violet-500/25 hover:bg-violet-500/10 hover:text-violet-300"
+                          >
+                            <Plus className="h-3.5 w-3.5" />
+                            Tag
+                          </button>
                         </div>
+                      </div>
 
-                        {/* Posto */}
-                        <p className="truncate text-xs font-medium text-slate-300" title={nota.posto}>
-                          {nota.posto}
-                        </p>
-
-                        {/* Arquivo */}
-                        <p className="truncate text-xs text-slate-400" title={nota.fileName}>
-                          {nota.fileName}
-                        </p>
-
-                        {/* Campo infCpl */}
-                        <div>
-                          {nota.temPlaca ? (
-                            <p className="text-xs text-slate-500 italic">
-                              Placa já registrada no XML
-                            </p>
-                          ) : (
-                            <Input
-                              placeholder="Digite o conteúdo para o infCpl"
-                              value={nota.placa}
-                              onChange={(e) =>
-                                atualizarPlaca(nota.id, e.target.value)
-                              }
-                              className={`h-9 rounded-xl border bg-white/[0.04] text-sm text-white placeholder:text-slate-600 transition-colors focus:outline-none ${
-                                nota.placa.trim()
-                                  ? "border-violet-500/30 focus:border-violet-500/50"
-                                  : "border-amber-500/30 focus:border-amber-500/50"
-                              }`}
-                            />
-                          )}
+                      {/* Tags cadastradas */}
+                      {posto.tags.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-2 pl-[52px]">
+                          {posto.tags.map(tag => (
+                            <div key={tag} className="group inline-flex items-center gap-1.5 rounded-full border border-white/8 bg-white/[0.04] px-3 py-1.5">
+                              <Tag className="h-3 w-3 text-violet-400" />
+                              <span className="font-mono text-[12px] text-slate-300">{tag}</span>
+                              <button
+                                onClick={() => removerTag(posto.cnpj || posto.nome, tag)}
+                                className="ml-1 text-slate-600 transition-colors hover:text-red-400"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ))}
                         </div>
-
-                        {/* Remover */}
-                        <button
-                          onClick={() => removerNota(nota.id)}
-                          className="flex h-7 w-7 items-center justify-center rounded-lg border border-white/8 bg-white/[0.03] text-slate-500 transition-colors hover:border-red-500/20 hover:bg-red-500/10 hover:text-red-400"
-                        >
-                          <X className="h-3.5 w-3.5" />
-                        </button>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
+                      )}
+                    </motion.div>
+                  ))}
                 </div>
               </div>
+            )}
+          </motion.div>
+        )}
 
-              {/* ── Rodapé com botão confirmar ── */}
+        {/* ════════════════════════════════════════
+            MODAL — CRIAR TAG DE PLACA
+        ════════════════════════════════════════ */}
+        <AnimatePresence>
+          {showTagModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+              onClick={e => { if (e.target === e.currentTarget) { setShowTagModal(false); setPostoSelecionado(null); setTagInput(""); setSearchPostoModal(""); }}}
+            >
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex items-center justify-between rounded-[20px] border border-white/8 bg-white/[0.02] px-5 py-4"
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                transition={{ duration: 0.2 }}
+                className="w-full max-w-md overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(16,20,32,0.99),rgba(10,13,22,0.99))] shadow-[0_30px_80px_rgba(0,0,0,0.5)]"
               >
-                <div className="flex items-center gap-2">
-                  <Car className="h-4 w-4 text-slate-500" />
-                  <p className="text-sm text-slate-400">
-                    {semPlacaCount > 0
-                      ? `Preencha a placa de ${semPlacaCount} nota${semPlacaCount > 1 ? "s" : ""} para continuar`
-                      : "Tudo pronto! Clique em Confirmar para gerar os XMLs corrigidos"}
-                  </p>
+                {/* Header modal */}
+                <div className="flex items-center justify-between border-b border-white/8 px-6 py-5">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-violet-500/20 bg-violet-500/10">
+                      <Tag className="h-4 w-4 text-violet-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-white">Criar tag de placa</p>
+                      <p className="text-xs text-slate-500">Como esse posto escreve a palavra "placa"</p>
+                    </div>
+                  </div>
+                  <button onClick={() => { setShowTagModal(false); setPostoSelecionado(null); setTagInput(""); setSearchPostoModal(""); }}
+                    className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/8 bg-white/[0.04] text-slate-500 hover:text-slate-300 transition-colors">
+                    <X className="h-4 w-4" />
+                  </button>
                 </div>
 
-                <AccentButton
-                  onClick={confirmar}
-                  disabled={!prontoParaConfirmar}
-                >
-                  <Download className="h-4 w-4" />
-                  Confirmar e baixar XMLs
-                </AccentButton>
+                <div className="space-y-5 p-6">
+                  {/* Campo tag */}
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Tag de placa</label>
+                    <Input
+                      placeholder='Ex: "PLACA:" ou "Placa - " ou "placa "'
+                      value={tagInput}
+                      onChange={e => setTagInput(e.target.value)}
+                      className="h-11 rounded-xl border border-white/8 bg-white/[0.04] font-mono text-sm text-white placeholder:font-sans placeholder:text-slate-600"
+                    />
+                    {tagInput && (
+                      <p className="text-[11px] text-slate-500">
+                        Resultado no XML: <span className="font-mono text-violet-300">{tagInput}ABC1D23</span>
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Busca posto */}
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      {postoSelecionado ? "Posto selecionado" : "Selecionar posto"}
+                    </label>
+
+                    {postoSelecionado ? (
+                      <div className="flex items-center justify-between rounded-xl border border-violet-500/25 bg-violet-500/10 px-4 py-3">
+                        <div>
+                          <p className="text-sm font-semibold text-white">{postoSelecionado.nome}</p>
+                          <p className="text-xs text-slate-500">{postoSelecionado.cnpj ? formatCNPJ(postoSelecionado.cnpj) : "Sem CNPJ"}</p>
+                        </div>
+                        <button onClick={() => { setPostoSelecionado(null); setSearchPostoModal(""); }}
+                          className="text-slate-500 hover:text-slate-300 transition-colors">
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="relative">
+                          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                          <Input
+                            placeholder="Buscar por nome ou CNPJ..."
+                            value={searchPostoModal}
+                            onChange={e => setSearchPostoModal(e.target.value)}
+                            className="pl-10 h-10 rounded-xl border border-white/8 bg-white/[0.04] text-sm text-white placeholder:text-slate-600"
+                          />
+                        </div>
+                        {postos.length === 0 ? (
+                          <p className="text-xs text-slate-600 px-1">Nenhum posto cadastrado. Importe XMLs primeiro.</p>
+                        ) : (
+                          <div className="max-h-44 overflow-y-auto rounded-xl border border-white/8 bg-white/[0.02] divide-y divide-white/[0.04]">
+                            {postosModalFiltrados.map(p => (
+                              <button
+                                key={p.cnpj || p.nome}
+                                onClick={() => setPostoSelecionado(p)}
+                                className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-white/[0.04]"
+                              >
+                                <div>
+                                  <p className="text-sm font-medium text-white">{p.nome}</p>
+                                  <p className="text-xs text-slate-500">{p.cnpj ? formatCNPJ(p.cnpj) : "Sem CNPJ"}</p>
+                                </div>
+                                <ChevronRight className="h-4 w-4 text-slate-600" />
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Botão salvar */}
+                  <button
+                    onClick={salvarTag}
+                    disabled={!tagInput.trim() || !postoSelecionado}
+                    className="w-full inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-violet-500/30 bg-[linear-gradient(135deg,rgba(99,102,241,0.85),rgba(139,92,246,0.75))] text-sm font-semibold text-white shadow-[0_10px_30px_rgba(99,102,241,0.25)] transition-all hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Salvar tag
+                  </button>
+                </div>
               </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* ── Empty state ── */}
-        {notas.length === 0 && !processando && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex flex-col items-center py-16 text-center"
-          >
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/8 bg-white/[0.03]">
-              <Upload className="h-7 w-7 text-slate-600" />
-            </div>
-            <p className="text-sm font-medium text-slate-400">
-              Nenhum XML carregado ainda
-            </p>
-            <p className="mt-1 text-xs text-slate-600">
-              Arraste os arquivos ou clique na área acima para começar
-            </p>
-          </motion.div>
-        )}
       </div>
     </div>
   );
