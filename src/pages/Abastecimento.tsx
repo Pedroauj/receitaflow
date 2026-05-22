@@ -64,6 +64,24 @@ function temPlacaNoXML(xml: string): boolean {
   return m ? /placa\s*/i.test(m[1]) : false;
 }
 
+function PlacaInput({ id, value, onChange }: { id: string; value: string; onChange: (id: string, valor: string) => void }) {
+  const [local, setLocal] = useState(value);
+
+  useEffect(() => { setLocal(value); }, [value]);
+
+  return (
+    <Input
+      placeholder="Digite a placa..."
+      value={local}
+      onChange={e => setLocal(e.target.value)}
+      onBlur={() => onChange(id, local)}
+      className={`h-9 rounded-xl border bg-white/[0.04] text-sm text-white placeholder:text-slate-600 transition-colors focus:outline-none ${
+        local.trim() ? "border-violet-500/30 focus:border-violet-500/50" : "border-amber-500/30 focus:border-amber-500/50"
+      }`}
+    />
+  );
+}
+
 function montarInfCpl(tags: string[], placa: string): string {
   if (!tags.length) return placa.trim();
   return tags.map(tag => `${tag}${placa.trim()}`).join(" ");
@@ -397,13 +415,10 @@ const Abastecimento = () => {
                                 {nota.temPlaca ? (
                                   <p className="text-xs italic text-slate-600">Placa já registrada</p>
                                 ) : (
-                                  <Input
-                                    placeholder="Digite a placa..."
+                                  <PlacaInput
+                                    id={nota.id}
                                     value={nota.infCpl}
-                                    onChange={e => atualizarInfCpl(nota.id, e.target.value)}
-                                    className={`h-9 rounded-xl border bg-white/[0.04] text-sm text-white placeholder:text-slate-600 transition-colors focus:outline-none ${
-                                      nota.infCpl.trim() ? "border-violet-500/30 focus:border-violet-500/50" : "border-amber-500/30 focus:border-amber-500/50"
-                                    }`}
+                                    onChange={atualizarInfCpl}
                                   />
                                 )}
                               </div>
