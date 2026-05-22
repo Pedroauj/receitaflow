@@ -37,8 +37,9 @@ const MODULE_REGISTRY: ModuleDef[] = [
 const GUIDE = [
   {
     step: "01",
-    icon: FileSpreadsheet,
+    icon: FileSearch,
     title: "Conciliação de NFS-e e NF-e",
+    path: "/conciliacao",
     color: "#4AAF60",
     desc: "Acesse o módulo NF-e / NFS-e. Importe a planilha do governo/portal e a planilha do sistema. Clique em Comparar relatórios. O sistema cruzará as notas automaticamente e exibirá o status de cada uma: lançada, não lançada, valor divergente, CNPJ divergente e outros. Ao final, exporte o resultado filtrado.",
   },
@@ -46,6 +47,7 @@ const GUIDE = [
     step: "02",
     icon: Fuel,
     title: "Correção de XML sem Placa",
+    path: "/abastecimento",
     color: "#D4922A",
     desc: "Acesse o módulo Abastecimento. Arraste ou selecione os arquivos XML das notas que estão com erro por falta de placa. O sistema extrai automaticamente o número da nota e o nome do posto de cada XML. Preencha o campo de conteúdo ao lado de cada nota e clique em Confirmar. Um arquivo ZIP com todos os XMLs corrigidos será gerado para download.",
   },
@@ -53,6 +55,7 @@ const GUIDE = [
     step: "03",
     icon: BarChart3,
     title: "Médias de Abastecimento",
+    path: "/medias-abastecimento",
     color: "#9B7BD4",
     desc: "Acesse o módulo Médias de Abastecimento. Importe a planilha exportada do sistema. Utilize os filtros de data e tipo de frota para refinar a análise. O painel exibirá os indicadores de consumo, eficiência e custo por veículo. Use o Modo Apresentação para exibir os dados em formato executivo para diretoria.",
   },
@@ -60,6 +63,7 @@ const GUIDE = [
     step: "04",
     icon: Landmark,
     title: "Contas a Pagar",
+    path: "/contas-a-pagar",
     color: "#5B9BD5",
     desc: "Acesse o módulo Contas a Pagar. Importe o relatório do sistema (.xlsx) e o extrato bancário (.csv). Clique em Conciliar dados. O sistema cruzará os títulos automaticamente identificando os conciliados, divergentes e não encontrados. Utilize os filtros de período, status e fornecedor para navegar nos resultados.",
   },
@@ -67,6 +71,7 @@ const GUIDE = [
     step: "05",
     icon: Building2,
     title: "Processamento por Cliente",
+    path: "/clientes",
     color: "#3BBFA0",
     desc: "Acesse o módulo Clientes. Selecione o cliente desejado. Cada cliente possui seu próprio fluxo de processamento: importe a planilha no formato esperado, revise os parâmetros se necessário e exporte o resultado. O histórico de todos os processamentos fica disponível no módulo Histórico.",
   },
@@ -291,10 +296,7 @@ const Index = () => {
                       <p className="text-sm leading-7 text-slate-400">{item.desc}</p>
                       <button
                         type="button"
-                        onClick={() => {
-                          const mod = MODULE_REGISTRY.find(m => m.icon === item.icon);
-                          if (mod) navigate(mod.path);
-                        }}
+                        onClick={() => navigate(item.path)}
                         className="mt-4 inline-flex items-center gap-2 rounded-xl border border-white/8 bg-white/[0.04] px-3.5 py-2 text-[13px] font-medium text-slate-300 transition-all hover:border-violet-500/25 hover:bg-violet-500/10 hover:text-violet-300"
                       >
                         Ir para o módulo
