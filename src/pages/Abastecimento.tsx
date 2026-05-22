@@ -224,9 +224,14 @@ const Abastecimento = () => {
     toast({ title: `${notas.length} XMLs exportados`, description: "Arquivo ZIP gerado com sucesso." });
   };
 
+  // ── Validação de tag ──
+  const tagInvalida = /[<>&]/.test(tagInput);
+  const tagAviso   = /;/.test(tagInput);
+
   // ── Salvar nova tag ──
   const salvarTag = () => {
     if (!tagInput.trim()) { toast({ title: "Digite a tag", variant: "destructive" }); return; }
+    if (tagInvalida) { toast({ title: "Caractere inválido na tag", description: 'Os caracteres < > & quebram o XML e não são permitidos.', variant: "destructive" }); return; }
     if (!postoSelecionado) { toast({ title: "Selecione um posto", variant: "destructive" }); return; }
     const key = postoSelecionado.cnpj || postoSelecionado.nome;
     setPostos(prev => {
@@ -634,10 +639,27 @@ const Abastecimento = () => {
                       onChange={e => setTagInput(e.target.value)}
                       className="h-11 rounded-xl border border-white/8 bg-white/[0.04] font-mono text-sm text-white placeholder:font-sans placeholder:text-slate-600"
                     />
-                    {tagInput && (
+                    {tagInput && !tagInvalida && !tagAviso && (
                       <p className="text-[11px] text-slate-500">
                         Resultado no XML: <span className="font-mono text-violet-300">{tagInput}ABC1D23</span>
                       </p>
+                    )}
+                    {tagInvalida && (
+                      <p className="flex items-center gap-1.5 rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 text-[11px] font-medium text-red-400">
+                        <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                        Os caracteres &lt; &gt; &amp; são inválidos em XML e impedirão a importação.
+                      </p>
+                    )}
+                    {tagAviso && !tagInvalida && (
+                      <div className="space-y-1">
+                        <p className="text-[11px] text-slate-500">
+                          Resultado no XML: <span className="font-mono text-violet-300">{tagInput}ABC1D23</span>
+                        </p>
+                        <p className="flex items-center gap-1.5 rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-[11px] font-medium text-amber-400">
+                          <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                          O caractere <span className="font-mono mx-0.5">;</span> pode causar erro na importação do seu sistema fiscal.
+                        </p>
+                      </div>
                     )}
                   </div>
 
@@ -695,7 +717,7 @@ const Abastecimento = () => {
                   {/* Botão salvar */}
                   <button
                     onClick={salvarTag}
-                    disabled={!tagInput.trim() || !postoSelecionado}
+                    disabled={!tagInput.trim() || !postoSelecionado || tagInvalida}
                     className="w-full inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-violet-500/30 bg-[linear-gradient(135deg,rgba(99,102,241,0.85),rgba(139,92,246,0.75))] text-sm font-semibold text-white shadow-[0_10px_30px_rgba(99,102,241,0.25)] transition-all hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <Plus className="h-4 w-4" />
