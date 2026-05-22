@@ -9,6 +9,46 @@ import { toast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import JSZip from "jszip";
 
+// ─── Leitura segura de XML ────────────────────────────────────────────────────
+// file.text() sempre decodifica como UTF-8. Se o arquivo for ISO-8859-1 ou
+// Windows-1252 (comum em sistemas fiscais brasileiros), caracteres como ã, é, ç
+// viram sequências inválidas que o MSXML rejeita com "invalid character in text".
+// Esta função detecta o encoding declarado no próprio XML e decodifica corretamente.
+
+async function lerXML(file: File): Promise<string> {
+  const buf = await file.arrayBuffer();
+  const bytes = new Uint8Array(buf);
+
+  // Remove BOM UTF-8 (EF BB BF) se presente
+  const offset = (bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF) ? 3 : 0;
+
+  // Lê o cabeçalho como Latin-1 (1-pra-1 com bytes) para achar a declaração de encoding
+  const header = new TextDecoder("iso-8859-1").decode(bytes.subarray(offset, Math.min(offset + 300, bytes.length)));
+  const matchEnc = header.match(/encoding\s*=\s*["']([^"']+)["']/i);
+  const enc = matchEnc?.[1]?.toLowerCase().replace(/_/g, "-") ?? "utf-8";
+
+  // Decodifica com o encoding correto (fallback para UTF-8 se desconhecido)
+  let decoder: TextDecoder;
+  try { decoder = new TextDecoder(enc); }
+  catch { decoder = new TextDecoder("utf-8"); }
+
+  let content = decoder.decode(bytes.subarray(offset));
+
+  // Remove caracteres proibidos pelo XML 1.0
+  // Válidos: #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD]
+  content = content.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F￾￿]/g, "");
+
+  // Se o encoding original não era UTF-8, atualiza a declaração — o export sempre sai em UTF-8
+  if (!["utf-8", "utf8"].includes(enc)) {
+    content = content.replace(
+      /(<\?xml[^?]*?\s)encoding\s*=\s*["'][^"']*["']/i,
+      '$1encoding="UTF-8"'
+    );
+  }
+
+  return content;
+}
+
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
 interface Posto {
@@ -88,11 +128,8 @@ function montarInfCpl(tags: string[], placa: string): string {
 }
 
 function inserirNaXML(xml: string, conteudo: string): string {
-  // Remove BOM caso tenha sobrado do file.text()
-  const xmlLimpo = xml.replace(/^﻿/, "");
-
-  if (/<infCpl>/i.test(xmlLimpo)) {
-    return xmlLimpo.replace(
+  if (/<infCpl>/i.test(xml)) {
+    return xml.replace(
       /<infCpl>([\s\S]*?)<\/infCpl>/i,
       (_, existente) => {
         const resto = existente.trim();
@@ -104,11 +141,10 @@ function inserirNaXML(xml: string, conteudo: string): string {
       }
     );
   }
-  if (/<infAdic>/i.test(xmlLimpo)) {
-    // Usa função callback para evitar interpretação de $ como padrão de substituição
-    return xmlLimpo.replace(/<infAdic>/i, () => `<infAdic><infCpl>${conteudo}</infCpl>`);
+  if (/<infAdic>/i.test(xml)) {
+    return xml.replace(/<infAdic>/i, () => `<infAdic><infCpl>${conteudo}</infCpl>`);
   }
-  return xmlLimpo.replace(/<\/infNFe>/i, () => `<infAdic><infCpl>${conteudo}</infCpl></infAdic></infNFe>`);
+  return xml.replace(/<\/infNFe>/i, () => `<infAdic><infCpl>${conteudo}</infCpl></infAdic></infNFe>`);
 }
 
 function formatCNPJ(cnpj: string): string {
@@ -167,8 +203,7 @@ const Abastecimento = () => {
     const postosEncontrados: { nome: string; cnpj: string }[] = [];
 
     for (const file of lista) {
-      // Remove BOM (U+FEFF) que alguns editores/sistemas adicionam no início do XML
-      const raw = (await file.text()).replace(/^﻿/, "");
+      const raw = await lerXML(file);
       const nNF = extrairNNF(raw);
       const { nome, cnpj } = extrairPosto(raw);
       const temPlaca = temPlacaNoXML(raw);
