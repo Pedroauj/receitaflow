@@ -88,16 +88,20 @@ function montarInfCpl(tags: string[], placa: string): string {
 }
 
 function inserirNaXML(xml: string, conteudo: string): string {
-  if (/<infCpl>/i.test(xml)) {
-    return xml.replace(
+  // Remove BOM caso tenha sobrado do file.text()
+  const xmlLimpo = xml.replace(/^﻿/, "");
+
+  if (/<infCpl>/i.test(xmlLimpo)) {
+    return xmlLimpo.replace(
       /<infCpl>([\s\S]*?)<\/infCpl>/i,
       (_, existente) => `<infCpl>${conteudo} ${existente.trim()}</infCpl>`
     );
   }
-  if (/<infAdic>/i.test(xml)) {
-    return xml.replace(/<infAdic>/i, `<infAdic><infCpl>${conteudo}</infCpl>`);
+  if (/<infAdic>/i.test(xmlLimpo)) {
+    // Usa função callback para evitar interpretação de $ como padrão de substituição
+    return xmlLimpo.replace(/<infAdic>/i, () => `<infAdic><infCpl>${conteudo}</infCpl>`);
   }
-  return xml.replace(/<\/infNFe>/i, `<infAdic><infCpl>${conteudo}</infCpl></infAdic></infNFe>`);
+  return xmlLimpo.replace(/<\/infNFe>/i, () => `<infAdic><infCpl>${conteudo}</infCpl></infAdic></infNFe>`);
 }
 
 function formatCNPJ(cnpj: string): string {
@@ -156,7 +160,8 @@ const Abastecimento = () => {
     const postosEncontrados: { nome: string; cnpj: string }[] = [];
 
     for (const file of lista) {
-      const raw = await file.text();
+      // Remove BOM (U+FEFF) que alguns editores/sistemas adicionam no início do XML
+      const raw = (await file.text()).replace(/^﻿/, "");
       const nNF = extrairNNF(raw);
       const { nome, cnpj } = extrairPosto(raw);
       const temPlaca = temPlacaNoXML(raw);
