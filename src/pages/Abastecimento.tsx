@@ -129,16 +129,12 @@ function montarInfCpl(tags: string[], placa: string): string {
 
 function inserirNaXML(xml: string, conteudo: string): string {
   if (/<infCpl>/i.test(xml)) {
+    // Substitui o conteúdo inteiro — igual ao que o usuário faz manualmente no Bloco de Notas.
+    // Preservar o conteúdo original causa erro de importação porque caracteres como %
+    // nos percentuais de tributos são rejeitados pelo parser MSXML dos sistemas fiscais.
     return xml.replace(
-      /<infCpl>([\s\S]*?)<\/infCpl>/i,
-      (_, existente) => {
-        const resto = existente.trim();
-        if (!resto) return `<infCpl>${conteudo}</infCpl>`;
-        // Se o conteúdo existente já começa com ; (separador padrão NF-e),
-        // une diretamente para evitar "PLACA:ABC1234 ;texto"
-        const sep = resto.startsWith(";") ? "" : ";";
-        return `<infCpl>${conteudo}${sep}${resto}</infCpl>`;
-      }
+      /<infCpl>[\s\S]*?<\/infCpl>/i,
+      () => `<infCpl>${conteudo}</infCpl>`
     );
   }
   if (/<infAdic>/i.test(xml)) {
