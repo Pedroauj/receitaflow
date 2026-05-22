@@ -94,7 +94,14 @@ function inserirNaXML(xml: string, conteudo: string): string {
   if (/<infCpl>/i.test(xmlLimpo)) {
     return xmlLimpo.replace(
       /<infCpl>([\s\S]*?)<\/infCpl>/i,
-      (_, existente) => `<infCpl>${conteudo} ${existente.trim()}</infCpl>`
+      (_, existente) => {
+        const resto = existente.trim();
+        if (!resto) return `<infCpl>${conteudo}</infCpl>`;
+        // Se o conteúdo existente já começa com ; (separador padrão NF-e),
+        // une diretamente para evitar "PLACA:ABC1234 ;texto"
+        const sep = resto.startsWith(";") ? "" : ";";
+        return `<infCpl>${conteudo}${sep}${resto}</infCpl>`;
+      }
     );
   }
   if (/<infAdic>/i.test(xmlLimpo)) {
