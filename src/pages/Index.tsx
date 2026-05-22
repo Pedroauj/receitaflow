@@ -8,7 +8,7 @@ import {
   LayoutDashboard, History, FileSearch, Fuel, Landmark,
   BarChart3, Building2, Settings, Sun, CloudSun, Moon,
   ArrowUpRight, Loader2, ChevronRight, FileSpreadsheet,
-  Wrench, CheckCircle2, BookOpen, Users, Sparkles,
+  Wrench, CheckCircle2, BookOpen, Users, Sparkles, ExternalLink,
 } from "lucide-react";
 import { getRecords } from "@/lib/history";
 import type { LucideIcon } from "lucide-react";
@@ -229,6 +229,43 @@ const Index = () => {
           </div>
         </motion.section>
       )}
+
+      {/* ── Workspaces ── */}
+      <motion.section {...fadeUp(0.09)}>
+        <div className="mb-4 flex items-center gap-2.5">
+          <div className="flex h-7 w-7 items-center justify-center rounded-xl border border-violet-500/20 bg-violet-500/10">
+            <ExternalLink className="h-3.5 w-3.5 text-violet-400" />
+          </div>
+          <h2 className="text-base font-semibold text-white">Workspaces</h2>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+          <motion.a
+            href="https://dashboardsgt.lovable.app/login"
+            target="_blank"
+            rel="noopener noreferrer"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.12, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            className="group relative overflow-hidden rounded-[22px] border border-white/8 bg-[linear-gradient(180deg,rgba(16,20,32,0.98),rgba(10,13,22,0.98))] p-5 shadow-[0_10px_30px_rgba(0,0,0,0.22)] transition-all duration-200 hover:-translate-y-0.5 hover:border-white/12 hover:shadow-[0_16px_40px_rgba(0,0,0,0.30)]"
+          >
+            <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+              style={{ background: "radial-gradient(circle at top left, #3BBFA012, transparent 55%)" }} />
+
+            <div className="relative z-10 flex items-start justify-between gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ background: "#3BBFA018" }}>
+                <ExternalLink className="h-4.5 w-4.5" style={{ color: "#3BBFA0" }} />
+              </div>
+              <ArrowUpRight className="h-4 w-4 text-slate-600 transition-all duration-200 group-hover:text-violet-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 shrink-0" />
+            </div>
+
+            <div className="relative z-10 mt-4">
+              <p className="text-[15px] font-semibold tracking-tight text-white">SGT</p>
+              <p className="mt-1.5 text-xs leading-5 text-slate-500">Acesso ao workspace SGT</p>
+            </div>
+          </motion.a>
+        </div>
+      </motion.section>
 
       {/* ── Guia de uso ── */}
       <motion.section {...fadeUp(0.12)}>
