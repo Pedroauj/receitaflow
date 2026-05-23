@@ -129,12 +129,13 @@ function montarInfCpl(tags: string[], placa: string): string {
 
 function inserirNaXML(xml: string, conteudo: string): string {
   if (/<infCpl>/i.test(xml)) {
-    // Substitui o conteúdo inteiro — igual ao que o usuário faz manualmente no Bloco de Notas.
-    // Preservar o conteúdo original causa erro de importação porque caracteres como %
-    // nos percentuais de tributos são rejeitados pelo parser MSXML dos sistemas fiscais.
     return xml.replace(
-      /<infCpl>[\s\S]*?<\/infCpl>/i,
-      () => `<infCpl>${conteudo}</infCpl>`
+      /<infCpl>([\s\S]*?)<\/infCpl>/i,
+      (_, existente) => {
+        const resto = existente.trim();
+        const sep = resto.startsWith(";") ? "" : ";";
+        return `<infCpl>${conteudo}${resto ? sep + resto : ""}</infCpl>`;
+      }
     );
   }
   if (/<infAdic>/i.test(xml)) {
@@ -240,18 +241,27 @@ const Abastecimento = () => {
   };
 
   // ── Exportar ZIP ──
-  const confirmar = async () => {
+  const gerarXMLs = () => {
     const semPlaca = notas.filter(n => !n.temPlaca && !n.infCpl.trim());
     if (semPlaca.length) {
       toast({ title: "Campo não preenchido", description: `${semPlaca.length} nota(s) sem conteúdo.`, variant: "destructive" });
-      return;
+      return null;
     }
-    const zip = new JSZip();
-    for (const nota of notas) {
+    return notas.map(nota => {
       const conteudo = nota.infCpl.trim() ? getPreview(nota) : "";
       const xmlFinal = conteudo ? inserirNaXML(nota.rawContent, conteudo) : nota.rawContent;
       const nome = nota.fileName.toLowerCase().endsWith(".xml") ? nota.fileName : `${nota.fileName}.xml`;
-      zip.file(nome, xmlFinal);
+      return { nome, xmlFinal };
+    });
+  };
+
+  // Exporta como ZIP sem compressão (STORE) — evita que extratores corrompam o conteúdo
+  const confirmar = async () => {
+    const arquivos = gerarXMLs();
+    if (!arquivos) return;
+    const zip = new JSZip();
+    for (const { nome, xmlFinal } of arquivos) {
+      zip.file(nome, xmlFinal, { compression: "STORE" });
     }
     const blob = await zip.generateAsync({ type: "blob" });
     const url = URL.createObjectURL(blob);
@@ -260,6 +270,21 @@ const Abastecimento = () => {
     document.body.appendChild(a); a.click();
     document.body.removeChild(a); URL.revokeObjectURL(url);
     toast({ title: `${notas.length} XMLs exportados`, description: "Arquivo ZIP gerado com sucesso." });
+  };
+
+  // Exporta cada XML individualmente (sem ZIP) — para testar se o problema é no ZIP
+  const confirmarSemZip = () => {
+    const arquivos = gerarXMLs();
+    if (!arquivos) return;
+    for (const { nome, xmlFinal } of arquivos) {
+      const blob = new Blob([xmlFinal], { type: "application/xml;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = nome;
+      document.body.appendChild(a); a.click();
+      document.body.removeChild(a); URL.revokeObjectURL(url);
+    }
+    toast({ title: `${notas.length} XMLs exportados individualmente` });
   };
 
   // ── Validação de tag ──
@@ -501,14 +526,25 @@ const Abastecimento = () => {
                         ? `Preencha a placa de ${semPlacaCount} nota${semPlacaCount > 1 ? "s" : ""} para continuar`
                         : "Tudo pronto! Clique em Confirmar para gerar os XMLs"}
                     </p>
-                    <button
-                      onClick={confirmar}
-                      disabled={!prontoParaConfirmar}
-                      className="inline-flex h-11 items-center gap-2 rounded-2xl border border-violet-500/30 bg-[linear-gradient(135deg,rgba(99,102,241,0.85),rgba(139,92,246,0.75))] px-5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(99,102,241,0.25)] transition-all hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      <Download className="h-4 w-4" />
-                      Confirmar e baixar XMLs
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={confirmarSemZip}
+                        disabled={!prontoParaConfirmar}
+                        title="Baixa cada XML individualmente, sem ZIP — use se tiver problemas na importação"
+                        className="inline-flex h-11 items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-4 text-sm font-medium text-slate-300 transition-all hover:bg-white/[0.10] disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        <Download className="h-4 w-4" />
+                        Sem ZIP
+                      </button>
+                      <button
+                        onClick={confirmar}
+                        disabled={!prontoParaConfirmar}
+                        className="inline-flex h-11 items-center gap-2 rounded-2xl border border-violet-500/30 bg-[linear-gradient(135deg,rgba(99,102,241,0.85),rgba(139,92,246,0.75))] px-5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(99,102,241,0.25)] transition-all hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        <Download className="h-4 w-4" />
+                        Baixar ZIP
+                      </button>
+                    </div>
                   </div>
                 </motion.div>
               )}
