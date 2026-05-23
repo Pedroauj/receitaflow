@@ -128,6 +128,36 @@ export type Database = {
         }
         Relationships: []
       }
+      postos_abastecimento: {
+        Row: {
+          cnpj: string
+          created_by: string | null
+          first_seen: string
+          id: string
+          nome: string
+          tags: string[]
+          updated_at: string
+        }
+        Insert: {
+          cnpj: string
+          created_by?: string | null
+          first_seen?: string
+          id?: string
+          nome: string
+          tags?: string[]
+          updated_at?: string
+        }
+        Update: {
+          cnpj?: string
+          created_by?: string | null
+          first_seen?: string
+          id?: string
+          nome?: string
+          tags?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           active: boolean
