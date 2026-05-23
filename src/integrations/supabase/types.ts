@@ -14,36 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      postos_abastecimento: {
-        Row: {
-          id: string
-          cnpj: string
-          nome: string
-          tags: string[]
-          first_seen: string
-          created_by: string | null
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          cnpj: string
-          nome: string
-          tags?: string[]
-          first_seen?: string
-          created_by?: string | null
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          cnpj?: string
-          nome?: string
-          tags?: string[]
-          first_seen?: string
-          created_by?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
       companies: {
         Row: {
           active: boolean
