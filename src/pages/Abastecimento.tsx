@@ -277,11 +277,36 @@ const Abastecimento = () => {
     toast({ title: `${notas.length} XMLs exportados`, description: "Arquivo ZIP gerado com sucesso." });
   };
 
-  // Exporta cada XML individualmente (sem ZIP) — para testar se o problema é no ZIP
-  const confirmarSemZip = () => {
+  // Exporta cada XML diretamente, sem passar pelo ZIP.
+  // Usa File System Access API (Chrome/Edge): abre seletor de pasta e salva todos os arquivos
+  // de uma vez, sem conflito de downloads, independente da quantidade.
+  // Fallback para download sequencial com delay nos demais browsers.
+  const confirmarSemZip = async () => {
     const arquivos = gerarXMLs();
     if (!arquivos) return;
-    for (const { nome, xmlBytes } of arquivos) {
+
+    // Chrome / Edge: File System Access API — salva todos na pasta escolhida
+    if ("showDirectoryPicker" in window) {
+      try {
+        const dir = await (window as any).showDirectoryPicker({ mode: "readwrite" });
+        for (const { nome, xmlBytes } of arquivos) {
+          const fh = await dir.getFileHandle(nome, { create: true });
+          const writable = await fh.createWritable();
+          await writable.write(xmlBytes);
+          await writable.close();
+        }
+        toast({ title: `${arquivos.length} XMLs salvos na pasta`, description: "Todos os arquivos foram gravados diretamente." });
+        return;
+      } catch {
+        // usuário cancelou o seletor — não faz nada
+        return;
+      }
+    }
+
+    // Fallback: download sequencial com 150ms de intervalo
+    for (let i = 0; i < arquivos.length; i++) {
+      if (i > 0) await new Promise(r => setTimeout(r, 150));
+      const { nome, xmlBytes } = arquivos[i];
       const blob = new Blob([xmlBytes], { type: "application/xml;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -289,7 +314,7 @@ const Abastecimento = () => {
       document.body.appendChild(a); a.click();
       document.body.removeChild(a); URL.revokeObjectURL(url);
     }
-    toast({ title: `${notas.length} XMLs exportados individualmente` });
+    toast({ title: `${arquivos.length} XMLs exportados` });
   };
 
   // ── Validação de tag ──
@@ -535,11 +560,11 @@ const Abastecimento = () => {
                       <button
                         onClick={confirmarSemZip}
                         disabled={!prontoParaConfirmar}
-                        title="Baixa cada XML individualmente, sem ZIP — use se tiver problemas na importação"
-                        className="inline-flex h-11 items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-4 text-sm font-medium text-slate-300 transition-all hover:bg-white/[0.10] disabled:cursor-not-allowed disabled:opacity-40"
+                        title="Salva os XMLs direto em uma pasta, sem ZIP — recomendado"
+                        className="inline-flex h-11 items-center gap-2 rounded-2xl border border-teal-500/30 bg-teal-500/10 px-4 text-sm font-medium text-teal-300 transition-all hover:bg-teal-500/20 disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         <Download className="h-4 w-4" />
-                        Sem ZIP
+                        Salvar XMLs
                       </button>
                       <button
                         onClick={confirmar}
