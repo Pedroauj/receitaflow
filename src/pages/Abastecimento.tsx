@@ -15,15 +15,16 @@ import JSZip from "jszip";
 // viram sequências inválidas que o MSXML rejeita com "invalid character in text".
 // Esta função detecta o encoding declarado no próprio XML e decodifica corretamente.
 
-async function lerXML(file: File): Promise<string> {
+async function lerXML(file: File): Promise<{ content: string; bytes: Uint8Array }> {
   const buf = await file.arrayBuffer();
   const bytes = new Uint8Array(buf);
 
   // Remove BOM UTF-8 (EF BB BF) se presente
   const offset = (bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF) ? 3 : 0;
+  const bytesLimpos = offset > 0 ? bytes.subarray(offset) : bytes;
 
   // Lê o cabeçalho como Latin-1 (1-pra-1 com bytes) para achar a declaração de encoding
-  const header = new TextDecoder("iso-8859-1").decode(bytes.subarray(offset, Math.min(offset + 300, bytes.length)));
+  const header = new TextDecoder("iso-8859-1").decode(bytesLimpos.subarray(0, Math.min(300, bytesLimpos.length)));
   const matchEnc = header.match(/encoding\s*=\s*["']([^"']+)["']/i);
   const enc = matchEnc?.[1]?.toLowerCase().replace(/_/g, "-") ?? "utf-8";
 
@@ -32,21 +33,21 @@ async function lerXML(file: File): Promise<string> {
   try { decoder = new TextDecoder(enc); }
   catch { decoder = new TextDecoder("utf-8"); }
 
-  let content = decoder.decode(bytes.subarray(offset));
+  let content = decoder.decode(bytesLimpos);
 
   // Remove caracteres proibidos pelo XML 1.0
-  // Válidos: #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD]
   content = content.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F￾￿]/g, "");
 
-  // Se o encoding original não era UTF-8, atualiza a declaração — o export sempre sai em UTF-8
+  // Se o encoding original não era UTF-8, atualiza a declaração e re-codifica os bytes
   if (!["utf-8", "utf8"].includes(enc)) {
     content = content.replace(
       /(<\?xml[^?]*?\s)encoding\s*=\s*["'][^"']*["']/i,
-      '$1encoding="UTF-8"'
+      (_m, p1) => `${p1}encoding="UTF-8"`
     );
+    return { content, bytes: new TextEncoder().encode(content) };
   }
 
-  return content;
+  return { content, bytes: bytesLimpos };
 }
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
@@ -62,7 +63,8 @@ interface NotaItem {
   id: string;
   nNF: string;
   fileName: string;
-  rawContent: string;
+  rawContent: string;     // string para exibição e regex
+  rawBytes: Uint8Array;   // bytes originais para export fiel ao arquivo
   infCpl: string;         // conteúdo digitado pelo usuário (só a placa)
   temPlaca: boolean;
   posto: string;
@@ -200,12 +202,12 @@ const Abastecimento = () => {
     const postosEncontrados: { nome: string; cnpj: string }[] = [];
 
     for (const file of lista) {
-      const raw = await lerXML(file);
+      const { content: raw, bytes: rawBytes } = await lerXML(file);
       const nNF = extrairNNF(raw);
       const { nome, cnpj } = extrairPosto(raw);
       const temPlaca = temPlacaNoXML(raw);
       postosEncontrados.push({ nome, cnpj });
-      novas.push({ id: `${file.name}_${nNF}`, nNF, fileName: file.name, rawContent: raw, infCpl: "", temPlaca, posto: nome, cnpj });
+      novas.push({ id: `${file.name}_${nNF}`, nNF, fileName: file.name, rawContent: raw, rawBytes, infCpl: "", temPlaca, posto: nome, cnpj });
     }
 
     mergePostos(postosEncontrados);
@@ -249,9 +251,12 @@ const Abastecimento = () => {
     }
     return notas.map(nota => {
       const conteudo = nota.infCpl.trim() ? getPreview(nota) : "";
-      const xmlFinal = conteudo ? inserirNaXML(nota.rawContent, conteudo) : nota.rawContent;
+      // Gera a string modificada e converte para bytes via TextEncoder (UTF-8 nativo do browser)
+      // Isso evita qualquer conversão interna do JSZip que possa alterar o arquivo
+      const xmlStr = conteudo ? inserirNaXML(nota.rawContent, conteudo) : nota.rawContent;
+      const xmlBytes = new TextEncoder().encode(xmlStr);
       const nome = nota.fileName.toLowerCase().endsWith(".xml") ? nota.fileName : `${nota.fileName}.xml`;
-      return { nome, xmlFinal };
+      return { nome, xmlBytes };
     });
   };
 
@@ -260,8 +265,8 @@ const Abastecimento = () => {
     const arquivos = gerarXMLs();
     if (!arquivos) return;
     const zip = new JSZip();
-    for (const { nome, xmlFinal } of arquivos) {
-      zip.file(nome, xmlFinal, { compression: "STORE" });
+    for (const { nome, xmlBytes } of arquivos) {
+      zip.file(nome, xmlBytes, { binary: true, compression: "STORE" });
     }
     const blob = await zip.generateAsync({ type: "blob" });
     const url = URL.createObjectURL(blob);
@@ -276,8 +281,8 @@ const Abastecimento = () => {
   const confirmarSemZip = () => {
     const arquivos = gerarXMLs();
     if (!arquivos) return;
-    for (const { nome, xmlFinal } of arquivos) {
-      const blob = new Blob([xmlFinal], { type: "application/xml;charset=utf-8" });
+    for (const { nome, xmlBytes } of arquivos) {
+      const blob = new Blob([xmlBytes], { type: "application/xml;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url; a.download = nome;
