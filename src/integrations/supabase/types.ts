@@ -130,40 +130,40 @@ export type Database = {
       }
       notas_processadas: {
         Row: {
-          id: string
-          n_nf: string
           cnpj: string
-          posto_nome: string
-          placa: string
-          file_name: string
-          xml_content: string
-          uploaded_by: string | null
           created_at: string
           expires_at: string
+          file_name: string
+          id: string
+          n_nf: string
+          placa: string
+          posto_nome: string
+          uploaded_by: string | null
+          xml_content: string
         }
         Insert: {
+          cnpj: string
+          created_at?: string
+          expires_at?: string
+          file_name: string
           id?: string
           n_nf: string
-          cnpj: string
-          posto_nome: string
           placa?: string
-          file_name: string
-          xml_content: string
+          posto_nome: string
           uploaded_by?: string | null
-          created_at?: string
-          expires_at?: string
+          xml_content: string
         }
         Update: {
-          id?: string
-          n_nf?: string
           cnpj?: string
-          posto_nome?: string
-          placa?: string
-          file_name?: string
-          xml_content?: string
-          uploaded_by?: string | null
           created_at?: string
           expires_at?: string
+          file_name?: string
+          id?: string
+          n_nf?: string
+          placa?: string
+          posto_nome?: string
+          uploaded_by?: string | null
+          xml_content?: string
         }
         Relationships: []
       }
