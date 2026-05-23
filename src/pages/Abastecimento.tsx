@@ -7,7 +7,6 @@ import {
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
-import JSZip from "jszip";
 
 // ─── Leitura segura de XML ────────────────────────────────────────────────────
 // file.text() sempre decodifica como UTF-8. Se o arquivo for ISO-8859-1 ou
@@ -252,29 +251,11 @@ const Abastecimento = () => {
     return notas.map(nota => {
       const conteudo = nota.infCpl.trim() ? getPreview(nota) : "";
       // Gera a string modificada e converte para bytes via TextEncoder (UTF-8 nativo do browser)
-      // Isso evita qualquer conversão interna do JSZip que possa alterar o arquivo
-      const xmlStr = conteudo ? inserirNaXML(nota.rawContent, conteudo) : nota.rawContent;
+const xmlStr = conteudo ? inserirNaXML(nota.rawContent, conteudo) : nota.rawContent;
       const xmlBytes = new TextEncoder().encode(xmlStr);
       const nome = nota.fileName.toLowerCase().endsWith(".xml") ? nota.fileName : `${nota.fileName}.xml`;
       return { nome, xmlBytes };
     });
-  };
-
-  // Exporta como ZIP sem compressão (STORE) — evita que extratores corrompam o conteúdo
-  const confirmar = async () => {
-    const arquivos = gerarXMLs();
-    if (!arquivos) return;
-    const zip = new JSZip();
-    for (const { nome, xmlBytes } of arquivos) {
-      zip.file(nome, xmlBytes, { binary: true, compression: "STORE" });
-    }
-    const blob = await zip.generateAsync({ type: "blob" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = `xmls-corrigidos-${new Date().toISOString().slice(0,10)}.zip`;
-    document.body.appendChild(a); a.click();
-    document.body.removeChild(a); URL.revokeObjectURL(url);
-    toast({ title: `${notas.length} XMLs exportados`, description: "Arquivo ZIP gerado com sucesso." });
   };
 
   // Exporta cada XML diretamente, sem passar pelo ZIP.
@@ -560,19 +541,11 @@ const Abastecimento = () => {
                       <button
                         onClick={confirmarSemZip}
                         disabled={!prontoParaConfirmar}
-                        title="Salva os XMLs direto em uma pasta, sem ZIP — recomendado"
-                        className="inline-flex h-11 items-center gap-2 rounded-2xl border border-teal-500/30 bg-teal-500/10 px-4 text-sm font-medium text-teal-300 transition-all hover:bg-teal-500/20 disabled:cursor-not-allowed disabled:opacity-40"
-                      >
-                        <Download className="h-4 w-4" />
-                        Salvar XMLs
-                      </button>
-                      <button
-                        onClick={confirmar}
-                        disabled={!prontoParaConfirmar}
+                        title="Salva os XMLs direto em uma pasta, sem ZIP"
                         className="inline-flex h-11 items-center gap-2 rounded-2xl border border-violet-500/30 bg-[linear-gradient(135deg,rgba(99,102,241,0.85),rgba(139,92,246,0.75))] px-5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(99,102,241,0.25)] transition-all hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         <Download className="h-4 w-4" />
-                        Baixar ZIP
+                        Salvar XMLs
                       </button>
                     </div>
                   </div>
