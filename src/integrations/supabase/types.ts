@@ -14,36 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      postos_abastecimento: {
-        Row: {
-          id: string
-          cnpj: string
-          nome: string
-          tags: string[]
-          first_seen: string
-          created_by: string | null
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          cnpj: string
-          nome: string
-          tags?: string[]
-          first_seen?: string
-          created_by?: string | null
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          cnpj?: string
-          nome?: string
-          tags?: string[]
-          first_seen?: string
-          created_by?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
       companies: {
         Row: {
           active: boolean
@@ -155,6 +125,36 @@ export type Database = {
           id?: string
           token?: string
           used_at?: string | null
+        }
+        Relationships: []
+      }
+      postos_abastecimento: {
+        Row: {
+          cnpj: string
+          created_by: string | null
+          first_seen: string
+          id: string
+          nome: string
+          tags: string[]
+          updated_at: string
+        }
+        Insert: {
+          cnpj: string
+          created_by?: string | null
+          first_seen?: string
+          id?: string
+          nome: string
+          tags?: string[]
+          updated_at?: string
+        }
+        Update: {
+          cnpj?: string
+          created_by?: string | null
+          first_seen?: string
+          id?: string
+          nome?: string
+          tags?: string[]
+          updated_at?: string
         }
         Relationships: []
       }
