@@ -7,6 +7,8 @@ import {
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 // ─── Leitura segura de XML ────────────────────────────────────────────────────
 // file.text() sempre decodifica como UTF-8. Se o arquivo for ISO-8859-1 ou
@@ -68,23 +70,6 @@ interface NotaItem {
   temPlaca: boolean;
   posto: string;
   cnpj: string;
-}
-
-// ─── Persistência (localStorage) ─────────────────────────────────────────────
-
-const STORAGE_KEY = "receitaflow:postos";
-
-function loadPostos(): Posto[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
-
-function savePostos(postos: Posto[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(postos));
 }
 
 // ─── Helpers XML ─────────────────────────────────────────────────────────────
@@ -156,6 +141,7 @@ function formatCNPJ(cnpj: string): string {
 type Tab = "correcao" | "postos";
 
 const Abastecimento = () => {
+  const { user } = useAuth();
   const [tab, setTab] = useState<Tab>("correcao");
 
   // ── Estado correção ──
@@ -166,6 +152,7 @@ const Abastecimento = () => {
   // ── Estado postos ──
   const [postos, setPostos] = useState<Posto[]>([]);
   const [searchPosto, setSearchPosto] = useState("");
+  const [loadingPostos, setLoadingPostos] = useState(true);
 
   // ── Estado modal nova tag ──
   const [showTagModal, setShowTagModal] = useState(false);
@@ -173,24 +160,57 @@ const Abastecimento = () => {
   const [searchPostoModal, setSearchPostoModal] = useState("");
   const [postoSelecionado, setPostoSelecionado] = useState<Posto | null>(null);
 
-  useEffect(() => { setPostos(loadPostos()); }, []);
+  // ── Carrega postos do Supabase (compartilhado entre todos os usuários) ──
+  useEffect(() => {
+    const fetchPostos = async () => {
+      setLoadingPostos(true);
+      const { data, error } = await supabase
+        .from("postos_abastecimento")
+        .select("*")
+        .order("nome");
+      if (!error && data) {
+        setPostos(data.map(p => ({
+          cnpj: p.cnpj,
+          nome: p.nome,
+          tags: p.tags ?? [],
+          firstSeen: p.first_seen,
+        })));
+      }
+      setLoadingPostos(false);
+    };
+    fetchPostos();
+  }, []);
 
-  // ── Merge postos extraídos dos XMLs ──
-  const mergePostos = useCallback((novasNotas: { nome: string; cnpj: string }[]) => {
+  // ── Merge postos extraídos dos XMLs → Supabase (compartilhado) ──
+  const mergePostos = useCallback(async (novasNotas: { nome: string; cnpj: string }[]) => {
+    const novos = novasNotas.filter(({ cnpj }) => cnpj && cnpj !== "—");
+    if (!novos.length) return;
+
+    // Atualização otimista local (imediata)
     setPostos(prev => {
-      const mapa = new Map(prev.map(p => [p.cnpj || p.nome, p]));
-      novasNotas.forEach(({ nome, cnpj }) => {
-        const key = cnpj || nome;
-        if (!key || key === "—") return;
-        if (!mapa.has(key)) {
-          mapa.set(key, { cnpj, nome, tags: [], firstSeen: new Date().toISOString() });
+      const mapa = new Map(prev.map(p => [p.cnpj, p]));
+      novos.forEach(({ nome, cnpj }) => {
+        if (!mapa.has(cnpj)) {
+          mapa.set(cnpj, { cnpj, nome, tags: [], firstSeen: new Date().toISOString() });
         }
       });
-      const updated = Array.from(mapa.values());
-      savePostos(updated);
-      return updated;
+      return Array.from(mapa.values());
     });
-  }, []);
+
+    // Persiste no Supabase — ignoreDuplicates garante que não sobrescreve tags já cadastradas
+    const { error } = await supabase
+      .from("postos_abastecimento")
+      .upsert(
+        novos.map(({ cnpj, nome }) => ({
+          cnpj,
+          nome,
+          tags: [],
+          created_by: user?.id ?? null,
+        })),
+        { onConflict: "cnpj", ignoreDuplicates: true }
+      );
+    if (error) console.error("mergePostos:", error);
+  }, [user]);
 
   // ── Leitura de XMLs ──
   const processarArquivos = useCallback(async (files: FileList | File[]) => {
@@ -209,7 +229,7 @@ const Abastecimento = () => {
       novas.push({ id: `${file.name}_${nNF}`, nNF, fileName: file.name, rawContent: raw, rawBytes, infCpl: "", temPlaca, posto: nome, cnpj });
     }
 
-    mergePostos(postosEncontrados);
+    await mergePostos(postosEncontrados);
 
     setNotas(prev => {
       const mapa = new Map(prev.map(n => [n.id, n]));
@@ -303,35 +323,57 @@ const xmlStr = conteudo ? inserirNaXML(nota.rawContent, conteudo) : nota.rawCont
   const tagAviso   = /;/.test(tagInput);
 
   // ── Salvar nova tag ──
-  const salvarTag = () => {
+  const salvarTag = async () => {
     if (!tagInput.trim()) { toast({ title: "Digite a tag", variant: "destructive" }); return; }
     if (tagInvalida) { toast({ title: "Caractere inválido na tag", description: 'Os caracteres < > & quebram o XML e não são permitidos.', variant: "destructive" }); return; }
     if (!postoSelecionado) { toast({ title: "Selecione um posto", variant: "destructive" }); return; }
-    const key = postoSelecionado.cnpj || postoSelecionado.nome;
-    setPostos(prev => {
-      const updated = prev.map(p => {
-        const k = p.cnpj || p.nome;
-        if (k !== key) return p;
-        if (p.tags.includes(tagInput.trim())) return p;
-        return { ...p, tags: [...p.tags, tagInput.trim()] };
-      });
-      savePostos(updated);
-      return updated;
-    });
+
+    const posto = postos.find(p => p.cnpj === postoSelecionado.cnpj);
+    if (posto?.tags.includes(tagInput.trim())) {
+      toast({ title: "Tag já existe neste posto", variant: "destructive" }); return;
+    }
+
+    const novasTags = [...(posto?.tags ?? []), tagInput.trim()];
+
+    // Atualização otimista local
+    setPostos(prev => prev.map(p =>
+      p.cnpj === postoSelecionado.cnpj ? { ...p, tags: novasTags } : p
+    ));
+
+    // Persiste no Supabase
+    const { error } = await supabase
+      .from("postos_abastecimento")
+      .update({ tags: novasTags, updated_at: new Date().toISOString() })
+      .eq("cnpj", postoSelecionado.cnpj);
+
+    if (error) {
+      console.error("salvarTag:", error);
+      toast({ title: "Erro ao salvar tag", variant: "destructive" });
+      return;
+    }
+
     toast({ title: "Tag salva!", description: `"${tagInput.trim()}" adicionada ao posto ${postoSelecionado.nome}.` });
     setTagInput(""); setPostoSelecionado(null); setSearchPostoModal(""); setShowTagModal(false);
   };
 
-  const removerTag = (cnpjOrNome: string, tag: string) => {
-    setPostos(prev => {
-      const updated = prev.map(p => {
-        const k = p.cnpj || p.nome;
-        if (k !== cnpjOrNome) return p;
-        return { ...p, tags: p.tags.filter(t => t !== tag) };
-      });
-      savePostos(updated);
-      return updated;
-    });
+  const removerTag = async (cnpj: string, tag: string) => {
+    const posto = postos.find(p => p.cnpj === cnpj);
+    if (!posto) return;
+
+    const novasTags = posto.tags.filter(t => t !== tag);
+
+    // Atualização otimista local
+    setPostos(prev => prev.map(p =>
+      p.cnpj === cnpj ? { ...p, tags: novasTags } : p
+    ));
+
+    // Persiste no Supabase
+    const { error } = await supabase
+      .from("postos_abastecimento")
+      .update({ tags: novasTags, updated_at: new Date().toISOString() })
+      .eq("cnpj", cnpj);
+
+    if (error) console.error("removerTag:", error);
   };
 
   const postosFiltrados = postos.filter(p =>
@@ -593,7 +635,12 @@ const xmlStr = conteudo ? inserirNaXML(nota.rawContent, conteudo) : nota.rawCont
             </div>
 
             {/* Lista de postos */}
-            {postosFiltrados.length === 0 ? (
+            {loadingPostos ? (
+              <div className="flex items-center justify-center py-16 rounded-[24px] border border-white/8 bg-white/[0.02]">
+                <div className="h-5 w-5 rounded-full border-2 border-violet-500/40 border-t-violet-400 animate-spin" />
+                <span className="ml-3 text-sm text-slate-500">Carregando postos...</span>
+              </div>
+            ) : postosFiltrados.length === 0 ? (
               <div className="flex flex-col items-center py-16 text-center rounded-[24px] border border-white/8 bg-white/[0.02]">
                 <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/8 bg-white/[0.03]">
                   <Building2 className="h-6 w-6 text-slate-600" />
@@ -653,7 +700,7 @@ const xmlStr = conteudo ? inserirNaXML(nota.rawContent, conteudo) : nota.rawCont
                               <Tag className="h-3 w-3 text-violet-400" />
                               <span className="font-mono text-[12px] text-slate-300">{tag}</span>
                               <button
-                                onClick={() => removerTag(posto.cnpj || posto.nome, tag)}
+                                onClick={() => removerTag(posto.cnpj, tag)}
                                 className="ml-1 text-slate-600 transition-colors hover:text-red-400"
                               >
                                 <X className="h-3 w-3" />
