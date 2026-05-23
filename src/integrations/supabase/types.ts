@@ -128,6 +128,45 @@ export type Database = {
         }
         Relationships: []
       }
+      notas_processadas: {
+        Row: {
+          id: string
+          n_nf: string
+          cnpj: string
+          posto_nome: string
+          placa: string
+          file_name: string
+          xml_content: string
+          uploaded_by: string | null
+          created_at: string
+          expires_at: string
+        }
+        Insert: {
+          id?: string
+          n_nf: string
+          cnpj: string
+          posto_nome: string
+          placa?: string
+          file_name: string
+          xml_content: string
+          uploaded_by?: string | null
+          created_at?: string
+          expires_at?: string
+        }
+        Update: {
+          id?: string
+          n_nf?: string
+          cnpj?: string
+          posto_nome?: string
+          placa?: string
+          file_name?: string
+          xml_content?: string
+          uploaded_by?: string | null
+          created_at?: string
+          expires_at?: string
+        }
+        Relationships: []
+      }
       postos_abastecimento: {
         Row: {
           cnpj: string

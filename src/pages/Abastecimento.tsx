@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload, Download, FileCheck, FileX, Fuel, CheckCircle2,
   AlertTriangle, X, FileCode, Building2, Plus, Search,
-  Tag, Trash2, ChevronRight, Store,
+  Tag, Trash2, ChevronRight, Store, History, Calendar,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
@@ -138,7 +138,20 @@ function formatCNPJ(cnpj: string): string {
 
 // ─── Componente ───────────────────────────────────────────────────────────────
 
-type Tab = "correcao" | "postos";
+type Tab = "correcao" | "postos" | "historico";
+
+interface NotaHistorico {
+  id: string;
+  n_nf: string;
+  cnpj: string;
+  posto_nome: string;
+  placa: string;
+  file_name: string;
+  xml_content: string;
+  uploaded_by: string | null;
+  created_at: string;
+  expires_at: string;
+}
 
 const Abastecimento = () => {
   const { user } = useAuth();
@@ -154,11 +167,34 @@ const Abastecimento = () => {
   const [searchPosto, setSearchPosto] = useState("");
   const [loadingPostos, setLoadingPostos] = useState(true);
 
+  // ── Estado histórico ──
+  const [historico, setHistorico] = useState<NotaHistorico[]>([]);
+  const [loadingHistorico, setLoadingHistorico] = useState(false);
+  const [searchHistorico, setSearchHistorico] = useState("");
+
   // ── Estado modal nova tag ──
   const [showTagModal, setShowTagModal] = useState(false);
   const [tagInput, setTagInput] = useState("");
   const [searchPostoModal, setSearchPostoModal] = useState("");
   const [postoSelecionado, setPostoSelecionado] = useState<Posto | null>(null);
+
+  // ── Carrega histórico quando a aba for acessada ──
+  useEffect(() => {
+    if (tab !== "historico") return;
+    const fetchHistorico = async () => {
+      setLoadingHistorico(true);
+      // Limpeza lazy: remove registros expirados em background
+      supabase.from("notas_processadas").delete().lt("expires_at", new Date().toISOString());
+      const { data, error } = await supabase
+        .from("notas_processadas")
+        .select("*")
+        .gt("expires_at", new Date().toISOString())
+        .order("created_at", { ascending: false });
+      if (!error && data) setHistorico(data as NotaHistorico[]);
+      setLoadingHistorico(false);
+    };
+    fetchHistorico();
+  }, [tab]);
 
   // ── Carrega postos do Supabase (compartilhado entre todos os usuários) ──
   useEffect(() => {
@@ -270,11 +306,10 @@ const Abastecimento = () => {
     }
     return notas.map(nota => {
       const conteudo = nota.infCpl.trim() ? getPreview(nota) : "";
-      // Gera a string modificada e converte para bytes via TextEncoder (UTF-8 nativo do browser)
-const xmlStr = conteudo ? inserirNaXML(nota.rawContent, conteudo) : nota.rawContent;
+      const xmlStr = conteudo ? inserirNaXML(nota.rawContent, conteudo) : nota.rawContent;
       const xmlBytes = new TextEncoder().encode(xmlStr);
       const nome = nota.fileName.toLowerCase().endsWith(".xml") ? nota.fileName : `${nota.fileName}.xml`;
-      return { nome, xmlBytes };
+      return { nome, xmlBytes, xmlStr, nota };
     });
   };
 
@@ -282,6 +317,23 @@ const xmlStr = conteudo ? inserirNaXML(nota.rawContent, conteudo) : nota.rawCont
   // Usa File System Access API (Chrome/Edge): abre seletor de pasta e salva todos os arquivos
   // de uma vez, sem conflito de downloads, independente da quantidade.
   // Fallback para download sequencial com delay nos demais browsers.
+  // ── Arquiva notas no Supabase após exportar (fire-and-forget) ──
+  const arquivarNoSupabase = (arquivos: { xmlStr: string; nota: NotaItem }[]) => {
+    const registros = arquivos.map(({ xmlStr, nota }) => ({
+      n_nf: nota.nNF,
+      cnpj: nota.cnpj,
+      posto_nome: nota.posto,
+      placa: nota.infCpl.trim(),
+      file_name: nota.fileName.toLowerCase().endsWith(".xml") ? nota.fileName : `${nota.fileName}.xml`,
+      xml_content: xmlStr,
+      uploaded_by: user?.id ?? null,
+    }));
+    supabase
+      .from("notas_processadas")
+      .upsert(registros, { onConflict: "cnpj,n_nf" })
+      .then(({ error }) => { if (error) console.error("arquivar:", error); });
+  };
+
   const confirmarSemZip = async () => {
     const arquivos = gerarXMLs();
     if (!arquivos) return;
@@ -296,6 +348,7 @@ const xmlStr = conteudo ? inserirNaXML(nota.rawContent, conteudo) : nota.rawCont
           await writable.write(xmlBytes);
           await writable.close();
         }
+        arquivarNoSupabase(arquivos);
         toast({ title: `${arquivos.length} XMLs salvos na pasta`, description: "Todos os arquivos foram gravados diretamente." });
         return;
       } catch {
@@ -315,6 +368,7 @@ const xmlStr = conteudo ? inserirNaXML(nota.rawContent, conteudo) : nota.rawCont
       document.body.appendChild(a); a.click();
       document.body.removeChild(a); URL.revokeObjectURL(url);
     }
+    arquivarNoSupabase(arquivos);
     toast({ title: `${arquivos.length} XMLs exportados` });
   };
 
@@ -389,6 +443,28 @@ const xmlStr = conteudo ? inserirNaXML(nota.rawContent, conteudo) : nota.rawCont
   const semPlacaCount = notas.filter(n => !n.temPlaca && !n.infCpl.trim()).length;
   const prontoParaConfirmar = notas.length > 0 && semPlacaCount === 0;
 
+  const historicoFiltrado = historico.filter(n => {
+    const q = searchHistorico.toLowerCase().trim();
+    if (!q) return true;
+    return (
+      n.n_nf.includes(q) ||
+      n.cnpj.includes(q) ||
+      n.posto_nome.toLowerCase().includes(q) ||
+      n.placa.toLowerCase().includes(q) ||
+      n.file_name.toLowerCase().includes(q)
+    );
+  });
+
+  const downloadNota = (nota: NotaHistorico) => {
+    const bytes = new TextEncoder().encode(nota.xml_content);
+    const blob = new Blob([bytes], { type: "application/xml;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = nota.file_name;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="w-full">
       <div className="mx-auto max-w-[1560px] px-6 py-7">
@@ -414,8 +490,9 @@ const xmlStr = conteudo ? inserirNaXML(nota.rawContent, conteudo) : nota.rawCont
         {/* ── Tabs ── */}
         <div className="mb-6 inline-flex items-center gap-1 rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(16,20,32,0.98),rgba(10,13,22,0.98))] p-1.5">
           {([
-            { key: "correcao", label: "Correção de XML",  icon: FileCode },
-            { key: "postos",   label: "Postos e Tags",    icon: Store },
+            { key: "correcao",  label: "Correção de XML", icon: FileCode },
+            { key: "postos",    label: "Postos e Tags",   icon: Store },
+            { key: "historico", label: "Histórico",       icon: History },
           ] as { key: Tab; label: string; icon: React.ElementType }[]).map(({ key, label, icon: Icon }) => (
             <button
               key={key}
@@ -852,6 +929,90 @@ const xmlStr = conteudo ? inserirNaXML(nota.rawContent, conteudo) : nota.rawCont
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* ════════════════════════════════════════
+            ABA 3 — HISTÓRICO
+        ════════════════════════════════════════ */}
+        {tab === "historico" && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="space-y-5">
+
+            {/* Toolbar */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="relative max-w-sm flex-1">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                <Input
+                  placeholder="Buscar por nota, CNPJ, posto ou placa..."
+                  value={searchHistorico}
+                  onChange={e => setSearchHistorico(e.target.value)}
+                  className="pl-10 h-10 rounded-xl border border-white/8 bg-white/[0.04] text-sm text-white placeholder:text-slate-600"
+                />
+              </div>
+              {!loadingHistorico && (
+                <p className="text-xs text-slate-500 shrink-0">
+                  {historicoFiltrado.length} {historicoFiltrado.length === 1 ? "nota" : "notas"}
+                  {searchHistorico && ` de ${historico.length}`}
+                  {" · "}expiram após 30 dias
+                </p>
+              )}
+            </div>
+
+            {/* Lista */}
+            {loadingHistorico ? (
+              <div className="flex items-center justify-center py-16 rounded-[24px] border border-white/8 bg-white/[0.02]">
+                <div className="h-5 w-5 rounded-full border-2 border-violet-500/40 border-t-violet-400 animate-spin" />
+                <span className="ml-3 text-sm text-slate-500">Carregando histórico...</span>
+              </div>
+            ) : historicoFiltrado.length === 0 ? (
+              <div className="flex flex-col items-center py-16 text-center rounded-[24px] border border-white/8 bg-white/[0.02]">
+                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/8 bg-white/[0.03]">
+                  <History className="h-6 w-6 text-slate-600" />
+                </div>
+                <p className="text-sm font-medium text-slate-400">
+                  {searchHistorico ? "Nenhuma nota encontrada" : "Nenhuma nota processada ainda"}
+                </p>
+                <p className="mt-1 text-xs text-slate-600">
+                  {searchHistorico ? "Tente buscar por outro termo" : "Exporte XMLs na aba Correção para o histórico aparecer aqui"}
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(16,20,32,0.98),rgba(10,13,22,0.98))] shadow-[0_14px_40px_rgba(0,0,0,0.28)]">
+                {/* Cabeçalho da tabela */}
+                <div className="grid grid-cols-[1fr_1.6fr_1fr_1fr_1fr_auto] gap-4 border-b border-white/[0.05] px-5 py-3">
+                  {["Nota #", "Posto", "CNPJ", "Placa", "Data", ""].map(h => (
+                    <span key={h} className="text-[11px] font-semibold uppercase tracking-wider text-slate-600">{h}</span>
+                  ))}
+                </div>
+                <div className="divide-y divide-white/[0.04]">
+                  {historicoFiltrado.map((nota, i) => (
+                    <motion.div
+                      key={nota.id}
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.02, duration: 0.22 }}
+                      className="grid grid-cols-[1fr_1.6fr_1fr_1fr_1fr_auto] gap-4 items-center px-5 py-3.5 hover:bg-white/[0.02] transition-colors"
+                    >
+                      <span className="text-sm font-mono font-medium text-white">{nota.n_nf}</span>
+                      <span className="text-sm text-slate-300 truncate" title={nota.posto_nome}>{nota.posto_nome}</span>
+                      <span className="text-xs font-mono text-slate-500">{formatCNPJ(nota.cnpj)}</span>
+                      <span className="text-sm text-violet-300 font-medium">{nota.placa || <span className="text-slate-600 italic">—</span>}</span>
+                      <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                        <Calendar className="h-3 w-3 shrink-0" />
+                        {new Date(nota.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" })}
+                      </div>
+                      <button
+                        onClick={() => downloadNota(nota)}
+                        title={`Baixar ${nota.file_name}`}
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-white/8 bg-white/[0.04] text-slate-400 transition-all hover:border-violet-500/30 hover:bg-violet-500/10 hover:text-violet-300"
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                      </button>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </motion.div>
+        )}
 
       </div>
     </div>
