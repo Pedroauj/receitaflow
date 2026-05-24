@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload, Download, FileCheck, FileX, Fuel, CheckCircle2,
   AlertTriangle, X, FileCode, Building2, Plus, Search,
-  Tag, Trash2, ChevronRight, Store, History, Calendar,
+  Tag, Trash2, ChevronRight, Store, History, Calendar, User,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
@@ -140,6 +140,8 @@ function formatCNPJ(cnpj: string): string {
 
 type Tab = "correcao" | "postos" | "historico";
 
+type DateFilter = "todos" | "hoje" | "7d" | "30d";
+
 interface NotaHistorico {
   id: string;
   n_nf: string;
@@ -151,6 +153,7 @@ interface NotaHistorico {
   uploaded_by: string | null;
   created_at: string;
   expires_at: string;
+  _userName?: string;
 }
 
 const Abastecimento = () => {
@@ -171,12 +174,23 @@ const Abastecimento = () => {
   const [historico, setHistorico] = useState<NotaHistorico[]>([]);
   const [loadingHistorico, setLoadingHistorico] = useState(false);
   const [searchHistorico, setSearchHistorico] = useState("");
+  const [dateFilter, setDateFilter] = useState<DateFilter>("todos");
+  const [historicoCount, setHistoricoCount] = useState<number | null>(null);
 
   // ── Estado modal nova tag ──
   const [showTagModal, setShowTagModal] = useState(false);
   const [tagInput, setTagInput] = useState("");
   const [searchPostoModal, setSearchPostoModal] = useState("");
   const [postoSelecionado, setPostoSelecionado] = useState<Posto | null>(null);
+
+  // ── Conta notas no mount para o badge da aba ──
+  useEffect(() => {
+    supabase
+      .from("notas_processadas")
+      .select("id", { count: "exact", head: true })
+      .gt("expires_at", new Date().toISOString())
+      .then(({ count }) => { if (count !== null) setHistoricoCount(count); });
+  }, []);
 
   // ── Carrega histórico quando a aba for acessada ──
   useEffect(() => {
@@ -190,7 +204,25 @@ const Abastecimento = () => {
         .select("*")
         .gt("expires_at", new Date().toISOString())
         .order("created_at", { ascending: false });
-      if (!error && data) setHistorico(data as NotaHistorico[]);
+      if (!error && data) {
+        // Busca nomes dos usuários que exportaram
+        const ids = [...new Set(data.map(n => n.uploaded_by).filter(Boolean))] as string[];
+        let profileMap = new Map<string, string>();
+        if (ids.length) {
+          const { data: profiles } = await supabase
+            .from("profiles")
+            .select("user_id, full_name, display_name, email")
+            .in("user_id", ids);
+          profiles?.forEach(p => {
+            profileMap.set(p.user_id, p.full_name || p.display_name || p.email || "Usuário");
+          });
+        }
+        setHistorico((data as NotaHistorico[]).map(n => ({
+          ...n,
+          _userName: n.uploaded_by ? (profileMap.get(n.uploaded_by) ?? "Usuário") : "—",
+        })));
+        setHistoricoCount(data.length);
+      }
       setLoadingHistorico(false);
     };
     fetchHistorico();
@@ -349,6 +381,7 @@ const Abastecimento = () => {
           await writable.close();
         }
         arquivarNoSupabase(arquivos);
+        setHistoricoCount(prev => (prev ?? 0) + arquivos.length);
         toast({ title: `${arquivos.length} XMLs salvos na pasta`, description: "Todos os arquivos foram gravados diretamente." });
         return;
       } catch {
@@ -369,6 +402,7 @@ const Abastecimento = () => {
       document.body.removeChild(a); URL.revokeObjectURL(url);
     }
     arquivarNoSupabase(arquivos);
+    setHistoricoCount(prev => (prev ?? 0) + arquivos.length);
     toast({ title: `${arquivos.length} XMLs exportados` });
   };
 
@@ -445,14 +479,21 @@ const Abastecimento = () => {
 
   const historicoFiltrado = historico.filter(n => {
     const q = searchHistorico.toLowerCase().trim();
-    if (!q) return true;
-    return (
+    const matchSearch = !q || (
       n.n_nf.includes(q) ||
       n.cnpj.includes(q) ||
       n.posto_nome.toLowerCase().includes(q) ||
       n.placa.toLowerCase().includes(q) ||
-      n.file_name.toLowerCase().includes(q)
+      n.file_name.toLowerCase().includes(q) ||
+      (n._userName ?? "").toLowerCase().includes(q)
     );
+    if (!matchSearch) return false;
+    if (dateFilter === "todos") return true;
+    const created = new Date(n.created_at);
+    const now = new Date();
+    if (dateFilter === "hoje") return created.toDateString() === now.toDateString();
+    const ms = dateFilter === "7d" ? 7 : 30;
+    return created >= new Date(now.getTime() - ms * 24 * 60 * 60 * 1000);
   });
 
   const downloadNota = (nota: NotaHistorico) => {
@@ -490,10 +531,10 @@ const Abastecimento = () => {
         {/* ── Tabs ── */}
         <div className="mb-6 inline-flex items-center gap-1 rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(16,20,32,0.98),rgba(10,13,22,0.98))] p-1.5">
           {([
-            { key: "correcao",  label: "Correção de XML", icon: FileCode },
-            { key: "postos",    label: "Postos e Tags",   icon: Store },
-            { key: "historico", label: "Histórico",       icon: History },
-          ] as { key: Tab; label: string; icon: React.ElementType }[]).map(({ key, label, icon: Icon }) => (
+            { key: "correcao",  label: "Correção de XML", icon: FileCode,  badge: null },
+            { key: "postos",    label: "Postos e Tags",   icon: Store,     badge: null },
+            { key: "historico", label: "Histórico",       icon: History,   badge: historicoCount },
+          ] as { key: Tab; label: string; icon: React.ElementType; badge: number | null }[]).map(({ key, label, icon: Icon, badge }) => (
             <button
               key={key}
               onClick={() => setTab(key)}
@@ -505,6 +546,11 @@ const Abastecimento = () => {
             >
               <Icon className="h-4 w-4" />
               {label}
+              {badge !== null && badge > 0 && (
+                <span className="rounded-full bg-violet-500/20 px-1.5 py-0.5 text-[10px] font-bold text-violet-400 leading-none">
+                  {badge}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -937,23 +983,46 @@ const Abastecimento = () => {
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="space-y-5">
 
             {/* Toolbar */}
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="relative max-w-sm flex-1">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-                <Input
-                  placeholder="Buscar por nota, CNPJ, posto ou placa..."
-                  value={searchHistorico}
-                  onChange={e => setSearchHistorico(e.target.value)}
-                  className="pl-10 h-10 rounded-xl border border-white/8 bg-white/[0.04] text-sm text-white placeholder:text-slate-600"
-                />
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="relative max-w-sm flex-1">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                  <Input
+                    placeholder="Buscar por nota, CNPJ, posto, placa ou usuário..."
+                    value={searchHistorico}
+                    onChange={e => setSearchHistorico(e.target.value)}
+                    className="pl-10 h-10 rounded-xl border border-white/8 bg-white/[0.04] text-sm text-white placeholder:text-slate-600"
+                  />
+                </div>
+                {!loadingHistorico && (
+                  <p className="text-xs text-slate-500 shrink-0">
+                    {historicoFiltrado.length} {historicoFiltrado.length === 1 ? "nota" : "notas"}
+                    {(searchHistorico || dateFilter !== "todos") && ` de ${historico.length}`}
+                    {" · "}expiram após 30 dias
+                  </p>
+                )}
               </div>
-              {!loadingHistorico && (
-                <p className="text-xs text-slate-500 shrink-0">
-                  {historicoFiltrado.length} {historicoFiltrado.length === 1 ? "nota" : "notas"}
-                  {searchHistorico && ` de ${historico.length}`}
-                  {" · "}expiram após 30 dias
-                </p>
-              )}
+              {/* Filtros de data */}
+              <div className="flex items-center gap-1.5">
+                {([
+                  { key: "todos", label: "Todos" },
+                  { key: "hoje",  label: "Hoje" },
+                  { key: "7d",    label: "7 dias" },
+                  { key: "30d",   label: "30 dias" },
+                ] as { key: DateFilter; label: string }[]).map(({ key, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => setDateFilter(key)}
+                    className={`h-7 rounded-lg px-3 text-[12px] font-medium transition-all ${
+                      dateFilter === key
+                        ? "bg-violet-500/20 text-violet-300 shadow-[inset_0_0_0_1px_rgba(139,92,246,0.3)]"
+                        : "text-slate-500 hover:bg-white/[0.04] hover:text-slate-300"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Lista */}
@@ -968,17 +1037,19 @@ const Abastecimento = () => {
                   <History className="h-6 w-6 text-slate-600" />
                 </div>
                 <p className="text-sm font-medium text-slate-400">
-                  {searchHistorico ? "Nenhuma nota encontrada" : "Nenhuma nota processada ainda"}
+                  {searchHistorico || dateFilter !== "todos" ? "Nenhuma nota encontrada" : "Nenhuma nota processada ainda"}
                 </p>
                 <p className="mt-1 text-xs text-slate-600">
-                  {searchHistorico ? "Tente buscar por outro termo" : "Exporte XMLs na aba Correção para o histórico aparecer aqui"}
+                  {searchHistorico || dateFilter !== "todos"
+                    ? "Tente outro termo ou período"
+                    : "Exporte XMLs na aba Correção para o histórico aparecer aqui"}
                 </p>
               </div>
             ) : (
               <div className="overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(16,20,32,0.98),rgba(10,13,22,0.98))] shadow-[0_14px_40px_rgba(0,0,0,0.28)]">
                 {/* Cabeçalho da tabela */}
-                <div className="grid grid-cols-[1fr_1.6fr_1fr_1fr_1fr_auto] gap-4 border-b border-white/[0.05] px-5 py-3">
-                  {["Nota #", "Posto", "CNPJ", "Placa", "Data", ""].map(h => (
+                <div className="grid grid-cols-[1fr_1.6fr_1fr_1fr_1fr_1fr_auto] gap-4 border-b border-white/[0.05] px-5 py-3">
+                  {["Nota #", "Posto", "CNPJ", "Placa", "Exportado por", "Data", ""].map(h => (
                     <span key={h} className="text-[11px] font-semibold uppercase tracking-wider text-slate-600">{h}</span>
                   ))}
                 </div>
@@ -989,12 +1060,16 @@ const Abastecimento = () => {
                       initial={{ opacity: 0, y: 4 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.02, duration: 0.22 }}
-                      className="grid grid-cols-[1fr_1.6fr_1fr_1fr_1fr_auto] gap-4 items-center px-5 py-3.5 hover:bg-white/[0.02] transition-colors"
+                      className="grid grid-cols-[1fr_1.6fr_1fr_1fr_1fr_1fr_auto] gap-4 items-center px-5 py-3.5 hover:bg-white/[0.02] transition-colors"
                     >
                       <span className="text-sm font-mono font-medium text-white">{nota.n_nf}</span>
                       <span className="text-sm text-slate-300 truncate" title={nota.posto_nome}>{nota.posto_nome}</span>
                       <span className="text-xs font-mono text-slate-500">{formatCNPJ(nota.cnpj)}</span>
                       <span className="text-sm text-violet-300 font-medium">{nota.placa || <span className="text-slate-600 italic">—</span>}</span>
+                      <div className="flex items-center gap-1.5 text-xs text-slate-400 truncate">
+                        <User className="h-3 w-3 shrink-0 text-slate-600" />
+                        <span className="truncate">{nota._userName ?? "—"}</span>
+                      </div>
                       <div className="flex items-center gap-1.5 text-xs text-slate-500">
                         <Calendar className="h-3 w-3 shrink-0" />
                         {new Date(nota.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" })}
