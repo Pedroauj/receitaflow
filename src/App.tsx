@@ -31,6 +31,7 @@ import MediasAbastecimento from "./pages/MediasAbastecimento";
 import Inicio from "./pages/Inicio";
 import Minerva from "./pages/Minerva";
 import ContasAPagar from "./pages/ContasAPagar";
+import SgtWorkspace from "./pages/SgtWorkspace";
 
 const queryClient = new QueryClient();
 
@@ -85,6 +86,7 @@ const App = () => {
                   element={<ClientePlaceholder clientName="JBS" />}
                 />
                 <Route path="/cliente/natura" element={<Natura />} />
+                <Route path="/sgt" element={<SgtWorkspace />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />

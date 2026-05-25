@@ -199,14 +199,13 @@ const Index = () => {
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
 
             {/* Card SGT — primeiro e destacado */}
-            <motion.a
-              href="https://dashboardsgt.lovable.app/login"
-              target="_blank"
-              rel="noopener noreferrer"
+            <motion.button
+              type="button"
+              onClick={() => navigate("/sgt")}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className="group relative overflow-hidden rounded-[22px] border border-teal-500/30 bg-[linear-gradient(135deg,rgba(16,24,36,0.98)_0%,rgba(10,22,20,0.98)_100%)] p-5 shadow-[0_10px_30px_rgba(0,0,0,0.28),0_0_0_1px_rgba(59,191,160,0.08)] transition-all duration-200 hover:-translate-y-0.5 hover:border-teal-400/50 hover:shadow-[0_16px_40px_rgba(0,0,0,0.35),0_0_24px_rgba(59,191,160,0.12)]"
+              className="group relative overflow-hidden rounded-[22px] border border-teal-500/30 bg-[linear-gradient(135deg,rgba(16,24,36,0.98)_0%,rgba(10,22,20,0.98)_100%)] p-5 shadow-[0_10px_30px_rgba(0,0,0,0.28),0_0_0_1px_rgba(59,191,160,0.08)] transition-all duration-200 hover:-translate-y-0.5 hover:border-teal-400/50 hover:shadow-[0_16px_40px_rgba(0,0,0,0.35),0_0_24px_rgba(59,191,160,0.12)] text-left w-full"
             >
               <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,191,160,0.10),transparent_55%)]" />
 
@@ -226,7 +225,7 @@ const Index = () => {
                 <p className="text-[15px] font-semibold tracking-tight text-white">SGT</p>
                 <p className="mt-1.5 text-xs leading-5 text-slate-500">Acesso ao workspace SGT</p>
               </div>
-            </motion.a>
+            </motion.button>
 
             {accessibleModules.map((mod, i) => (
               <motion.button
