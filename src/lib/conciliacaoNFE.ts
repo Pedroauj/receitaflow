@@ -75,13 +75,6 @@ type ColumnIndexes = {
 
 const IGNORE_CANCELED_NOTES = true;
 
-const EXCLUDED_SIEG_TAGS = new Set([
-  "remessa para conserto",
-  "nfe entrada",
-  "combustivel externo",
-  "combustivel interno",
-]);
-
 function normalizeHeader(value: unknown) {
   return String(value ?? "")
     .normalize("NFD")
@@ -233,11 +226,6 @@ function splitTags(value: unknown) {
     .split(/[;,|]/)
     .map((tag) => tag.trim())
     .filter(Boolean);
-}
-
-function shouldExcludeSiegRecord(tagsRaw: string) {
-  const normalizedTags = splitTags(tagsRaw).map(normalizeTag);
-  return normalizedTags.some((tag) => EXCLUDED_SIEG_TAGS.has(tag));
 }
 
 function isAtivoImobilizado(tagsRaw: string) {
@@ -602,7 +590,8 @@ function parseGovernmentRecords(rows: MappedRow[], indexes: ColumnIndexes): Pars
   return rows
     .filter((row) => {
       if (!IGNORE_CANCELED_NOTES) return true;
-      return !isCanceledRecord(getRowValues(row), indexes.statusIndex);
+      const values = getRowValues(row);
+      return !isCanceledRecord(values, indexes.statusIndex);
     })
     .map((row) => {
       const values = getRowValues(row);
