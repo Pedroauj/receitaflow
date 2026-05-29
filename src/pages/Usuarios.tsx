@@ -73,6 +73,25 @@ const MODULES = [
   { key: "configuracoes", label: "Configurações", icon: Settings },
 ];
 
+// Allowed image MIME types and their canonical extensions
+const ALLOWED_IMAGE_TYPES: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/gif": "gif",
+  "image/webp": "webp",
+};
+
+function validateImageFile(file: File): string | null {
+  if (!ALLOWED_IMAGE_TYPES[file.type]) {
+    return "Formato inválido. Use JPG, PNG, GIF ou WebP.";
+  }
+  return null;
+}
+
+function imageExt(file: File): string {
+  return ALLOWED_IMAGE_TYPES[file.type] ?? "jpg";
+}
+
 const Usuarios = () => {
   const { user } = useAuth();
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -251,7 +270,8 @@ const Usuarios = () => {
   };
 
   const toggleRole = async (profile: Profile) => {
-    if (profile.email === "pedraljoao5@gmail.com") return;
+    // Prevent users from demoting their own account
+    if (profile.user_id === user?.id) return;
     setUpdating(profile.id);
 
     const newRole = profile.role === "master" ? "user" : "master";
@@ -275,7 +295,8 @@ const Usuarios = () => {
   };
 
   const toggleActive = async (profile: Profile) => {
-    if (profile.email === "pedraljoao5@gmail.com") return;
+    // Prevent users from deactivating their own account
+    if (profile.user_id === user?.id) return;
     setUpdating(profile.id);
 
     const { error } = await supabase
@@ -318,7 +339,12 @@ const Usuarios = () => {
   const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
+    const err = validateImageFile(file);
+    if (err) {
+      toast({ title: err, variant: "destructive" });
+      e.target.value = "";
+      return;
+    }
     setNewCompanyLogo(file);
     const reader = new FileReader();
     reader.onload = (ev) => setLogoPreview(ev.target?.result as string);
@@ -336,7 +362,7 @@ const Usuarios = () => {
     let logoUrl: string | null = null;
 
     if (newCompanyLogo) {
-      const ext = newCompanyLogo.name.split(".").pop();
+      const ext = imageExt(newCompanyLogo);
       const path = `${crypto.randomUUID()}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
@@ -392,7 +418,12 @@ const Usuarios = () => {
   const handleEditLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
+    const err = validateImageFile(file);
+    if (err) {
+      toast({ title: err, variant: "destructive" });
+      e.target.value = "";
+      return;
+    }
     setEditCompanyLogo(file);
     const reader = new FileReader();
     reader.onload = (ev) => setEditLogoPreview(ev.target?.result as string);
@@ -406,7 +437,7 @@ const Usuarios = () => {
     let logoUrl = editingCompany.logo_url;
 
     if (editCompanyLogo) {
-      const ext = editCompanyLogo.name.split(".").pop();
+      const ext = imageExt(editCompanyLogo);
       const path = `${crypto.randomUUID()}.${ext}`;
 
       const { error: uploadError } = await supabase.storage

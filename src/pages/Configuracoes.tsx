@@ -152,7 +152,8 @@ const Configuracoes = () => {
 
     setAvatarUploading(true);
     try {
-      const ext = pendingAvatarFile.name.split(".").pop()?.toLowerCase() || "jpg";
+      const mimeToExt: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/gif": "gif", "image/webp": "webp" };
+      const ext = mimeToExt[pendingAvatarFile.type] ?? "jpg";
       const filePath = `${user.id}/avatar.${ext}`;
 
       const { error: uploadError } = await supabase.storage

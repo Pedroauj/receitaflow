@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useModulePermissions } from "@/hooks/useModulePermissions";
@@ -8,8 +9,15 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children, moduleKey }: ProtectedRouteProps) => {
-  const { user, loading } = useAuth();
+  const { user, profile, loading, signOut } = useAuth();
   const { canView, loading: permLoading } = useModulePermissions();
+
+  const isInactive = !loading && user !== null && profile?.active === false;
+
+  // Side-effect: clear the Supabase session for deactivated users
+  useEffect(() => {
+    if (isInactive) signOut();
+  }, [isInactive, signOut]);
 
   if (loading || permLoading) {
     return (
@@ -19,7 +27,7 @@ const ProtectedRoute = ({ children, moduleKey }: ProtectedRouteProps) => {
     );
   }
 
-  if (!user) {
+  if (!user || isInactive) {
     return <Navigate to="/login" replace />;
   }
 
