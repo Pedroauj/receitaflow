@@ -128,7 +128,7 @@ const MotorCliente = () => {
     .slice(0, 3);
 
   return (
-    <div className="w-full px-6 pb-8 pt-2">
+    <div className="w-full pt-2 pb-2">
       <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-6">
         {/* HERO */}
         <motion.section

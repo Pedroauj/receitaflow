@@ -122,7 +122,7 @@ const MartinBrower = () => {
 
   return (
     <div className="w-full">
-      <div className="mx-auto max-w-[1560px] px-6 py-7">
+      <div className="mx-auto max-w-[1560px] py-2">
         <ClientPageHeader
           badgeIcon={FileSpreadsheet}
           badgeLabel="Cliente Martin Brower"

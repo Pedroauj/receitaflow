@@ -508,7 +508,7 @@ const Abastecimento = () => {
 
   return (
     <div className="w-full">
-      <div className="mx-auto max-w-[1560px] px-4 py-5 lg:px-6 lg:py-7">
+      <div className="mx-auto max-w-[1560px] py-2">
 
         {/* ── Header ── */}
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }} className="mb-7">
