@@ -150,7 +150,7 @@ const Historico = () => {
         ) : (
           <>
             <div className="overflow-auto">
-              <table className="w-full">
+              <table className="w-full min-w-[680px]">
                 <thead>
                   <tr className="border-b border-white/10">
                     {["Cliente", "Data processamento", "Data vencimento", "Documentos", "Valor total", "Status", ""].map((h, i) => (

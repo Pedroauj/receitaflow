@@ -314,14 +314,14 @@ const ContasAPagar = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="relative">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative flex-1 sm:flex-none">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" />
               <input
                 type="text"
                 placeholder="Buscar título..."
                 disabled
-                className="h-10 w-56 rounded-xl border border-border bg-muted/40 pl-9 pr-3 text-sm text-foreground/70 placeholder:text-white/30 transition-colors focus:border-violet-500/40 focus:outline-none disabled:opacity-50"
+                className="h-10 w-full sm:w-56 rounded-xl border border-border bg-muted/40 pl-9 pr-3 text-sm text-foreground/70 placeholder:text-white/30 transition-colors focus:border-violet-500/40 focus:outline-none disabled:opacity-50"
               />
             </div>
 
@@ -336,7 +336,8 @@ const ContasAPagar = () => {
         </div>
 
         {/* ── table header ── */}
-        <div className="overflow-hidden rounded-2xl border border-border">
+        <div className="overflow-x-auto rounded-2xl border border-border">
+          <div className="min-w-[540px]">
           <div className="grid grid-cols-[1fr_1fr_120px_120px_100px] gap-px bg-muted/50 px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-white/50">
             <span>Fornecedor</span>
             <span>Descrição</span>
@@ -356,6 +357,7 @@ const ContasAPagar = () => {
               visualizar os resultados aqui.
             </p>
           </div>
+          </div>{/* min-w */}
         </div>
       </section>
     </motion.div>

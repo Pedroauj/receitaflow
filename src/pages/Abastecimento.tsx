@@ -508,7 +508,7 @@ const Abastecimento = () => {
 
   return (
     <div className="w-full">
-      <div className="mx-auto max-w-[1560px] px-6 py-7">
+      <div className="mx-auto max-w-[1560px] px-4 py-5 lg:px-6 lg:py-7">
 
         {/* ── Header ── */}
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }} className="mb-7">
@@ -529,7 +529,7 @@ const Abastecimento = () => {
         </motion.div>
 
         {/* ── Tabs ── */}
-        <div className="mb-6 inline-flex items-center gap-1 rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(16,20,32,0.98),rgba(10,13,22,0.98))] p-1.5">
+        <div className="mb-6 flex w-full overflow-x-auto sm:w-auto sm:inline-flex items-center gap-1 rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(16,20,32,0.98),rgba(10,13,22,0.98))] p-1.5">
           {([
             { key: "correcao",  label: "Correção de XML", icon: FileCode,  badge: null },
             { key: "postos",    label: "Postos e Tags",   icon: Store,     badge: null },
@@ -616,6 +616,8 @@ const Abastecimento = () => {
 
                   {/* Tabela */}
                   <div className="overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(16,20,32,0.98),rgba(10,13,22,0.98))] shadow-[0_18px_60px_rgba(0,0,0,0.35)]">
+                    <div className="overflow-x-auto">
+                    <div className="min-w-[700px]">
                     {/* Header tabela */}
                     <div className="grid grid-cols-[80px_1fr_1.4fr_1.6fr_1.5fr_36px] items-center border-b border-white/8 bg-white/[0.02] px-5 py-3 gap-3">
                       {["Nº Nota","Posto","Arquivo","Placa","Preview infCpl",""].map((h, i) => (
@@ -693,10 +695,12 @@ const Abastecimento = () => {
                         })}
                       </AnimatePresence>
                     </div>
+                    </div>{/* min-w */}
+                    </div>{/* overflow-x-auto */}
                   </div>
 
                   {/* Rodapé confirmar */}
-                  <div className="flex items-center justify-between rounded-[20px] border border-white/8 bg-white/[0.02] px-5 py-4">
+                  <div className="flex flex-col gap-3 rounded-[20px] border border-white/8 bg-white/[0.02] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-sm text-slate-400">
                       {semPlacaCount > 0
                         ? `Preencha a placa de ${semPlacaCount} nota${semPlacaCount > 1 ? "s" : ""} para continuar`
@@ -1047,6 +1051,8 @@ const Abastecimento = () => {
               </div>
             ) : (
               <div className="overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(16,20,32,0.98),rgba(10,13,22,0.98))] shadow-[0_14px_40px_rgba(0,0,0,0.28)]">
+                <div className="overflow-x-auto">
+                <div className="min-w-[760px]">
                 {/* Cabeçalho da tabela */}
                 <div className="grid grid-cols-[1fr_1.6fr_1fr_1fr_1fr_1fr_auto] gap-4 border-b border-white/[0.05] px-5 py-3">
                   {["Nota #", "Posto", "CNPJ", "Placa", "Exportado por", "Data", ""].map(h => (
@@ -1084,6 +1090,8 @@ const Abastecimento = () => {
                     </motion.div>
                   ))}
                 </div>
+                </div>{/* min-w */}
+                </div>{/* overflow-x-auto */}
               </div>
             )}
           </motion.div>

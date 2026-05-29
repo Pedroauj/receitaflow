@@ -535,7 +535,7 @@ const DashboardLayout = () => {
       <main
         ref={mainRef}
         className={`relative z-10 transition-all duration-500 ease-out ${
-          isPresentationMode ? "" : "pt-[88px] md:pt-[92px]"
+          isPresentationMode ? "" : "pt-[116px] lg:pt-[72px]"
         }`}
       >
         <div
